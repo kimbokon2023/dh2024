@@ -1,0 +1,463 @@
+<?php
+ session_start();
+
+ $level= $_SESSION["level"];
+
+ ?>
+ 
+ <!DOCTYPE HTML>
+ <html>
+ <head>
+ <meta charset="UTF-8">
+ <link rel="stylesheet" type="text/css" href="../css/common.css">
+ <link rel="stylesheet" type="text/css" href="../css/steel.css"> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://uicdn.toast.com/tui.pagination/latest/tui-pagination.css" />
+<script src="https://uicdn.toast.com/tui.pagination/latest/tui-pagination.js"></script>
+<link rel="stylesheet" href="https://uicdn.toast.com/tui-grid/latest/tui-grid.css"/>
+<script src="https://uicdn.toast.com/tui-grid/latest/tui-grid.js"></script>	
+<!-- CSS only -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
+<!-- 화면에 UI창 알람창 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<!-- date js 모음 -->
+<script src="http://8440.co.kr/js/date.js"></script> 
+
+ <title> 연차 Grid 보기 </title> 
+ </head>
+ <?php 
+
+isset($_REQUEST["fromdate"])  ? $fromdate = $_REQUEST["fromdate"] :   $fromdate=""; 
+isset($_REQUEST["todate"])  ? $todate = $_REQUEST["todate"] :   $todate=""; 
+isset($_REQUEST["recordDate"])  ? $recordDate = $_REQUEST["recordDate"] :   $recordDate=date("Y-m-d");
+
+ if(isset($_REQUEST["check"])) 
+	 $check=$_REQUEST["check"]; // 미출고 리스트 request 사용 페이지 이동버튼 누를시`
+   else
+     $check=$_POST["check"]; // 미출고 리스트 POST사용 
+ 
+  if(isset($_REQUEST["plan_output_check"])) 
+	 $plan_output_check=$_REQUEST["plan_output_check"]; // 미출고 리스트 request 사용 페이지 이동버튼 누를시`
+   else
+	if(isset($_POST["plan_output_check"]))   
+         $plan_output_check=$_POST["plan_output_check"]; // 미출고 리스트 POST사용  
+	 else
+		 $plan_output_check='0';
+ 
+ if(isset($_REQUEST["output_check"])) 
+	 $output_check=$_REQUEST["output_check"]; // 출고완료
+   else
+	if(isset($_POST["output_check"]))   
+         $output_check=$_POST["output_check"]; // 출고완료
+	 else
+		 $output_check='0';
+	 
+ if(isset($_REQUEST["team_check"])) 
+	 $team_check=$_REQUEST["team_check"]; // 시공팀미지정
+   else
+	if(isset($_POST["team_check"]))   
+         $team_check=$_POST["team_check"]; // 시공팀미지정
+	 else
+		 $team_check='0';	 
+	 
+ if(isset($_REQUEST["measure_check"])) 
+	 $measure_check=$_REQUEST["measure_check"]; // 미실측리스트
+   else
+	if(isset($_POST["measure_check"]))   
+         $measure_check=$_POST["measure_check"]; // 미실측리스트
+	 else
+		 $measure_check='0';		 
+  
+ if(isset($_REQUEST["page"])) // $_REQUEST["page"]값이 없을 때에는 1로 지정 
+ {
+    $page=$_REQUEST["page"];  // 페이지 번호
+ }
+  else
+  {
+    $page=1;	 
+  }
+   
+ function trans_date($tdate) {
+		      if($tdate!="0000-00-00" and $tdate!="1900-01-01" and $tdate!="")  $tdate = date("Y-m-d", strtotime( $tdate) );
+					else $tdate="";							
+				return $tdate;	
+}  
+  
+// print $output_check;
+  
+ $cursort=$_REQUEST["cursort"];    // 현재 정렬모드 지정
+ $sortof=$_REQUEST["sortof"];  // 클릭해서 넘겨준 값
+ $stable=$_REQUEST["stable"];    // 정렬모드 변경할지 안할지 결정
+ 
+ if(isset($_REQUEST["sortof"]))
+    {
+
+	if($sortof==1 and $stable==0) {      //접수일 클릭되었을때
+		
+	 if($cursort!=1)
+	    $cursort=1;
+      else
+	     $cursort=2;
+	    } 
+	if($sortof==2 and $stable==0) {     //납기일 클릭되었을때
+		
+	 if($cursort!=3)
+	    $cursort=3;
+      else
+		 $cursort=4;			
+	   }	   
+	if($sortof==3 and $stable==0) {     //실측일 클릭되었을때
+		
+	 if($cursort!=5)
+	    $cursort=5;
+      else
+		 $cursort=6;			
+	   }	   	   
+	if($sortof==4 and $stable==0) {     //도면작성일 클릭되었을때
+		
+	 if($cursort!=7)
+	    $cursort=7;
+      else
+		 $cursort=8;			
+	   }	   
+	if($sortof==5 and $stable==0) {     //출고일 클릭되었을때
+		
+	 if($cursort!=9)
+	    $cursort=9;
+      else
+		 $cursort=10;			
+	   }		   
+	if($sortof==6 and $stable==0) {     //청구 클릭되었을때
+		
+	 if($cursort!=11)
+	    $cursort=11;
+      else
+		 $cursort=12;			
+	   }		   
+	}	   
+  else 
+  {
+     $sortof=0;     
+	 $cursort=0;
+  }
+  
+  
+  $sum=array(); 
+	 
+  if(isset($_REQUEST["mode"]))
+     $mode=$_REQUEST["mode"];
+  else 
+     $mode="";        
+ 
+ if(isset($_REQUEST["find"]))   //목록표에 제목,이름 등 나오는 부분
+ $find=$_REQUEST["find"];
+ 
+if($fromdate=="")
+{
+	$fromdate=substr(date("Y-m-d",time()),0,7) ;
+	$fromdate=$fromdate . "-01";
+}
+if($todate=="")
+{
+	$todate=date("Y-m-d");
+	$Transtodate=strtotime($todate.'+1 days');
+	$Transtodate=date("Y-m-d",$Transtodate);
+}
+    else
+	{
+	$Transtodate=strtotime($todate);
+	$Transtodate=date("Y-m-d",$Transtodate);
+	}
+  
+  if(isset($_REQUEST["search"]))   //
+ $search=$_REQUEST["search"];
+
+$orderby=" order by askdateto desc ";
+	
+$now = date("Y-m-d");	 // 현재 날짜와 크거나 같으면 출고예정으로 구분		
+  
+if($mode=="search"){
+		  if($search==""){
+					 $sql="select * from mirae8440.al where askdateto between date('$fromdate') and date('$Transtodate')" . $orderby;  			
+			       }
+			 elseif($search!="")
+			    { 
+					  $sql ="select * from mirae8440.al where ((name like '%$search%' )  or (askdateto like '%$search%' )  or (askdatefrom like '%$search%' ))  ";
+					  $sql .=" and ( askdateto between date('$fromdate') and date('$Transtodate'))" . $orderby ;				  		  		   
+			     }    
+}
+  else
+  {
+    $sql="select * from mirae8440.al where askdateto between date('$fromdate') and date('$Transtodate')" . $orderby;  			
+  }
+	  
+require_once("../lib/mydb.php");
+$pdo = db_connect();	  		  
+
+   $counter=0;
+   $num_arr=array();
+   $id_arr=array();
+   $name_arr=array();
+   $part_arr=array();
+   $registdate_arr=array();
+   $item_arr=array();
+   $askdatefrom_arr=array();
+   $askdateto_arr=array();
+   $usedday_arr=array();
+   $content_arr=array();
+   $state_arr=array();
+   $sum1=0;
+   $sum2=0;
+   $sum3=0;
+
+
+ try{  
+ 
+   $stmh = $pdo->query($sql);            // 검색조건에 맞는글 stmh
+   $rowNum = $stmh->rowCount();  
+
+
+   while($row = $stmh->fetch(PDO::FETCH_ASSOC)) {	 
+
+		   include 'rowDBask.php';              		  
+   
+           array_push($num_arr,$num);
+           array_push($id_arr,$id);
+           array_push($name_arr,$name);
+           array_push($part_arr,$part);
+           array_push($registdate_arr,$registdate);
+           array_push($item_arr,$item);
+           array_push($askdatefrom_arr,$askdatefrom);
+           array_push($askdateto_arr,$askdateto);
+           array_push($usedday_arr,$usedday);
+           array_push($content_arr,$content);
+           array_push($state_arr,$state);
+           
+	 } 	 
+   } catch (PDOException $Exception) {
+    print "오류: ".$Exception->getMessage();
+}  
+$all_sum=$sum1 + $sum2 + $sum3;		 		 
+		 
+			?>
+		 
+<body >
+
+ <div class="container">  
+   
+   <form name="board_form" id="board_form"  method="post" action="batchDB.php?mode=search&year=<?=$year?>&search=<?=$search?>&process=<?=$process?>&asprocess=<?=$asprocess?>&fromdate=<?=$fromdate?>&todate=<?=$todate?>&up_fromdate=<?=$up_fromdate?>&up_todate=<?=$up_todate?>&separate_date=<?=$separate_date?>&view_table=<?=$view_table?>">  
+    <div class="dflex-row p-2 mb-2 justify-contents-center">   
+		<div class="input-group p-2 mb-2 justify-contents-center">
+			<button type="button" id="preyear" class="btn btn-secondary"   onclick='pre_year()' > 전년도 </button>  &nbsp;  	
+			<button type="button" id="three_month" class="btn btn-secondary"  onclick='three_month_ago()' > M-3월 </button> &nbsp;  	
+			<button type="button" id="prepremonth" class="btn btn-secondary"  onclick='prepre_month()' > 전전월 </button>	&nbsp;  
+			<button type="button" id="premonth" class="btn btn-secondary"  onclick='pre_month()' > 전월 </button>  &nbsp; 	
+			<button type="button" id="thismonth" class="btn btn-dark"  onclick='this_month()' > 당월 </button>	&nbsp;  	   
+			<button type="button" id="thisyear" class="btn btn-dark"  onclick='this_year()' > 당해년도 </button> &nbsp;  			
+		   <span class='input-group-text align-items-center' style='width:400 px;'>  
+		   <input type="date" id="fromdate" name="fromdate" size="12" value="<?=$fromdate?>" placeholder="기간 시작일">  &nbsp; 부터 &nbsp;  
+		   <input type="date" id="todate" name="todate" size="12"  value="<?=$todate?>" placeholder="기간 끝">  &nbsp;  까지    </span>  &nbsp;
+		   <input type="text" name="search" id="search" value="<?=$search?>" onkeydown="JavaScript:SearchEnter();"> 
+			<button type="button" id="searchBtn" class="btn btn-dark"  > 검색 </button>			
+       </div>      
+      </div>
+	 <div class="dflex-row p-2 justify-contents-center"> 
+		<h3 class="input-text" > <h3> 직원 연차 자료 	 </h3>     
+      </div>	 
+	 <div class="dflex-row p-2 mb-2 justify-contents-center"> 	 
+
+	 <div id="grid" >  </div>
+      </div>	 
+	 
+     
+	 </form>
+	 
+	 </div>
+
+   
+  
+  <form id=Form1 name="Form1">
+    <input type=hidden id="num_arr" name="num_arr[]" >
+    <input type=hidden id="recordDate_arr" name="recordDate_arr[]">
+  </form>
+  
+  </body>
+
+</html>  
+
+  
+<script>	
+	
+$(document).ready(function(){
+	
+	
+$("#searchBtn").click(function(){  document.getElementById('board_form').submit();   });		
+	
+	
+var arr1 = <?php echo json_encode($num_arr);?> ;
+var numcopy = new Array(); ;	
+
+ var arr2 = <?php echo json_encode($registdate_arr);?> ;	
+ var arr3 = <?php echo json_encode($askdatefrom_arr);?> ;
+ var arr4 = <?php echo json_encode($askdateto_arr);?> ;
+ var arr5 = <?php echo json_encode($usedday_arr);?> ;
+ var arr6 = <?php echo json_encode($name_arr);?> ; 
+ var arr7 = <?php echo json_encode($state_arr);?> ;
+ 
+ 
+ 
+ var total_sum=0; 
+  
+ var rowNum = arr1.length;
+ 
+ const data = [];
+ const columns = [];	
+  var count=0;  // 전체줄수 카운트 
+ 
+ for(i=0;i<rowNum;i++) {
+			 total_sum = total_sum + Number(uncomma(arr6[i]));
+		 row = { name: i };		 
+				row[`col1`] = arr1[i] ;						 						
+				row[`col2`] = arr2[i] ;						 						
+				row[`col3`] = arr3[i] ;						 						
+				row[`col4`] = arr4[i] ;						 						
+				row[`col5`] = arr5[i] ;						 						
+				row[`col6`] = arr6[i] ;						 						
+				row[`col7`] = arr7[i] ;						 													
+				data.push(row); 				 
+				 count++;				
+ }
+			
+
+ class CustomTextEditor {
+	  constructor(props) {
+		const el = document.createElement('input');
+		const { maxLength } = props.columnInfo.editor.options;
+
+		el.type = 'text';
+		el.maxLength = maxLength;
+		el.value = String(props.value);
+
+		this.el = el;
+	  }
+
+	  getElement() {
+		return this.el;
+	  }
+
+	  getValue() {
+		return this.el.value;
+	  }
+
+	  mounted() {
+		this.el.select();
+	  }
+	}	
+
+const grid = new tui.Grid({
+	  el: document.getElementById('grid'),
+	  data: data,
+	  bodyHeight: 650,					  					
+	  columns: [ 				   
+		{
+		  header: '번호',
+		  name: 'col1',
+		  sortingType: 'desc',
+		  sortable: true,
+		  width:100,	
+		  align: 'center'
+		},			
+		{
+		  header: '접수일',
+		  name: 'col2',
+		  color : 'red',
+		  sortingType: 'desc',
+		  sortable: true,
+		  width:150,	
+		  align: 'center'
+		},		
+		{
+		  header: '시작일',
+		  name: 'col3',
+		  color : 'red',
+		  sortingType: 'desc',
+		  sortable: true,
+		  width:150,	
+		  align: 'center'
+		},			
+		{
+		  header: '종료일',
+		  name: 'col4',
+		  sortingType: 'desc',
+		  sortable: true,		  
+		  width:150,	
+		  align: 'center'
+		},
+		{
+		  header: '사용일수',
+		  name: 'col5',
+		  width: 150, 		
+		  align: 'center'
+		},
+		{
+		  header: '성명',
+		  name: 'col6',
+		  width:150,	
+		  align: 'center'
+		},		
+		{
+		  header: '결재상태',
+		  name: 'col7',
+		  width:150,
+		  align: 'center'
+		}
+	  ],
+	columnOptions: {
+			resizable: true
+		  },
+	  rowHeaders: ['rowNum','checkbox'],
+	  pageOptions: {
+		useClient: false,
+		perPage: 20
+	  }	  
+	});		
+	var Grid = tui.Grid; // or require('tui-grid')
+	Grid.applyTheme('default', {
+			  cell: {
+				normal: {
+				  background: '#fbfbfb',
+				  border: '#e0e0e0',
+				  showVerticalBorder: true
+				},
+				header: {
+				  background: '#eee',
+				  border: '#ccc',
+				  showVerticalBorder: true
+				},
+				rowHeader: {
+				  border: '#ccc',
+				  showVerticalBorder: true
+				},
+				editable: {
+				  background: '#fbfbfb'
+				},
+				selectedHeader: {
+				  background: '#d8d8d8'
+				},
+				focused: {
+				  border: '#418ed4'
+				},
+				disabled: {
+				  text: '#b0b0b0'
+				}
+			  }	
+	});	
+	
+		
+
+	
+});  // end toast gui
+
+
+</script>

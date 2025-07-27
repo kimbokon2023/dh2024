@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="UTF-8">
+</head>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+/* Create two equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 25%;
+  padding: 5px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+/* Style the buttons */
+.btn {
+  border: none;
+  outline: none;
+  padding: 10px;
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #ddd;
+}
+
+.btn.active {
+  background-color: #666;
+  color: white;
+}
+</style>
+<body>
+ <?php
+session_start(); 
+ ?>
+ 
+<h3> &nbsp; L바 선택 </h3>
+
+
+<?php 
+$num=1;
+$cols=1;
+for($i=1;$i<=$num;$i++)
+{		
+   if($i%$cols!=0) { ?>  
+<div class="row">
+   <?php }   ?>
+   
+ <div class="column" style="background-color:#aaa;">
+   <a href="#" onclick="box_content('../img/Lbar/Lbar<?=$i?>.jpg');"> <img src="../img/Lbar/Lbar<?=$i?>.jpg"> </a>
+    <p></p>
+    </div>	
+<?php	
+   if($i%$cols==0) { ?>  
+</div>
+   <?php
+              } 
+}
+   ?>   
+</body>
+<script>
+
+// Get the elements with class="column"
+var elements = document.getElementsByClassName("column");
+
+// Declare a loop variable
+var i;
+
+// List View
+function listView() {
+  for (i = 0; i < elements.length; i++) {
+    elements[i].style.width = "100%";
+  }
+}
+
+// Grid View
+function gridView() {
+  for (i = 0; i < elements.length; i++) {
+    elements[i].style.width = "50%";
+  }
+}
+
+/* Optional: Add active class to the current button (highlight it) */
+var container = document.getElementById("btnContainer");
+var btns = container.getElementsByClassName("btn");
+for (var i = 0; i < btns.length; i++) {
+  btns[i].addEventListener("click", function() {
+    var current = document.getElementsByClassName("active");
+    current[0].className = current[0].className.replace(" active", "");
+    this.className += " active";
+  });
+}
+
+function box_content(types) {
+	  document.getElementById("we4").value = types;
+	  $("#below_area").hide();	
+ 	  var tmp= document.getElementById("we4").value; 
+	  document.getElementById("we5").innerHTML = "<img src="+ tmp + " class='maxsmall1' > ";		 // 100*100 이미지 출력
+}
+
+</script>
+
+</html>

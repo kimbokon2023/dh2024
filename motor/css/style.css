@@ -1,0 +1,296 @@
+@CHARSET "UTF-8";
+
+@media print {
+    #Head {display:none;}
+    div.manage{display:none;}
+    div.bottom{display:none;}
+    div.segmental{margin-top:0px;}
+    div.composition{margin-top:0px;}
+}
+
+@media print{@page {size: portrait}}
+
+@page {
+    size: portrait;
+    page-break-after: always; 
+    counter-increment: page;
+
+    @top-center {
+        content: "Headline, yo!"
+    }
+
+    @bottom-right {
+        counter-increment: page;
+        content: "Page " counter(page);
+    }
+}
+
+	.table, td, input {
+      font-size: 13px !important;
+	  vertical-align: middle;
+	    padding: 2px; /* 셀 내부 여백을 5px로 설정 */
+	    border-spacing: 2px; /* 셀 간 간격을 5px로 설정 */
+		text-align:center;
+    }
+	
+  .table td input.form-control, textarea.form-control  {
+    height: 25px;
+    border: 1px solid #392f31; /* 테두리 스타일 추가 */
+    border-radius: 4px; /* 테두리 라운드 처리 */
+  }	
+  
+input[type="checkbox"] {
+    transform: scale(1.6); /* 크기를 1.5배로 확대 */
+    margin-right: 10px;   /* 확대 후의 여백 조정 */
+}
+
+table tr td {
+    vertical-align: middle;
+}
+
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/*
+#movingText {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+*/
+
+/* Light mode styles */
+body {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Dark mode styles */
+[data-theme="dark"] {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* Toggle switch styles */
+.toggle-switch {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-switch input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+	  position: absolute;
+	  content: "";
+	  height: 26px;
+	  width: 26px;
+	  left: 4px;
+	  bottom: 4px;
+	  background-color: white;
+	  transition: .4s;
+	  border-radius: 50%;
+}
+
+input[type="checkbox"]:checked + .toggle-slider {
+  background-color: #2196F3;
+}
+
+input[type="checkbox"]:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Sidebar hide button styles */
+.sidebar-hide {
+  /* Your styles for the sidebar hide button */
+}
+  .hidden-field {
+	display: none; /* 체크박스 체크 시 숨겨진 필드를 숨김 */
+  }
+  .part-field {
+	display: none; /* 체크박스 체크 시 숨겨진 필드를 숨김 */
+  }
+  
+/* 기본적으로 숨김 처리 */
+
+#movingTextContainer {
+	cursor: pointer;
+}
+
+#autocomplete-list {
+	border: 1px solid #d4d4d4;
+	border-bottom: none;
+	border-top: none;
+	position: absolute;
+	top: 93%;
+	left: 35%;
+	right: 30%;
+	width : 10%;
+	z-index: 999;
+}
+.autocomplete-item {
+	padding: 10px;
+	cursor: pointer;
+	background-color: #fff;
+	border-bottom: 1px solid #d4d4d4;
+}
+.autocomplete-item:hover {
+	background-color: #e9e9e9;
+}
+
+.custom-tooltip {
+    display: none;
+    position: absolute;
+    border: 1px solid #ddd;
+    background-color: blue;
+	color:white;
+	font-size:25px;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    top : 100;
+}
+
+/* 툴팁 위치 조정 */
+#denkriModel:hover + .custom-tooltip {
+    display: block;
+    left: 70%; /* 화면 가로축의 중앙에 위치 */
+    top: 90px; /* Y축은 절대 좌표에 따라 설정 */
+    transform: translateX(-50%); /* 자신의 너비의 반만큼 왼쪽으로 이동 */
+}
+	
+#showalign {
+	display: inline-block;
+	position: relative;
+}
+		
+#showalignframe {
+	display: none;
+	position: absolute;
+	width: 400px;
+	z-index: 1000;
+    left: 50%; /* 화면 가로축의 중앙에 위치 */    
+    transform: translateX(-40%); /* 자신의 너비의 반만큼 왼쪽으로 이동 */		
+}
+	
+#showextract {
+	display: inline-block;
+	position: relative;
+}
+		
+#showextractframe {
+	display: none;
+	position: absolute;
+	width: 20%;
+	z-index: 1000;
+    left: 50%; /* 화면 가로축의 중앙에 위치 */    
+    transform: translateX(-40%); /* 자신의 너비의 반만큼 왼쪽으로 이동 */		
+}		
+#showstatus {
+	display: inline-block;
+	position: relative;
+}
+		
+#showstatusframe {
+	display: none;
+	position: absolute;
+	width: 40%;
+	z-index: 1000;
+    left: 50%; /* 화면 가로축의 중앙에 위치 */    
+    transform: translateX(-40%); /* 자신의 너비의 반만큼 왼쪽으로 이동 */		
+}	
+	
+/*
+#showstatus {
+	display: inline-block;
+	position: relative;
+}
+		
+#showstatusframe {
+    display: none;
+    position: absolute;
+    width: 30%;
+    max-height: 60px;
+    overflow-y: auto;  /* Allow vertical scrolling if needed 
+    z-index: 1000;
+    left: 50%;
+    bottom: 10%;
+    transform: translateX(-20%);
+}
+*/
+
+
+th, td {
+    vertical-align: middle !important;
+}
+
+/* 토스트 컨테이너의 너비와 높이를 늘리는 예시 */
+@media (max-width: 534px) { /* 부트스트랩의 기본 모바일 장치 너비 */
+    .toast {
+        width: 500px; /* 원하는 너비 */
+        height: 200px; /* 원하는 높이 */
+    }
+}
+
+
+
+.tooltip-inner {
+    background-color: black !important; /* 배경색 */
+    color: white !important; /* 글자색 */
+}
+.tooltip-arrow {
+    color: black !important; /* 화살표 색상 */
+} 
+
+/* 입력창에 대한 설계 */
+.ui-autocomplete {
+	max-height: 200px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.specialinputWrap {
+	position: relative;
+	display: inline-block;
+	width:100%;
+}
+
+.specialbtnClear {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: transparent;
+	border: none;
+	color: black;
+	cursor: pointer;
+}
+
+.specialbtnClear:before {
+	content: '✖';
+	font-size: 12px;
+}
+
+.specialbtnClear:hover {
+	color: black;
+}

@@ -1,0 +1,344 @@
+<?php
+require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
+
+if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
+	sleep(1);
+	header("Location:" . $WebSite . "login/login_form.php"); 
+	exit;
+}   
+
+include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
+
+// 첫 화면 표시 문구
+$title_message = '받는분 주소록'; 
+ ?>
+ 
+<link href="css/style.css" rel="stylesheet" >   
+
+<title> <?=$title_message?> </title>
+
+</head>
+
+<body>	
+	 
+<?php
+
+function checkNull($strtmp) {
+    if ($strtmp === null || trim($strtmp) === '') {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+// 메뉴를 표현할지 판단하는 header
+$header = isset($_REQUEST['header']) ? $_REQUEST['header'] : '';  
+
+if($header == 'header')
+	require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php');
+
+$search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';  
+$enterpress = isset($_REQUEST["enterpress"]) ? $_REQUEST["enterpress"] : '';    
+$belong = isset($_REQUEST["belong"]) ? $_REQUEST["belong"] : '';    
+$vendor_name = isset($_REQUEST["vendor_name"]) ? $_REQUEST["vendor_name"] : '';
+$mode = isset($_REQUEST["mode"]) ? $_REQUEST["mode"] : '';
+ 
+$tablename = 'workbook';
+ 	  
+require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
+$pdo = db_connect();	
+ 
+$a=" order by num desc";
+	
+if(checkNull($search))
+{
+	$sql = "SELECT * FROM ".$DB.".".$tablename." 
+        WHERE (                      
+            vendor_name LIKE '%$search%' OR 
+            address LIKE '%$search%' OR 
+            phone LIKE '%$search%' OR 
+            contact_info LIKE '%$search%' OR 
+            note LIKE '%$search%'
+        ) AND is_deleted IS NULL " . $a;
+
+	
+}
+	else
+		{
+			$sql ="select * from ".$DB.".".$tablename . " where is_deleted IS NULL "  . $a;	;	
+		}
+
+// print 'mode : ' . $mode;   
+// print 'search : ' . $search;   
+// print $sql;   
+   
+	 try{  
+	  
+	  $stmh = $pdo->query($sql);            // 검색조건에 맞는글 stmh
+      $total_row=$stmh->rowCount();
+   
+       					 
+   
+?>	
+
+<form id="board_form" name="board_form" method="post" enctype="multipart/form-data"   >			 
+
+	<input type="hidden" id="SelectWork" name="SelectWork" value="<?=$SelectWork?>">             	
+	<input type="hidden" id="mode" name="mode" value=<?=$mode?> > 				
+	<input type="hidden" id="num" name="num"  > 				
+	<input type="hidden" id="tablename" name="tablename" value=<?=$tablename?> > 				
+	 
+<div class="container">
+				
+<div class="card justify-content-center text-center mt-1" >
+	<div class="card-header">
+		<span class="text-center fs-5" > <?=$title_message?>  </span>	
+		<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+	</div>
+	<div class="card-body" >								
+	<div class="d-flex  justify-content-center text-center align-items-center mb-2" >										
+			▷ <?= $total_row ?> &nbsp; 
+				<div class="inputWrap30">			
+					<input type="text" id="search" name="search" class="form-control w150px" value="<?=$search?>" autocomplete="off" onKeyPress="if (event.keyCode==13){ enter(); }" >
+					<button class="btnClear">  </button>
+				</div>							
+					&nbsp;&nbsp;
+			 <button class="btn btn-outline-dark btn-sm " type="button" id="searchBtn" > <i class="bi bi-search"></i> 검색 </button> </span> &nbsp;&nbsp;			
+			<!-- <button id="uploadBtn" type="button" class="btn btn-dark btn-sm me-2"> <i class="bi bi-box-arrow-up"></i> 업로드 </button>	 -->
+			<button id="newBtn" type="button" class="btn btn-dark btn-sm me-2"> <i class="bi bi-pencil-square"></i> 신규 </button>	
+			<?php if($header !== 'header') 
+				print '<button id="closeBtn" type="button" class="btn btn-outline-dark btn-sm"> <i class="bi bi-x-lg"></i> 창닫기 </button>';
+			?>
+		</div>		
+
+	<div class="table-reponsive" >	
+	 <table class="table table-hover" id="myTable">		 
+	       <thead class="table-primary">
+				 <th class="text-center" style="width:50px;">번호</th>
+				 <th class="text-center" style="width:120px;">성명</th>
+				 <th class="text-center" style="width:100px;">전화번호</th>
+				 <th class="text-center" style="width:200px;">소재지</th>
+				 <th class="text-center" style="width:100px;">팀인원</th>
+				 <th class="text-center" style="width:200px;">비고</th>
+				 <th class="text-center" style="width:80px;">수정/삭제</th>
+			</thead>
+			<tbody>		      	 
+		<?php  		
+		$start_num=$total_row;  			    
+	       while($row = $stmh->fetch(PDO::FETCH_ASSOC)) {
+				include '_row.php';			
+			 ?>					 
+			<tr onclick="maketext('<?=$vendor_name?>', '<?=$phone?>', '<?=$address?>');">
+				<td class="text-center" ><?= $start_num ?></td>
+				<td  class="text-center" title="<?=$vendor_name?>"><?= $vendor_name ?></td>				
+				<td class="text-center" title="<?=$phone?>"><?= $phone ?></td>
+				<td class="text-start" title="<?=$address ?>"><?= $address ?></td>
+				<td class="text-center" title="<?=$contact_info?>"><?= $contact_info ?></td>
+				<td class="text-start" title="<?=$note?>"><?= $note ?></td>
+				<td class="text-center" >
+					<button type="button" class="btn btn-primary btn-sm" onclick="updateFn('<?=$num?>'); event.stopPropagation();">
+						 <i class="bi bi-pencil-square"></i> 
+					</button>
+					<button type="button" class="btn btn-danger btn-sm" onclick="delFn('<?=$num?>'); event.stopPropagation();">
+						<i class="bi bi-x-circle"></i>
+					</button>
+				</td>
+			</tr>
+	 
+			<?php
+			$start_num--;
+			 } 
+  } catch (PDOException $Exception) {
+  print "오류: ".$Exception->getMessage();
+  }  
+
+ ?>
+ 
+  </tbody>
+ </table>
+       
+
+		 </div>
+		   
+		</div>
+		</div>
+     
+
+</form>
+</body>
+</html>
+
+<!-- 페이지로딩 -->
+<script>
+// 페이지 로딩
+$(document).ready(function(){	
+    var loader = document.getElementById('loadingOverlay');
+    loader.style.display = 'none';
+});
+</script>
+
+<script>
+var dataTable; // DataTables 인스턴스 전역 변수
+var pbpageNumber; // 현재 페이지 번호 저장을 위한 전역 변수
+
+$(document).ready(function() {			
+    // DataTables 초기 설정
+    dataTable = $('#myTable').DataTable({
+        "paging": true,
+        "ordering": true,
+        "searching": true,
+        "pageLength": 50,
+        "lengthMenu": [25, 50, 100, 200, 500, 1000],
+        "language": {
+            "lengthMenu": "Show _MENU_ entries",
+            "search": "Live Search:"
+        },
+        "order": [[0, 'desc']]
+    });
+
+    // 페이지 번호 복원 (초기 로드 시)
+    var savedPageNumber = getCookie('pbpageNumber');
+    if (savedPageNumber) {
+        dataTable.page(parseInt(savedPageNumber) - 1).draw(false);
+    }
+
+    // 페이지 변경 이벤트 리스너
+    dataTable.on('page.dt', function() {
+        var pbpageNumber = dataTable.page.info().page + 1;
+        setCookie('pbpageNumber', pbpageNumber, 10); // 쿠키에 페이지 번호 저장
+    });
+
+    // 페이지 길이 셀렉트 박스 변경 이벤트 처리
+    $('#myTable_length select').on('change', function() {
+        var selectedValue = $(this).val();
+        dataTable.page.len(selectedValue).draw(); // 페이지 길이 변경 (DataTable 파괴 및 재초기화 없이)
+
+        // 변경 후 현재 페이지 번호 복원
+        savedPageNumber = getCookie('pbpageNumber');
+        if (savedPageNumber) {
+            dataTable.page(parseInt(savedPageNumber) - 1).draw(false);
+        }
+    });
+});
+
+function restorePageNumber() {
+    var savedPageNumber = getCookie('pbpageNumber');
+    // if (savedPageNumber) {
+        // dataTable.page(parseInt(savedPageNumber) - 1).draw('page');
+    // }
+	location.reload(true);
+}
+
+// Enterkey 동작
+function enter()
+{
+	$("#board_form").submit();	       		
+}
+
+/* ESC 키 누를시 팝업 닫기 */
+$(document).keydown(function(e){
+	//keyCode 구 브라우저, which 현재 브라우저
+	var code = e.keyCode || e.which;
+
+	if (code == 27) { // 27은 ESC 키번호
+		self.close();
+	}
+});
+	
+function maketext(vendorName, phone, address)
+ {    
+    var managerFieldID = 'chargedman'; 
+    var phoneFieldID = 'chargedmantel'; 
+    var addressFieldID = 'address'; 
+	
+    if (opener && opener.document) {        
+        $("#" + managerFieldID, opener.document).val(vendorName);         
+        $("#" + phoneFieldID, opener.document).val(phone);         
+        $("#" + addressFieldID, opener.document).val(address);         
+  
+    }
+
+    self.close(); // Close the popup window
+}
+
+
+	$("#searchBtn").on("click", function() {
+		$("#board_form").submit();
+	});	
+	
+	$("#search_directinput").on("click", function() {
+		$("#custreg_search").hide();
+	});	
+	// upload
+	$("#uploadBtn").on("click", function() {	
+		  popupCenter('uploadgrid.php' , '업로드', 1800, 800);	
+	});	
+	// 신규 버튼
+	$("#newBtn").on("click", function() {	
+		  popupCenter('./write.php' , '신규등록', 800, 600);	
+	});	
+	// 창닫기 버튼
+	$("#closeBtn").on("click", function() {
+		self.close();
+	});	
+	
+	
+function  updateFn(num) {	
+	popupCenter('./write.php?num=' + num , '자료 수정', 800, 700);	
+
+}
+	
+	
+function  delFn(delfirstitem) {
+	console.log(delfirstitem);
+	$("#SelectWork").val("delete");
+	$("#num").val(delfirstitem);
+
+	// DATA 삭제버튼 클릭시
+		Swal.fire({ 
+			   title: '해당 DATA 삭제', 
+			   text: " DATA 삭제는 신중하셔야 합니다. '\n 정말 삭제 하시겠습니까?", 
+			   icon: 'warning', 
+			   showCancelButton: true, 
+			   confirmButtonColor: '#3085d6', 
+			   cancelButtonColor: '#d33', 
+			   confirmButtonText: '삭제', 
+			   cancelButtonText: '취소' })
+			   .then((result) => { if (result.isConfirmed) { 
+												
+						$.ajax({
+							url: "process.php",
+							type: "post",		
+							data: $("#board_form").serialize(),								
+							success : function( data ){			
+									console.log(data);									
+									 Toastify({
+											text: "파일 삭제 완료!",
+											duration: 3000,
+											close:true,
+											gravity:"top",
+											position: "center",
+											backgroundColor: "#4fbe87",
+										}).showToast();									
+								  setTimeout(function() {
+											location.reload();	
+									   }, 1500);																							 
+												
+								},
+								error : function( jqxhr , status , error ){
+									console.log( jqxhr , status , error );
+							} 			      		
+						   });												
+			   } });	
+}
+
+	
+// 자식창에서 돌아와서 이걸 실행한다
+function reloadlist() {
+
+		const search = $("#search").val();
+		$("#board_form").submit();				
+
+}
+	
+</script>

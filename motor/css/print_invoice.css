@@ -1,0 +1,26 @@
+/* @end */
+.img{
+     position: absolute;
+    background-image: url(https://dh2024.co.kr/motor/img/invoice_sheet_null.jpg);                                                               
+    width: 1250px;
+    height: 1500px;
+    /* background-size: cover; */
+}
+
+
+.img .content{
+     position: absolute;
+	 top:0px;
+	 left:0px;
+     font-size:1rem;
+     color: black;     
+     text-align: left;
+}
+
+#outlineprint {     /* 화면출력 전체사이즈  */ 
+	width:1250px;
+	height:1500px;
+	float:left;
+}
+
+
