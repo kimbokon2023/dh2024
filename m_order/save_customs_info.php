@@ -12,11 +12,6 @@ $total = isset($_POST['total']) ? str_replace(',', '', $_POST['total']) : '';
 $date = isset($_POST['date']) ? $_POST['date'] : '';
 $input_amount_cny = isset($_POST['input_amount_cny']) ? str_replace(',', '', $_POST['input_amount_cny']) : '';
 
-if (!$num || !$round || $round < 1 || $round > 4) {
-    echo json_encode(['success' => false, 'message' => '필수 파라미터 누락 또는 차수 오류']);
-    exit;
-}
-
 $pdo = db_connect();
 $sql = "UPDATE m_order SET
     customs_vat{$round}=?,

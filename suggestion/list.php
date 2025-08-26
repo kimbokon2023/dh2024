@@ -1,25 +1,46 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
-   
+require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");     
    // 첫 화면 표시 문구
-$title_message = '건의사항';
-   
-
+$title_message = '건의사항';  
  if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
 		 sleep(1);
 		  header("Location:" . $WebSite . "login/login_form.php"); 
          exit;
    }   
-
-include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';   
-
+  include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';   
  ?>
   
 <title>  <?=$title_message?>  </title> 
-
     <style>
         .table-hover tbody tr:hover {
             cursor: pointer;
+        }
+        
+        /* 검색 타입 선택 스타일 */
+        .search-type-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .search-type-container input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        .search-type-container label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* 동적 검색 컨트롤 스타일 */
+        .year-select, .month-select, .period-select {
+            display: none;
+            min-width: 200px;
+        }
+
+        .year-select select, .month-select input, .period-select .d-flex {
+            width: 100%;
         }
     </style> 
  
@@ -34,30 +55,59 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 $tablename = "suggestion";
   
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
-$pdo = db_connect();
-	 
-	 
-  if(isset($_REQUEST["mode"]))
-     $mode=$_REQUEST["mode"];
-  else 
-     $mode="";
+$pdo = db_connect();	 
 
-       if(isset($_REQUEST["search"]))   // search 쿼리스트링 값 할당 체크
-         $search=$_REQUEST["search"];
-       else 
-         $search="";     
-     
-   if($mode=="search"){
-         if(!$search) {
-				$sql ="select * from " . $DB . "." . $tablename . " order  by num desc "; 				
-             }
-              $sql="select * from " . $DB . "." . $tablename . " where name like '%$search%' or subject like '%$search%'  or regist_day like '%$search%'   or searchtext like '%$search%'  order by num desc ";              
-       } else {
-              $sql="select * from " . $DB . "." . $tablename . " order  by num desc";              
-       }
+// 검색 관련 변수 초기화
+$search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';  
+$mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';
+$search_type = isset($_REQUEST['search_type']) ? $_REQUEST['search_type'] : 'period'; // 기본값은 기간별
+$selected_year = isset($_REQUEST['selected_year']) ? $_REQUEST['selected_year'] : date('Y');
+$selected_month = isset($_REQUEST['selected_month']) ? $_REQUEST['selected_month'] : date('Y-m');
+$fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
+$todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
+
+// 현재 날짜
+$currentDate = date("Y-m-d");
+
+// 검색 타입에 따른 날짜 설정
+if ($search_type === 'year') {
+    // 연도별 검색
+    $fromdate = $selected_year . "-01-01";
+    $todate = $selected_year . "-12-31";
+} elseif ($search_type === 'month') {
+    // 월별 검색
+    $fromdate = $selected_month . "-01";
+    $todate = date("Y-m-t", strtotime($selected_month . "-01"));
+} else {
+    // 기간별 검색 (기본값)
+    if ($fromdate === "" || $fromdate === null || $todate === "" || $todate === null) {
+        $fromdate = date("Y-m-01", strtotime("-1 month"));	
+        $todate = $currentDate;
+    }
+}
+
+// 연도 옵션 생성 (현재년도 + 과거 3년)
+$current_year = date('Y');
+$year_options = '';
+for ($i = 0; $i < 4; $i++) {
+    $year = $current_year - $i;
+    $selected = ($year == $selected_year) ? 'selected' : '';
+    $year_options .= "<option value='$year' $selected>" . $year . "년</option>";
+}
+
+// 검색 조건에 따른 SQL 쿼리 구성
+if ($search) {
+    $sql = "SELECT * FROM " . $DB . "." . $tablename . " 
+        WHERE (name LIKE '%$search%' OR subject LIKE '%$search%' OR regist_day LIKE '%$search%' OR searchtext LIKE '%$search%')
+        AND regist_day BETWEEN '$fromdate' AND '$todate' 
+        ORDER BY num DESC";
+} else {
+    $sql = "SELECT * FROM " . $DB . "." . $tablename . " 
+        WHERE regist_day BETWEEN '$fromdate' AND '$todate' 
+        ORDER BY num DESC";
+}
 
 try{  
-
 $stmh = $pdo->query($sql);            // 검색조건에 맞는글 stmh
 $total_row=$stmh->rowCount();  
 
@@ -68,32 +118,72 @@ try{
 	$stmh = $pdo->query($sql); 
 	  
 ?>
-<form name="board_form" id="board_form"  method="post" action="list.php?mode=search">
+<form name="board_form" id="board_form"  method="post" action="list.php">
    
 <div class="container">  
 	<div class="card mt-1">
 		<div class="card-body">
 			<div class="d-flex mb-3 mt-2 justify-content-center align-items-center">  
 				<h4> <?=$title_message?> </h4>  
-				<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  	 			
+				<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  	
+                <small class="ms-5 text-muted"> 건의사항 및 요구사항 등 자유롭게 기재 (답글가능) </small>  
 			</div>	
 
-			<div class="d-flex p-0 justify-content-center">
-				<div class="alert alert-info" role="alert" style="font-size: 14px;">
-					  제품 품질개선 해야 할 내용이나 회사에 대한 건의사항이 있으면 부담갖지 말고 올려 주세요!
+			<!-- 검색 타입 선택 -->
+			<div class="row justify-content-center mb-3">
+				<div class="col-auto">
+					<div class="search-type-container">
+						<label class="me-3">
+							<input type="radio" name="search_type" value="year" <?= $search_type === 'year' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 연도별
+						</label>
+						<label class="me-3">
+							<input type="radio" name="search_type" value="month" <?= $search_type === 'month' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 월별
+						</label>
+						<label>
+							<input type="radio" name="search_type" value="period" <?= $search_type === 'period' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 기간별
+						</label>
+					</div>
 				</div>
 			</div>
 
-			<div class="d-flex mb-1 mt-1 justify-content-center align-items-center">  													   
-				<div class="inputWrap">
-					<input type="text" id="search" name="search" value="<?=$search?>" autocomplete="off"  class="form-control w-auto mx-1" placeholder="검색어 입력" > &nbsp;			
-					<button type="button" class="btnClear" title="검색어 지우기">×</button>
-				</div>				
-				<div id="autocomplete-list">
+			<!-- 동적 검색 컨트롤 -->
+			<div class="row justify-content-center mb-3">
+				<div class="col-auto">
+					<!-- 연도별 검색 -->
+					<div class="year-select">
+						<select id="selected_year" name="selected_year" class="form-select form-select-sm" onchange="autoSubmit()">
+							<?= $year_options ?>
+						</select>
+					</div>
+
+					<!-- 월별 검색 -->
+					<div class="month-select">
+						<input type="month" id="selected_month" name="selected_month" class="form-control" value="<?=$selected_month?>" onchange="autoSubmit()">
+					</div>
+
+					<!-- 기간별 검색 -->
+					<div class="period-select">
+						<div class="d-flex align-items-center">
+							<input type="date" id="fromdate" name="fromdate" class="form-control me-2" value="<?=$fromdate?>" onchange="autoSubmit()">
+							<span class="me-2">~</span>
+							<input type="date" id="todate" name="todate" class="form-control" value="<?=$todate?>" onchange="autoSubmit()">
+						</div>
+					</div>
 				</div>
-				 &nbsp;												   			   
-				<button type="button" id="searchBtn" class="btn btn-dark  btn-sm"> <i class="bi bi-search"></i>  </button>	&nbsp;&nbsp;
-				<button type="button" class="btn btn-dark  btn-sm me-1" id="writeBtn"> <i class="bi bi-pencil-fill"></i> 신규  </button> 	    			 
+			</div>
+
+			<!-- 검색어 입력 및 검색 버튼 (항상 유지) -->
+			<div class="row justify-content-center mb-3">
+				<div class="col-auto">
+					<div class="d-flex align-items-center">
+						<div class="inputWrap30 me-2">			
+							<input type="text" id="search" class="form-control" style="width:150px;" name="search" value="<?=$search?>" autocomplete="off" onKeyPress="if (event.keyCode==13){ enter(); }" placeholder="검색어 입력">
+							<button class="btnClear"></button>
+						</div>							
+						<button class="btn btn-outline-dark btn-sm me-2" type="button" id="searchBtn"> <i class="bi bi-search"></i> 검색 </button> &nbsp;&nbsp;&nbsp;&nbsp;			
+						<button id="writeBtn" type="button" class="btn btn-dark btn-sm me-2"> <i class="bi bi-pencil-square"></i> 신규 </button>				
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -172,7 +262,9 @@ try{
 // 페이지 로딩
 $(document).ready(function(){	
     var loader = document.getElementById('loadingOverlay');
-    loader.style.display = 'none';
+    if(loader) {
+        loader.style.display = 'none';
+    }
 });
 </script>
 <script>
@@ -218,6 +310,8 @@ $(document).ready(function() {
             dataTable.page(parseInt(savedPageNumber) - 1).draw(false);
         }
     });
+    
+    toggleSearchType(); // 초기 로드 시 검색 타입에 맞는 컨트롤 표시
 });
 
 function restorePageNumber() {
@@ -227,6 +321,45 @@ function restorePageNumber() {
     }
 }
 
+// 검색 타입에 따른 동적 컨트롤 표시/숨김
+function toggleSearchType() {
+    var searchType = $('input[name="search_type"]:checked').val();
+    
+    // 모든 검색 컨트롤 숨기기
+    $('.year-select, .month-select, .period-select').hide();
+    
+    // 선택된 타입에 따라 해당 컨트롤만 표시
+    if (searchType === 'year') {
+        $('.year-select').show();
+    } else if (searchType === 'month') {
+        $('.month-select').show();
+    } else if (searchType === 'period') {
+        $('.period-select').show();
+    }
+}
+
+// 검색 타입 변경 시 자동 검색 실행
+function toggleSearchTypeAndSubmit() {
+    toggleSearchType();
+    
+    // 약간의 지연 후 폼 제출 (UI 업데이트를 위해)
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 100);
+}
+
+// 검색 조건 변경 시 자동 검색 실행
+function autoSubmit() {
+    // 약간의 지연 후 폼 제출 (사용자 입력 완료를 위해)
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 300);
+}
+
+// 엔터키 입력 시 검색 실행
+function enter() {
+    $("#board_form").submit();
+}
 
 function redirectToView(num, tablename) {
     var page = suggestionpageNumber; // 현재 페이지 번호 (+1을 해서 1부터 시작하도록 조정)

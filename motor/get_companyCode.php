@@ -1,16 +1,13 @@
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
 
-header('Content-Type: application/json');
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
+$pdo = db_connect();
 
 $secondordnum = $_POST['secondordnum'];
 
-require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
-$pdo = db_connect();
 try {
-    $sql = "SELECT email, vendor_name FROM dbchandj.phonebook WHERE secondordnum = ?";
+    $sql = "SELECT email, vendor_name FROM {$DB}.phonebook WHERE secondordnum = ?";
     $stmh = $pdo->prepare($sql);
     $stmh->bindValue(1, $secondordnum, PDO::PARAM_STR);
     $stmh->execute();

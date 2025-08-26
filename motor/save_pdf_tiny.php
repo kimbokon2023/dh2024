@@ -1,11 +1,15 @@
 <?php
+// Prevent any output before JSON response
+error_reporting(0);
+ini_set('display_errors', 0);
+
 header('Content-Type: application/json');
 
 // Set very conservative limits to avoid ModSecurity
-ini_set('post_max_size', '100K');
-ini_set('upload_max_filesize', '100K');
+ini_set('post_max_size', '500K');
+ini_set('upload_max_filesize', '500K');
 ini_set('max_execution_time', 60);
-ini_set('memory_limit', '8M');
+ini_set('memory_limit', '16M');
 
 // Function to clean filename
 function cleanFilename($filename) {
@@ -36,6 +40,9 @@ if (isset($_POST['tiny_chunk']) && isset($_POST['filename'])) {
     $filename = $_POST['filename'];
     $chunkIndex = isset($_POST['chunkIndex']) ? (int)$_POST['chunkIndex'] : 0;
     $totalChunks = isset($_POST['totalChunks']) ? (int)$_POST['totalChunks'] : 1;
+    
+    // Debug logging
+    error_log("save_pdf_tiny.php: Received chunk upload - chunkIndex: $chunkIndex, totalChunks: $totalChunks, filename: $filename, chunk length: " . strlen($chunk));
     
     // Clean filename - more comprehensive cleaning
     $cleanFilename = cleanFilename($filename);
@@ -68,6 +75,9 @@ if (isset($_POST['tiny_chunk']) && isset($_POST['filename'])) {
 if (isset($_POST['pdf']) && isset($_POST['filename'])) {
     $pdf = $_POST['pdf'];
     $filename = $_POST['filename'];
+    
+    // Debug logging
+    error_log("save_pdf_tiny.php: Received regular upload - filename: $filename, pdf length: " . strlen($pdf));
 
     // Clean filename - more comprehensive cleaning
     $cleanFilename = cleanFilename($filename);
@@ -85,6 +95,8 @@ if (isset($_POST['pdf']) && isset($_POST['filename'])) {
         echo json_encode(['error' => '파일 저장에 실패했습니다.']);
     }
 } else {
+    // Debug logging for invalid requests
+    error_log("save_pdf_tiny.php: Invalid request - POST data: " . print_r($_POST, true));
     echo json_encode(['error' => 'Invalid request']);
 }
 ?> 

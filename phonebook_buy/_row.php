@@ -17,4 +17,9 @@ $is_deleted = isset($row['is_deleted']) ? $row['is_deleted'] : 0;
 $searchtag = isset($row['searchtag']) ? $row['searchtag'] : '';
 $update_log = isset($row['update_log']) ? $row['update_log'] : '';
 $item = isset($row['item']) ? $row['item'] : '';
+// 새 컬럼
+$is_china_vendor = isset($row['is_china_vendor']) ? (int)$row['is_china_vendor'] : 0;
+$image_base64 = isset($row['image_base64']) ? $row['image_base64'] : '';
+// 새 컬럼: 카테고리
+$category = isset($row['category']) ? $row['category'] : '';
 ?>

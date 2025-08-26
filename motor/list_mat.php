@@ -390,13 +390,14 @@ usort($items, 'customSortItemCode');
 <input type="hidden" id="itemCode" name="itemCode" value="<?= isset($itemCode) ? $itemCode : '' ?>">
 <input type="hidden" id="lotnum" name="lotnum" value="<?= isset($lotnum) ? $lotnum : '' ?>">
 
-<div class="container">     
+<div class="container-fluid">     
  <div class="d-flex  p-1 justify-content-center align-items-center ">     
   <div class="card mb-2 mt-1 text-center justify-content-center  w-50">  
     <div class="card-body">
     <div class="d-flex  p-1 justify-content-center align-items-center ">         
 	   <h5>  <?=$title_message?> </h5>  &nbsp;&nbsp;&nbsp;   
-		 <button type="button" class="btn btn-dark btn-sm me-2" onclick="location.reload();"> <i class="bi bi-arrow-clockwise"></i> </button>                     
+       <small class="ms-5 text-muted"> 품목별 현재 재고현황 (해당품목 클릭시 입고일자, 수량 및 출고현장 확인 가능) </small>  
+		 <button type="button" class="btn btn-dark btn-sm mx-2" onclick="location.reload();"> <i class="bi bi-arrow-clockwise"></i> </button>                     
            <button type="button" class="btn btn-dark btn-sm " id="showlist" > <i class="bi bi-bar-chart-line-fill"></i> 출고통계 </button>                               
    </div>
    </div>

@@ -7,7 +7,7 @@ if(!isset($_SESSION["level"]) || $_SESSION["level"] > 5) {
     exit;
 }   
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
-$title_message = '품목코드 (모터,브라켓트,연동제어기,콘트럴박스 단가설정 자료 추출)'; 
+$title_message = '품목코드 조회'; 
 
 ?>
  
@@ -184,8 +184,10 @@ if($header !== 'header') {
     print '<div class="card justify-content-center text-center mt-5">';
 }
 ?>     
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-center align-items-center">   
         <span class="text-center fs-5">  <?=$title_message?>   </span>                                
+        <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+        <small class="ms-5 text-muted"> 제품별 품목코드 확인 및 검색 (ex. 220-무선-300) 단상 300kg 무선모터 </small>  
     </div>
     <div class="card-body">                                
         

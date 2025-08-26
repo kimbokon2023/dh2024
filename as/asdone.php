@@ -60,8 +60,10 @@ try {
 <div class="container-fluid">
 <div class="card justify-content-center text-center mt-5">
 
-	<div class="card-header">
-		<span class="text-center fs-5"> <?=$title_message?> </span>								
+	<div class="card-header d-flex justify-content-center align-items-center">
+		<span class="text-center fs-5"> <?=$title_message?> </span>	
+		<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+		<small class="ms-5 text-muted"> 결선/AS 완료현장 검색 </small>  
 	</div>
 	<div class="card-body">								
 		<div class="d-flex justify-content-center text-center align-items-center mb-2">										

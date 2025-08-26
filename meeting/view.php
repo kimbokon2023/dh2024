@@ -115,14 +115,16 @@ $sql=" select * from " . $DB . ".fileuploads where tablename ='$tablename' and i
 		
 		<button type="button" id="closeBtn"  class="btn btn-dark btn-sm me-1" > &times; 닫기 </button>
 		<?php
-		if(isset($_SESSION["userid"])) {
-			if($_SESSION["userid"]==$id || $_SESSION["userid"]=="admin" ||
-			   $_SESSION["level"]==='1' ) {
+		// if(isset($_SESSION["userid"])) {
+		// 	if($_SESSION["userid"]==$id || $_SESSION["userid"]=="admin" ||
+		// 	   $_SESSION["level"]==='1' ) {
 		?>			
 				<button type="button"   class="btn btn-dark btn-sm me-1" onclick="location.href='write_form.php?tablename=<?=$tablename?>&mode=modify&num=<?=$num?>'" >  <i class="bi bi-pencil-square"></i>  수정 </button>			
 				<button type="button"   class="btn btn-dark btn-sm me-1" onclick="location.href='write_form.php?tablename=<?=$tablename?>'" >  <i class="bi bi-pencil"></i>  신규 </button>			
 				<button type="button"   class="btn btn-danger btn-sm me-1" onclick="javascript:del('delete.php?tablename=<?=$tablename?>&num=<?=$num?>')" > <i class="bi bi-trash"></i>  삭제   </button>
-		<?php  } } ?>						
+		<?php  
+		// } } 
+		?>						
 	</div>
 		<div class="card">  
 			<div class="card-body">  	 

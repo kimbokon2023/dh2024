@@ -119,11 +119,12 @@ try {
 	
 <div class="container-fluid">  
 	<div class="card mb-2 mt-2">  
-	<div class="card-body">  	 
-	<div class="d-flex  p-1 m-1 mt-1 justify-content-center align-items-center "> 		
-		   <h5>  <?=$title_message?> </h5>				
+	<div class="card-header d-flex justify-content-center align-items-center">  	 
+		<span class="text-center fs-5">  <?=$title_message?> </span>				
+        <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+        <small class="ms-5 text-muted"> 부자재 원가 및 단가를 추가하거나 수정합니다. </small>  
 		</div>	
-
+    <div class="card-body">
 	    <div class="d-flex  p-1 m-1 mt-1 mb-1 justify-content-center align-items-center"> 	  
 			<ion-icon name="caret-forward-outline"></ion-icon> <?= $total_row ?> &nbsp; 		
 			   <input type="date" id="fromdate" name="fromdate"   class="form-control"   style="width:100px;" value="<?=$fromdate?>" >  &nbsp;   ~ &nbsp;  

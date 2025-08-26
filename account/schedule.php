@@ -11,12 +11,10 @@ if(!isset($_SESSION["level"]) ||intval($_SESSION["level"]) > 7) {
 
 $today = date("Y-m-d");
 require_once($_SERVER['DOCUMENT_ROOT'] . "/load_header.php");
-$titlemessage = '회계 일정관리';
+$title_message = '회계 일정관리';
 
 $version = '1';
-
-?>
-  
+?>  
 <script src="https://dh2024.co.kr/js/todolist_account.js?v=<?=$version?>"></script> 
 <style>
     .editable-item {
@@ -24,7 +22,7 @@ $version = '1';
     }
 </style>
 
-<title> <?=$titlemessage?>  </title>   
+<title> <?=$title_message?>  </title>   
 <!-- Favicon-->	
 <link rel="icon" type="image/x-icon" href="favicon.ico">   <!-- 33 x 33 -->
 <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">    <!-- 144 x 144 -->
@@ -97,6 +95,11 @@ try {
 ?>
 
 <div class="card mt-1">
+    <div class="card-header d-flex justify-content-center align-items-center">
+        <span class="text-center fs-5"> <?=$title_message?> </span>
+        <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+        <small class="ms-5 text-muted"> 연간 및 월간 일정을 등록하고 수정합니다. </small>  
+    </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered text-center">

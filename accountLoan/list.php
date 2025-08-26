@@ -193,6 +193,8 @@ while ($row = $stmh_accountBill->fetch(PDO::FETCH_ASSOC)) {
 // print_r($loanRepaymentData );
 // echo '</pre>';	
 
+
+
 $sql_interest = "SELECT contentSub AS bank, COUNT(*) AS interestPayments, SUM(REPLACE(amount, ',', '')) AS totalInterestPaid
                  FROM $tablenameAccount 
                  WHERE content = '이자비용' AND (is_deleted = '0' or is_deleted IS NULL) 
@@ -230,8 +232,9 @@ while ($row = $stmh_interest->fetch(PDO::FETCH_ASSOC)) {
 		<div class="d-flex justify-content-center align-items-center">
 			<span class="text-center fs-5 mx-2">  <?=$title_message?> 						
 			</span>
-			<button type="button" class="btn btn-dark btn-sm mx-1" onclick='location.reload()'>   <i class="bi bi-arrow-clockwise" ></i> </button>      
-			<button id="billRegistBtn" type="button" class="btn btn-dark btn-sm mx-1"> <i class="bi bi-pencil-square"></i> (주일,경동) 계산서 등록 </button>								
+			<button type="button" class="btn btn-dark btn-sm mx-1" onclick='location.reload()'>   <i class="bi bi-arrow-clockwise" ></i> </button> 
+				<small class="mx-3 text-muted"> 차입금 및 상환 현황을 표로 보여줍니다. 
+				</small> 				
 		</div>
 	</div>
 	<div class="card-body">
@@ -386,8 +389,10 @@ while ($row = $stmh_interest->fetch(PDO::FETCH_ASSOC)) {
 	<div class="col-sm-4">
 	<!--  세금계산서 등록부분에 대한 처리 --> 			
 	<div class="d-flex justify-content-center align-items-center mt-3 mb-3 btn-alert">
-		<span class="text-center fs-5"> (주일,경동) 세금계산서 차입금상환 </span>
-	</div>
+		<span class="text-center fs-6"> (주일,경동) 세금계산서 차입금상환 </span>
+		<button id="billRegistBtn" type="button" class="btn btn-dark btn-sm mx-2"> <i class="bi bi-pencil-square"></i>  계산서 등록 </button>	
+	</div>	
+	<small class="mx-1 text-muted"> 주일이나 경동에 계산서 발행되면 수동으로 작성해서 저장 </small>						
 
 	<div class="d-flex justify-content-center align-items-center mt-3  mb-3 btn-alert">
 		<table class="table table-hover table-bordered">
@@ -534,22 +539,26 @@ document.addEventListener("DOMContentLoaded", function() {
 <button id="newBtn" type="button" class="btn btn-dark btn-sm me-2"> <i class="bi bi-pencil-square"></i> 대출등록 </button>								
 </div>
 </div>
-<div class="row w400px m-1 mt-2">
-<table class="table table-bordered">
-<thead class="table-secondary">
-	<tr>
-		<?php
-		$tmp = '  ' . $bankbookOptions[0] . ' (계좌 잔액)  :  ';
-		if (isset($finalBalance)) {
-			$tmp_balance = number_format($finalBalance);
-		}
-		?>						
-		<th class="text-center" style="width:200px;"> <?=$tmp?> </th>
-		<th class="text-end text-primary fw-bold" style="width:100px;"> <?=$tmp_balance?> </th>
-	</tr>
-</thead>
-</table>
-</div>
+	<!-- 멀티 계좌별 잔액 표시 -->
+	 <?php	
+		require_once ($_SERVER['DOCUMENT_ROOT'] . "/account/bankbook.php");
+	?>
+	<div class="d-flex flex-wrap justify-content-start align-items-center mt-2 p-2 " style="gap: 10px;">
+		<strong class="me-2">계좌 잔액:</strong>
+			<?php foreach ($accountFinalBalances as $summary): ?>
+				<?php if ($summary['balance'] > 0): ?>
+					<?php 
+					// USD가 포함된 경우 금액 앞에 $ 추가
+					$isUSD = stripos($summary['name'], 'USD') !== false;
+					$formattedBalance = $isUSD ? '$' . number_format($summary['balance']) : number_format($summary['balance']);
+					?>
+					<div class="border rounded p-1" style="font-size: 0.8em;">
+						<span class="text-secondary"><?= htmlspecialchars($summary['name']) ?>:</span>
+						<span class="fw-bold ms-1"><?= $formattedBalance ?></span>
+					</div>
+				<?php endif; ?>
+			<?php endforeach; ?>
+	</div>   
 	
 <!-- 대한 대출현황 그룹 토글 스크립트 -->
 <!-- 그룹 토글 스크립트 -->
@@ -575,6 +584,7 @@ function toggleGroup(groupId) {
 
 <div class="d-flex justify-content-center align-items-center mt-3 mb-3 btn-alert">
     <span class="text-center fs-5">(주) 대한 대출등록 현황</span>
+	<small class="mx-3 text-muted"> 새로운 대출을 등록하고 저장합니다. </small>
 </div>
 
 <div class="d-flex justify-content-center p-2 align-items-center mt-3 mb-3 btn-alert">
@@ -974,52 +984,6 @@ function loadForm_registBill(mode, num = null) {
         }
     });
 }
-
-// function updateSubOptions() {
-	// const contentSelect = document.getElementById('content');
-	// const contentSubSelect = document.getElementById('contentSub');
-	// const selectedValue = contentSelect.value;
-
-	// if (ajaxRequest !== null) {
-		// ajaxRequest.abort();
-	// }
-
-	// // AJAX 요청으로 세부항목 가져오기
-	// ajaxRequest = $.ajax({
-		// url: 'fetch_modal_registBill.php',
-		// type: 'POST',
-		// data: { action: 'getSubOptions', selectedKey: selectedValue },
-		// dataType: 'json',
-		// success: function(response) {
-			// // 기존 옵션 초기화
-			// contentSubSelect.innerHTML = '';
-
-			// if (response.subOptions && response.subOptions.length > 0) {
-				// // 새로운 옵션 추가
-				// response.subOptions.forEach(item => {
-					// for (const key in item) {
-						// const option = document.createElement('option');
-						// option.value = key;
-						// option.text = key;
-						// contentSubSelect.appendChild(option);
-					// }
-				// });
-			// } else {
-				// // 세부항목이 없는 경우 기본값 처리
-				// const option = document.createElement('option');
-				// option.value = '';
-				// option.text = '세부항목 없음';
-				// contentSubSelect.appendChild(option);
-			// }
-		// },
-		// error: function(jqxhr, status, error) {
-			// console.log("AJAX Error:", status, error);
-		// }
-	// });
-// }
-	
-// content 선택 변경 이벤트
-// $(document).on('change', '#content', updateSubOptions);
 
 function loadForm(mode, num = null) {
     if (num == null) {

@@ -41,9 +41,9 @@ function todo_generateCalendarHtml(todoData, leaveData, filter, holidayData, wor
         let todayMonth = today.getMonth();
         let todayDate = today.getDate();
 
-	    let calendarHtml = '<div class="row d-flex"> ';
-	    calendarHtml += '<div class="d-flex justify-content-center">';
-	    calendarHtml += '<table id="todo-list" class="table" style="width: 100%; table-layout: fixed; " >';
+	    let calendarHtml = '';
+	    calendarHtml += '<div class="table-responsive">';
+	    calendarHtml += '<table id="todo-list" class="table">';
         calendarHtml += '<thead class="table-info text-start"><tr>';
 		daysOfWeek.forEach(day => {
 			calendarHtml += '<th class="fs-6 text-start" style="width: calc(100% / ' + daysOfWeek.length + ');">' + day + '</th>';
@@ -199,7 +199,7 @@ function todo_generateCalendarHtml(todoData, leaveData, filter, holidayData, wor
 							let plan_month = item.asproday;
 							// 오전 작업
 							if (item.address) {
-								calendarHtml += '<div class="todo-event"  style="border: 1px dashed orange;" data-id="' + item.num + '" data-plan_month="' + plan_month + '"  data-bs-toggle="tooltip" data-bs-placement="bottom" title="' + item.address + '" >';
+								calendarHtml += '<div class="todo-event as-event"  style="border: 1px dashed orange;" data-id="' + item.num + '" data-plan_month="' + plan_month + '"  data-bs-toggle="tooltip" data-bs-placement="bottom" title="' + item.address + '" >';
 								calendarHtml += '<span class="badge bg-secondary">' + item.asman + '</span> ';
 								
 								// 제목을 10자까지만 표시하고, 넘으면 '...' 추가
@@ -233,7 +233,7 @@ function todo_generateCalendarHtml(todoData, leaveData, filter, holidayData, wor
             calendarHtml += '</tr>';
         }
 
-        calendarHtml += '</tbody></table></div></div>';
+        calendarHtml += '</tbody></table></div>';
 
         let startDate = new Date(todo_currentYear, todo_currentMonth, 1);
         let endDate = new Date(todo_currentYear, todo_currentMonth, lastDate);
@@ -248,6 +248,13 @@ function todo_generateCalendarHtml(todoData, leaveData, filter, holidayData, wor
         loadForm(num, date);
     });
 
+    // AS 클릭처리
+    $('#todo-calendar-container').on('click', '.as-event', function() {
+        let num = $(this).data('id');        
+        popupCenter('/as/write.php?tablename=as&mode=view&num=' + num, 'AS 클릭처리', 1400, 900);
+    });
+
+    // 회의록 클릭처리
     $('#todo-calendar-container').on('click', '.meeting-event', function() {
         let num = $(this).data('id');
         let date = $(this).data('date');
@@ -270,11 +277,13 @@ function todo_generateCalendarHtml(todoData, leaveData, filter, holidayData, wor
                 document.querySelector(".modal-body .custom-card").innerHTML = response;
                 $("#todoModal").show();
 
-                $(".todo-close").on("click", function() {
+                // Bootstrap's data-dismiss="modal" handles modal closing automatically
+                // Removed custom click handlers to prevent conflicts
+
+                $("#closeBtn").off("click").on("click", function() {
                     $("#todoModal").hide();
                 });
-				
-                $("#closeBtn").on("click", function() {
+                $(".todo-close").off("click").on("click", function() {
                     $("#todoModal").hide();
                 });
 

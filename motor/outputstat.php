@@ -361,10 +361,12 @@ unset($group);
     <div class="d-flex  p-1 justify-content-center align-items-center ">         
 		<h5>  <?=$title_message?> </h5>  &nbsp;&nbsp;&nbsp;   
 		<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		   
+        <small class="ms-5 text-muted"> 출고완료일 기준 통계(기간을 설정해서 기간별 검색도 가능합니다.)
+        </small>  
    </div>
    
-    <div class="d-flex  p-1 justify-content-center align-items-center ">                    
-	     <h5>  로트번호와 상관없이 출고한 수량 </h5>  &nbsp;&nbsp;&nbsp;             
+    <div class="d-flex  p-1 justify-content-center align-items-center ">     
+        <small class="ms-5 text-muted"> 로트번호와 상관없이 출고한 수량 </small> 
    </div>
     <div class="d-flex  p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">     
             

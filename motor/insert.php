@@ -13,11 +13,6 @@ $tablename = 'motor';
 if (empty($price)) {
   $price = ''; // 빈 문자열인 경우 숫자 0으로 초기화
 }
- 
-// json 데이터 처리 raw POST data를 가져옵니다.
-// $jsonData = json_decode(file_get_contents("php://input"), true);
-// $order_jsondata = $jsonData['data']; // columns 데이터를 가져옵니다.  
-// $oldnum = $num;	
 
 if (isset($_POST['orderlist'])) {
     $order_jsondata = json_decode($_POST['orderlist'], true);
@@ -47,50 +42,71 @@ if (isset($_POST['fabriclist'])) {
     $fabriclist_jsondata = null;
 }
 
+// 주소 따옴표 변환 '따옴표로
+$address = str_replace('"', "'", $address);
+$delbranchaddress = str_replace('"', "'", $delbranchaddress);
+$delbranchtel = str_replace('"', "'", $delbranchtel);
+$delbranchinvoice = str_replace('"', "'", $delbranchinvoice);
+$delcarnumber = str_replace('"', "'", $delcarnumber);
+$delcaritem = str_replace('"', "'", $delcaritem);
+$delcartel = str_replace('"', "'", $delcartel);
+$memo = str_replace('"', "'", $memo);
+$comment = str_replace('"', "'", $comment);
+$delmemo = str_replace('"', "'", $delmemo);
+$secondordmemo = str_replace('"', "'", $secondordmemo);
+$delwrappaymethod = str_replace('"', "'", $delwrappaymethod);
+$cargo_delbranchinvoice = str_replace('"', "'", $cargo_delbranchinvoice);
+$cargo_delwrapmethod = str_replace('"', "'", $cargo_delwrapmethod);
+$cargo_delwrapsu = str_replace('"', "'", $cargo_delwrapsu);
+$cargo_delwrapamount = str_replace('"', "'", $cargo_delwrapamount);
+$cargo_delwrapweight = str_replace('"', "'", $cargo_delwrapweight);
+$cargo_delwrappaymethod = str_replace('"', "'", $cargo_delwrappaymethod);
+$original_num = str_replace('"', "'", $original_num);
+$Deliverymanager = str_replace('"', "'", $Deliverymanager);	
+
 // 검색 테그 초기화
 // 모든 변수를 $searchtag에 추가
 $searchtag = $workplacename . ' ' .              
-              $secondord . ' ' .
-              $secondordman . ' ' .
-              $secondordmantel . ' ' .
-              $chargedman . ' ' .
-              $chargedmantel . ' ' .
-              $address . ' ' .
-              $delipay . ' ' .
-              $deliverymethod . ' ' .
-              $deliverypaymethod . ' ' .
-              $delbranch . ' ' .
-              $delbranchaddress . ' ' .
-              $delbranchtel . ' ' .
-              $delbranchinvoice . ' ' .
-              $delcarnumber . ' ' .
-              $delcaritem . ' ' .
-              $delcartel . ' ' .
-              $memo . ' ' .
-              $comment . ' ' .
-              $first_writer . ' ' .
-              $update_log . ' ' .              
-              $loadplace . ' ' . 
-              $delwrapmethod . ' ' .
-              $delwrapsu . ' ' .
-              $delwrapamount . ' ' .
-              $delwrapweight . ' ' .
-              $status . ' ' .
-              $delcompany . ' ' .
-              $accessorieslist . ' ' .
-              $controllerlist . ' ' .
-              $orderlist . ' ' .
-              $secondordmemo . ' ' .
-              $delmemo . ' ' .
-              $returncheck . ' ' .
-			$cargo_delbranchinvoice . ' ' .
-			$cargo_delwrapmethod . ' ' .
-			$cargo_delwrapsu . ' ' .
-			$cargo_delwrapamount . ' ' .
-			$cargo_delwrapweight . ' ' .
-			$cargo_delwrappaymethod .			  
-            $delwrappaymethod;
-
+	$secondord . ' ' .
+	$secondordman . ' ' .
+	$secondordmantel . ' ' .
+	$chargedman . ' ' .
+	$chargedmantel . ' ' .
+	$address . ' ' .
+	$delipay . ' ' .
+	$deliverymethod . ' ' .
+	$deliverypaymethod . ' ' .
+	$delbranch . ' ' .
+	$delbranchaddress . ' ' .
+	$delbranchtel . ' ' .
+	$delbranchinvoice . ' ' .
+	$delcarnumber . ' ' .
+	$delcaritem . ' ' .
+	$delcartel . ' ' .
+	$memo . ' ' .
+	$comment . ' ' .
+	$first_writer . ' ' .
+	$update_log . ' ' .              
+	$loadplace . ' ' . 
+	$delwrapmethod . ' ' .
+	$delwrapsu . ' ' .
+	$delwrapamount . ' ' .
+	$delwrapweight . ' ' .
+	$status . ' ' .
+	$delcompany . ' ' .
+	$accessorieslist . ' ' .
+	$controllerlist . ' ' .
+	$orderlist . ' ' .
+	$secondordmemo . ' ' .
+	$delmemo . ' ' .
+	$returncheck . ' ' .
+	$cargo_delbranchinvoice . ' ' .
+	$cargo_delwrapmethod . ' ' .
+	$cargo_delwrapsu . ' ' .
+	$cargo_delwrapamount . ' ' .
+	$cargo_delwrapweight . ' ' .
+	$cargo_delwrappaymethod .			  
+	$delwrappaymethod;
 
 // 마지막 쉼표와 공백 제거
 $searchtag = rtrim($searchtag, ', ');
@@ -116,7 +132,8 @@ if ($mode == "modify") {
 				delcarnumber=?, delcaritem=?, delcartel=?, noscreensu=?, nosteelsu=?, noprotectsu=?, nosmokesu=?, loadplace=? , dcprice=?, dc_type=?, company_dc_value=? , site_dc_value=? , explosionsu=? , noexplosionsu=?, 
 				realscreensu=? ,realsteelsu=? , realprotectsu=? , realsmokesu =?, realexplosionsu = ?, 	delwrapmethod=?,delwrapsu=?,delwrapamount=?,delwrapweight=?,delwrappaymethod=?, delcompany=?, secondordnum=?, registerdate=?, deltime=?,	
 				totalprice=? ,screen_price=? , screen_dcprice=? , screen_dc_type=?, screen_company_dc_value= ?, screen_site_dc_value =?, dcadd=?, notdcprice=?, dctotal=?, secondordmemo=?, sendcheck=?, deldowntime=?, delmemo=?, del_status=?, del_writememo=?, controllerlist=?,  controller_price=?, controller_dcprice=?, controller_dc_type=?, controller_company_dc_value=?, controller_site_dc_value=?, returncheck=?, returndue=?, getdate=?,
-				polesu=? , nopolesu=? , realpolesu=?, fabric_dc_type=? ,fabric_price=? ,fabric_company_dc_value=? ,fabric_site_dc_value=? ,fabric_dcprice=?, fabriclist=?, cargo_delbranchinvoice = ?, cargo_delwrapmethod = ?, cargo_delwrapsu = ?, cargo_delwrapamount = ?, cargo_delwrapweight = ?, cargo_delwrappaymethod = ?, original_num = ?, Deliverymanager = ?  
+				polesu=? , nopolesu=? , realpolesu=?, fabric_dc_type=? ,fabric_price=? ,fabric_company_dc_value=? ,fabric_site_dc_value=? ,fabric_dcprice=?, fabriclist=?, cargo_delbranchinvoice = ?, cargo_delwrapmethod = ?, cargo_delwrapsu = ?, cargo_delwrapamount = ?, cargo_delwrapweight = ?, cargo_delwrappaymethod = ?, original_num = ?, Deliverymanager = ?  ,
+				custNote=? 
 				WHERE num=? LIMIT 1";			
 
 		$stmh = $pdo->prepare($sql);
@@ -132,6 +149,7 @@ if ($mode == "modify") {
 			$totalprice , $screen_price , $screen_dcprice , $screen_dc_type  , $screen_company_dc_value , $screen_site_dc_value , $dcadd, $notdcprice, $dctotal, $secondordmemo, $sendcheck, $deldowntime, $delmemo, $del_status, $del_writememo, json_encode($controllerlist_jsondata), $controller_price, $controller_dcprice, $controller_dc_type, $controller_company_dc_value, $controller_site_dc_value, $returncheck, 
 			$returndue, $getdate, $polesu , $nopolesu, $realpolesu,
 			$fabric_dc_type, $fabric_price, $fabric_company_dc_value, $fabric_site_dc_value, $fabric_dcprice, json_encode($fabriclist_jsondata), $cargo_delbranchinvoice , $cargo_delwrapmethod , $cargo_delwrapsu , $cargo_delwrapamount , $cargo_delwrapweight , $cargo_delwrappaymethod, $original_num, $Deliverymanager, 
+			$custNote,
 			$num
 		];
 
@@ -163,9 +181,12 @@ if($mode=="insert") {
 				address, delipay, deliverymethod, deliverypaymethod, memo, comment, first_writer, update_log, searchtag, is_deleted, orderlist, accessorieslist,
 				delbranch, delbranchaddress, delbranchtel, delbranchinvoice, delcarnumber, delcaritem, delcartel, nosteelsu, noprotectsu, nosmokesu, loadplace, dcprice, dc_type, company_dc_value, site_dc_value,explosionsu , noexplosionsu ,
 				realscreensu  , realsteelsu  ,  realprotectsu  ,  realsmokesu , realexplosionsu, delwrapmethod,delwrapsu,delwrapamount,delwrapweight,delwrappaymethod, delcompany, secondordnum, registerdate, deltime ,totalprice , screen_price , screen_dcprice , screen_dc_type  , screen_company_dc_value, screen_site_dc_value, dcadd, notdcprice, dctotal , secondordmemo, sendcheck, deldowntime, delmemo, del_status, del_writememo, controllerlist, controller_price, controller_dcprice, controller_dc_type, controller_company_dc_value, controller_site_dc_value, returncheck, returndue, getdate, polesu , nopolesu, realpolesu,
-				fabric_dc_type, fabric_price, fabric_company_dc_value, fabric_site_dc_value, fabric_dcprice, fabriclist, cargo_delbranchinvoice , cargo_delwrapmethod , cargo_delwrapsu , cargo_delwrapamount , cargo_delwrapweight , cargo_delwrappaymethod, original_num , Deliverymanager
-				 )
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";  
+				fabric_dc_type, fabric_price, fabric_company_dc_value, fabric_site_dc_value, fabric_dcprice, fabriclist, cargo_delbranchinvoice , cargo_delwrapmethod , cargo_delwrapsu , cargo_delwrapamount , cargo_delwrapweight , cargo_delwrappaymethod, original_num , Deliverymanager,
+				custNote )
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";  
 
 		$stmh = $pdo->prepare($sql);
 
@@ -178,7 +199,8 @@ if($mode=="insert") {
 			$realscreensu  ,$realsteelsu  , $realprotectsu  , $realsmokesu  , $realexplosionsu, $delwrapmethod,$delwrapsu,$delwrapamount,$delwrapweight,$delwrappaymethod, $delcompany, $secondordnum, $registerdate, $deltime,
 			$totalprice , $screen_price , $screen_dcprice , $screen_dc_type  , $screen_company_dc_value , $screen_site_dc_value, $dcadd, $notdcprice, $dctotal, $secondordmemo, $sendcheck, $deldowntime, $delmemo, $del_status, $del_writememo, json_encode($controllerlist_jsondata), $controller_price, $controller_dcprice, $controller_dc_type, $controller_company_dc_value, $controller_site_dc_value, $returncheck,
 			$returndue, $getdate, $polesu, $nopolesu, $realpolesu, $fabric_dc_type, $fabric_price, $fabric_company_dc_value, $fabric_site_dc_value, $fabric_dcprice,json_encode($fabriclist_jsondata),
-			$cargo_delbranchinvoice , $cargo_delwrapmethod , $cargo_delwrapsu , $cargo_delwrapamount , $cargo_delwrapweight , $cargo_delwrappaymethod, $original_num, $Deliverymanager
+			$cargo_delbranchinvoice , $cargo_delwrapmethod , $cargo_delwrapsu , $cargo_delwrapamount , $cargo_delwrapweight , $cargo_delwrappaymethod, $original_num, $Deliverymanager,
+			$custNote
 			];
 
 		$stmh->execute($params);
@@ -205,11 +227,8 @@ try{
         $num = $row["num"];
   } catch (PDOException $Exception) {
   print "오류: ".$Exception->getMessage();
-  }  	
-	
-	
+  }  		
 }
-
 
 if ($mode == "delete") {
     try {
@@ -226,7 +245,6 @@ if ($mode == "delete") {
         print "오류: " . $Exception->getMessage();
     }
 }
-
 
 if ($mode == "insert" || $mode == "copy" ){
 	try{
@@ -245,9 +263,7 @@ if ($mode == "insert" || $mode == "copy" ){
 $data = [   
  'num' => $num,
  'mode' => $mode
- 
- ]; 
+  ]; 
  
  echo json_encode($data, JSON_UNESCAPED_UNICODE);
-
  ?>

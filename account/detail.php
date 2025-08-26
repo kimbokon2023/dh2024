@@ -83,25 +83,26 @@ $netIncome = $totalIncome - $totalExpense;
 
 <div class="container mt-5">
 		<div class="card">
-			<div class="card-header">
+			<div class="card-header d-flex justify-content-center align-items-center">
 				<h5 class="text-center"><?=$title_message?></h5>
+                <button type="button" class="btn btn-dark btn-sm mx-2" onclick='location.reload()'>   <i class="bi bi-arrow-clockwise" ></i> </button>      
 			</div>
 			<div class="card-body">
 				<div class="row mb-3">					                 
 					<div class="d-flex justify-content-center align-items-center">					
-						<select id="year" name="year" class="form-control me-2" style="width:80px;" onchange="loadDetails()">
+						<select id="year" name="year" class="form-select me-2 w-auto"  onchange="loadDetails()">
 							<?php for ($i = date('Y'); $i >= 2024; $i--): ?>
 								<option value="<?=$i?>" <?=($year == $i) ? 'selected' : ''?>><?=$i?>년</option>
 							<?php endfor; ?>
 						</select>                
 					  
-						<select id="startMonth" name="startMonth" class="form-control me-1"  style="width:60px;" onchange="loadDetails()">
+						<select id="startMonth" name="startMonth" class="form-select me-1 w-auto"  style="width:60px;" onchange="loadDetails()">
 							<?php for ($i = 1; $i <= 12; $i++): ?>
 								<option value="<?=$i?>" <?=($startMonth == $i) ? 'selected' : ''?>><?=$i?>월</option>
 							<?php endfor; ?>
 						</select>
 						~               &nbsp;  
-						<select id="endMonth" name="endMonth" class="form-control me-5 "  style="width:60px;"  onchange="loadDetails()">
+						<select id="endMonth" name="endMonth" class="form-select me-5 w-auto"  style="width:60px;"  onchange="loadDetails()">
 							<?php for ($i = 1; $i <= 12; $i++): ?>
 								<option value="<?=$i?>" <?=($endMonth == $i) ? 'selected' : ''?>><?=$i?>월</option>
 							<?php endfor; ?>

@@ -6,11 +6,9 @@ if (!isset($_SESSION["level"]) || $_SESSION["level"] > 5) {
     header("Location:" . $WebSite . "login/login_form.php"); 
     exit;
 }   
-
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
-
 // 첫 화면 표시 문구
-$title_message = '지게차 관리 목록'; 
+$title_message = '지게차/이동식에어컨 관리'; 
 ?>
 
 <link href="css/style.css" rel="stylesheet">   
@@ -59,8 +57,11 @@ try {
 <div class="container">
 <div class="card justify-content-center text-center mt-5">
 
-	<div class="card-header">
-		<span class="text-center fs-5"> <?=$title_message?> </span>								
+	<div class="card-header d-flex justify-content-center align-items-center">
+		<span class="text-center fs-5"> <?=$title_message?> </span>	
+		<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+		<small class="mx-3 text-muted"> 지게차를 신규 등록하거나 보유중인 지게차를 클릭하여 수정 (정비내역 및 특이사항 기재) ※이동식 에어컨 내역도 같이 관리중
+		</small>  
 	</div>
 	<div class="card-body">								
 		<div class="d-flex justify-content-center text-center align-items-center mb-2">										 
@@ -153,7 +154,7 @@ $(document).ready(function() {
 		"ordering": true,
 		"searching": true,
 		"pageLength": 50,
-		"lengthMenu": [25, 50, 100, 200, 500, 1000],
+		"lengthMenu": [50, 100, 200, 500, 1000],
 		"language": {
 			"lengthMenu": "Show _MENU_ entries",
 			"search": "Live Search:"

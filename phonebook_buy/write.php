@@ -105,7 +105,13 @@ if($num > 0) {
                             <tr>
                                 <td class="text-center fw-bold">주소</td>
                                 <td colspan="3" class="text-center">
-                                    <input type="text" class="form-control" id="address" name="address" value="<?=$address?>">   							
+                                    <input type="text" class="form-control" id="address" name="address" value="<?=$address?>">   
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-center fw-bold">카테고리(콤마구분)</td>
+                                <td colspan="3" class="text-center">
+                                    <input type="text" class="form-control" id="category" name="category" placeholder="예: 모터,제어기" value="<?=$category?>">
                                 </td>
                             </tr>
                             <tr>				
@@ -154,6 +160,29 @@ if($num > 0) {
                                     <textarea class="form-control" id="note" name="note"><?=$note?></textarea>    							
                                 </td>
                             </tr>						
+                            <tr>
+                                <td class="text-center fw-bold">중국발주업체</td>
+                                <td class="text-center">
+                                    <input type="checkbox" id="is_china_vendor_chk" <?= (isset($is_china_vendor) && (int)$is_china_vendor === 1) ? 'checked' : '' ?>>
+                                    <input type="hidden" id="is_china_vendor" name="is_china_vendor" value="<?= (isset($is_china_vendor) && (int)$is_china_vendor === 1) ? 1 : 0 ?>">
+                                </td>
+                                <td class="text-center fw-bold">이미지(썸네일)</td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <input type="file" id="image_file" accept="image/*" class="form-control" style="max-width:260px;">
+                                        <button type="button" id="image_clear" class="btn btn-outline-secondary btn-sm ms-2" title="이미지 지우기">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                    <div class="mt-2">
+                                        <img id="thumbPreview" src="<?php if(!empty($image_base64)){ echo (strpos($image_base64,'data:')===0)? $image_base64 : 'data:image/png;base64,'.$image_base64; } ?>" alt="preview" style="max-width:260px;max-height:110px;width:auto;height:auto;object-fit:contain;border:1px solid #ddd;<?= empty($image_base64)?'display:none;':'' ?>">
+                                    </div>
+                                    <div id="paste_area" contenteditable="true" style="max-width:260px;height:30px;border:1px dashed #bbb;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#666;margin-top:6px;padding:6px;overflow:auto;">
+                                        여기에 Ctrl+V로 이미지 붙여넣기
+                                    </div>
+                                    <input type="hidden" id="image_base64" name="image_base64" value="<?= htmlspecialchars($image_base64, ENT_QUOTES) ?>">
+                                </td>
+                            </tr>
                         </tbody>
                     </table>   
                 </div>
@@ -161,6 +190,9 @@ if($num > 0) {
 				<div class="d-flex justify-content-center">
 					<button type="button" id="saveBtn"  class="btn btn-dark btn-sm me-3">
 						<i class="bi bi-floppy-fill"></i> 저장
+					</button>					
+					<button type="button" id="copyBtn"  class="btn btn-outline-primary btn-sm me-3">
+						<i class="bi bi-files"></i> 복사
 					</button>					
 					<button type="button"  id="closeBtn" class="btn btn-outline-dark btn-sm me-2">
 						&times; 닫기
@@ -179,7 +211,9 @@ if($num > 0) {
 // 페이지 로딩
 $(document).ready(function(){	
     var loader = document.getElementById('loadingOverlay');
-    loader.style.display = 'none';
+    if(loader) {
+        loader.style.display = 'none';
+    }
 });
 </script>
 	 
@@ -193,7 +227,7 @@ $(document).ready(function(){
     });	
 	
     // 저장 버튼 서버에 저장하고 Ecount 전송함
-    $("#saveBtn").on("click", function() {
+    $("#saveBtn").off("click").on("click", function() {
         var header = $("#header").val();
         let msg = '저장완료';
 
@@ -215,13 +249,13 @@ $(document).ready(function(){
                     backgroundColor: "#4fbe87",
                 }).showToast();			
                 
-                if(header !== 'header'){											
-                    // 부모창 실행
-                    if($("#manager_name").val() !== '')
-                        $("#search", opener.document).val($("#manager_name").val()); 
-                    else
-                        $("#search", opener.document).val($("#representative_name").val()); 
-                }
+                // if(header !== 'header'){											
+                //     // 부모창 실행
+                //     if($("#manager_name").val() !== '')
+                //         $("#search", opener.document).val($("#manager_name").val()); 
+                //     else
+                //         $("#search", opener.document).val($("#representative_name").val()); 
+                // }
                 
                 $(opener.location).attr("href", "javascript:reloadlist();");	
 
@@ -235,5 +269,93 @@ $(document).ready(function(){
             } 			      		
         });												
     });			
+    // 복사 버튼
+    $("#copyBtn").off("click").on("click", function(){
+        if (ajaxRequest_write !== null) {
+            ajaxRequest_write.abort();
+        }
+        const formData = $("#board_form").serializeArray();
+        // mode를 copy로 강제 설정
+        for(let i=0;i<formData.length;i++){
+            if(formData[i].name === 'mode'){
+                formData[i].value = 'copy';
+            }
+        }
+        ajaxRequest_write = $.ajax({
+            url: "process.php",
+            type: "post",
+            data: $.param(formData),
+            success: function(data){
+                Toastify({
+                    text: '복사 완료',
+                    duration: 3000,
+                    close: true,
+                    gravity: 'top',
+                    position: 'center',
+                    backgroundColor: '#4fbe87',
+                }).showToast();
+                $(opener.location).attr("href", "javascript:reloadlist();");
+            },
+            error: function(jqxhr, status, error){
+                console.log(jqxhr, status, error);
+            }
+        });
+    });
+    // 체크박스-히든 동기화
+    $("#is_china_vendor_chk").on("change", function(){
+        $("#is_china_vendor").val(this.checked ? 1 : 0);
+    });
+    // 이미지 파일 -> base64 변환 저장 및 미리보기
+    $("#image_file").on("change", function(e){
+        const file = e.target.files && e.target.files[0];
+        if(!file){ return; }
+        const reader = new FileReader();
+        reader.onload = function(evt){
+            const dataUrl = evt.target.result;
+            $("#image_base64").val(dataUrl);
+            $("#thumbPreview").attr("src", dataUrl).show();
+        };
+        reader.readAsDataURL(file);
+    });
+    // 붙여넣기 영역에서 이미지 붙여넣기 처리
+    $("#paste_area").on("paste", function(event){
+        const clipboardData = event.originalEvent.clipboardData || window.clipboardData;
+        if(!clipboardData) { return; }
+        const items = clipboardData.items;
+        if(!items || items.length === 0) { return; }
+        for(let i=0;i<items.length;i++){
+            const item = items[i];
+            if(item.kind === 'file'){
+                const file = item.getAsFile();
+                if(file && file.type && file.type.indexOf('image') === 0){
+                    event.preventDefault();
+                    const reader = new FileReader();
+                    reader.onload = function(e){
+                        const dataUrl = e.target.result;
+                        $("#image_base64").val(dataUrl);
+                        $("#thumbPreview").attr("src", dataUrl).show();
+                        $("#paste_area").text('이미지가 설정되었습니다.');
+                    };
+                    reader.readAsDataURL(file);
+                    break;
+                }
+            } else if(item.kind === 'string' && item.type === 'text/plain') {
+                // dataURL 텍스트가 붙는 경우도 처리
+                item.getAsString(function(text){
+                    if(text && text.indexOf('data:image') === 0){
+                        $("#image_base64").val(text);
+                        $("#thumbPreview").attr("src", text).show();
+                        $("#paste_area").text('이미지가 설정되었습니다.');
+                    }
+                });
+            }
+        }
+    });
+    // 이미지 지우기
+    $("#image_clear").on("click", function(){
+        $("#image_base64").val("");
+        $("#image_file").val("");
+        $("#thumbPreview").attr("src", "").hide();
+    });
 });	 
 </script>

@@ -14,7 +14,7 @@ $id_arr = array();
 if(!empty($DB))
 {
 	try{
-		$sql="select * from $DB.member WHERE part IN ('대한') ";
+		$sql="select * from $DB.member WHERE company IN ('대한') ";
 		$stmh=$pdo->prepare($sql);    
 		$stmh->execute();
 		

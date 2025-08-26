@@ -25,11 +25,9 @@ if(isset($_SESSION["name"])  && $home!='1')
 }
 
 // 메인상단 이미지를 AI로 그린 그림으로 10개 랜덤으로 뽑아내서 그려주기
-
 $rnd = rand(1, 10);
 // $imgsrc = 'img/homepage/' . $rnd . '.png';
 $imgsrc = 'img/motor1.jpg';
-
 ?>
 
 <!doctype html>
@@ -204,7 +202,6 @@ $imgsrc = 'img/motor1.jpg';
 	}
 }
 
-
 #myMsgDialog {
 	width:40%; 
 	background-color: #BEEFFF; 
@@ -238,38 +235,37 @@ $imgsrc = 'img/motor1.jpg';
 }
 
 @media screen and (max-width: 1280px) {		
-		#myMsgDialog {
-			width:100%; 
-			background-color: #BEEFFF; 
-			border:1px solid black; 
-			border-radius: 7px;
-		}		
+	#myMsgDialog {
+		width:100%; 
+		background-color: #BEEFFF; 
+		border:1px solid black; 
+		border-radius: 7px;
+	}		
 
-		#closeDialog {
-			width:25%; 
-			background-color: #BEEFFF; 
-			border:1px solid black; 
-			border-radius: 7px;
-		}		
+	#closeDialog {
+		width:25%; 
+		background-color: #BEEFFF; 
+		border:1px solid black; 
+		border-radius: 7px;
+	}		
 
-		#mButton, #closeButton {
-			padding: 7px 30px;
-			background-color: #66ccff;
-			color: white;
-			font-size: 15px;
-			border: 0;
-			outline: 0;
-		}
-		
-		#cButton {
-			padding: 7px 30px;
-			background-color: #2828CD;
-			color: white;
-			font-size: 15px;
-			border: 0;
-			outline: 0;
-		}
-
+	#mButton, #closeButton {
+		padding: 7px 30px;
+		background-color: #66ccff;
+		color: white;
+		font-size: 15px;
+		border: 0;
+		outline: 0;
+	}
+	
+	#cButton {
+		padding: 7px 30px;
+		background-color: #2828CD;
+		color: white;
+		font-size: 15px;
+		border: 0;
+		outline: 0;
+	}
 }	
 
 .modal-dialog.modal-80size {
@@ -310,8 +306,8 @@ $imgsrc = 'img/motor1.jpg';
 
 .login-button {
 	display: inline-block;
-	padding: 10px 20px;
-	font-size: 16px;
+	padding: 5px 10px;
+	font-size: 12px;
 	text-align: center;
 	cursor: pointer;
 	background-color: #16D5FF;
@@ -326,7 +322,7 @@ $imgsrc = 'img/motor1.jpg';
 }
 
 .bg-full {
-    background-image: url('<?$root_dir?>/img/firstpage.jpg'); /* 경로 변수에 맞게 조정 */
+    background-image: url('<?$root_dir?>/img/firstpage1.jpg'); /* 경로 변수에 맞게 조정 */
     background-size: cover; /* 컨테이너 전체 영역을 커버 */
     background-position: center; /* 배경 이미지를 중앙에 위치 */
     background-repeat: no-repeat; /* 이미지 반복 없음 */
@@ -368,7 +364,7 @@ nav {
 <div class="bg-full"></div> <!-- 배경 이미지 컨테이너 -->
 <nav id="navScroll" class="navbar navbar-expand-lg navbar-light fixed-top mb-5" tabindex="0">
   <div class="container">
-    <a class="navbar-brand " href="/" style="width:40%;">
+    <a class="navbar-brand " href="/" style="width:26%;">
 		<img src="<?$root_dir?>/img/dhlogo_homepage.png" style="width:40%;"> 
 	</a>
 
@@ -393,33 +389,57 @@ nav {
   </li>    
   
   <li class="nav-item dropdown me-1">
-    <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">DH 모터</a>
+    <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">DH 방화모터</a>
     <div class="dropdown-menu shadow-sm m-0">
       <a href="#dhfeatures"  class="dropdown-item small-bold-text">DH무선형 모터 특징</a>
       <a href="#dh_warranty"  class="dropdown-item small-bold-text"> DH모터 성적서(KC인증)</a>
       <a href="#dhdetails"  class="dropdown-item small-bold-text">모터상세 제원표</a>      
       <a href="#wire_controller_detail" class="dropdown-item small-bold-text">유선형 모터 설정방법</a>
-      <a href="#speachcontroller" class="dropdown-item small-bold-text">무선형 모터 설정방법</a>
-      <a href="#speachcontroller" class="dropdown-item small-bold-text">낙하제동방지 브라켓트</a>      
+      <a href="#wireless_controller_detail" class="dropdown-item small-bold-text">무선형 모터 설정방법</a>
+      <a href="#fall_prevention_brake_bracket" class="dropdown-item small-bold-text">낙하제동방지 브라켓트</a>      
+    </div>
+  </li>    
+  <li class="nav-item dropdown me-1">
+    <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">DH 방범모터</a>
+    <div class="dropdown-menu shadow-sm m-0">
+      <a href="#dhfeatures"  class="dropdown-item small-bold-text">DH무선형 모터 특징</a>
+      <a href="#dh_warranty"  class="dropdown-item small-bold-text"> DH모터 성적서(KC인증)</a>
+      <a href="#dhdetails"  class="dropdown-item small-bold-text">모터상세 제원표</a>      
+      <a href="#wire_controller_detail" class="dropdown-item small-bold-text">유선형 모터 설정방법</a>
+      <a href="#wireless_controller_detail" class="dropdown-item small-bold-text">무선형 모터 설정방법</a>
+      <a href="#fall_prevention_brake_bracket" class="dropdown-item small-bold-text">낙하제동방지 브라켓트</a>      
+    </div>
+  </li>    
+  <li class="nav-item dropdown me-1">
+    <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">DH OHD모터</a>
+    <div class="dropdown-menu shadow-sm m-0">
+      <a href="#dhc_motor"  class="dropdown-item small-bold-text">DH-C 모터</a>
+      <a href="#dhc_cert"  class="dropdown-item small-bold-text">DH-C 인증서</a>      
+      <a href="#dhc_controller"  class="dropdown-item small-bold-text"> DH-C 제어기</a>
+      <a href="#dhc_spec" class="dropdown-item small-bold-text">DH-C 제원표</a>
+      <a href="#dhc_wiring" class="dropdown-item small-bold-text">DH-C 배선도</a>
+      <a href="#dhc_error" class="dropdown-item small-bold-text">DH-C 오류코드</a>      
+    </div>
+  </li>    
+  <li class="nav-item dropdown me-1">
+    <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">DH SPD모터</a>
+    <div class="dropdown-menu shadow-sm m-0">
+	  <a href="#dha_motor"  class="dropdown-item small-bold-text">DH-A 모터</a>
+      <a href="#dha_cert"  class="dropdown-item small-bold-text">DH-A 인증서</a>            
+      <a href="#dha_controller" class="dropdown-item small-bold-text"> DH-A 제어기</a>
+      <a href="#dha_wiring" class="dropdown-item small-bold-text">DH-A 배선도</a>
+      <a href="#dha_error" class="dropdown-item small-bold-text">DH-A 오류코드</a>                 
     </div>
   </li>    
   <li class="nav-item dropdown me-1">
     <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">스크린원단</a>
     <div class="dropdown-menu shadow-sm m-0">
-      <a href="#" onclick="return false;" class="dropdown-item small-bold-text">DH-ALF-045(가스켓용)</a>
-      <a href="#" onclick="return false;" class="dropdown-item small-bold-text">DH-ALw-045(와이어원단)</a>
-      <a href="#" onclick="return false;" class="dropdown-item small-bold-text">DH-ALw-060S(복사열차단원단)</a>
+      <a href="#slat_wire"  class="dropdown-item small-bold-text">DH-와이어원단</a>
+      <a href="#slat_gas"  class="dropdown-item small-bold-text">DH-가스켓/버미글라스/제연용원단</a>
+      <a href="#slat_cert"  class="dropdown-item small-bold-text">DH-원단성적서</a>
     </div>
   </li>    
-  
-  <li class="nav-item dropdown me-1">
-    <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">철강</a>
-    <div class="dropdown-menu shadow-sm m-0">
-      <a href="#" onclick="return false;" class="dropdown-item small-bold-text">원형 파이프</a>
-      <a href="#" onclick="return false;" class="dropdown-item small-bold-text">각관</a>
-    </div>
-  </li>    
- 
+   
   <li class="nav-item dropdown me-1">
     <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">게시판</a>
     <div class="dropdown-menu shadow-sm m-0">
@@ -428,7 +448,6 @@ nav {
       <a href="#" onclick="popup_board3();return false;" class="dropdown-item small-bold-text">공지사항</a>
     </div>
   </li>    
-</ul>
 <?php
 
 	if($chkMobile == false) 
@@ -448,10 +467,10 @@ nav {
 					{ ?>
 				
 				<form id="login_form" name="login_form" method="post" >
-				<input type="text"  id="uidInput" name="uid" class="form-control" style="width: 120px; display: inline-block;" placeholder="Your ID" required autofocus>
+				<input type="text"  id="uidInput" name="uid" class="form-control" style="width: 80px; font-size: 10px; display: inline-block;" placeholder="Your ID" required autofocus>
 				<label for="inputPassword" class="sr-only"></label>
-				<input type="password"  id="inputPassword"   name="upw" class="form-control" style="width: 100px; display: inline-block;" placeholder="Password" required>
-				<button id="loginBtn" class="login-button" type="button" data-home="<?php echo $home; ?>" >Login</button>
+				<input type="password"  id="inputPassword"   name="upw" class="form-control" style="width: 60px; font-size: 10px;display: inline-block;" placeholder="Password" required>
+				<button id="loginBtn" class="login-button" type="button" data-home="<?php echo $home; ?>" style="font-size: 10px;">Login</button>
 				</form>		
 
 			<?php
@@ -491,12 +510,12 @@ nav {
 
 					<form id="login_form" name="login_form" method="post">
 						<span><?php echo $_SESSION["name"]; ?>  님 환영</span>
-						<button id="logoutBtn" class="login-button" type="button">Log Out</button>
+						<button id="logoutBtn" class="login-button" type="button" style="font-size: 10px;">Log Out</button>
 					</form>
 
 				
 	<?php  }   }  ?>	
-	
+	</ul>
 		</div>
 	
 </nav>
@@ -653,210 +672,23 @@ nav {
 	  
 </main> 
 
+
+<!-- DH aboutus Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="aboutus">
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+			<div class="col-lg-12">  
+				<div class="col-md-12">
+					<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dh1.jpg);--bs-aspect-ratio: 60%;">
+		  </div>
+		</div>
+	</div>		
+</div>
+</div>	
+</div>	
+<!-- 특징설명 end -->
+
 <a name="aboutus"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  		
-
-<div class="container py-vh-4 w-100 overflow-hidden"  id="aboutus">
-  <div class="row d-flex justify-content-center align-items-center">
-    <div class="col-lg-12">
-		<img src="<?$root_dir?>/img/dh1.jpg" style="width:100%;"> 
-	</div>
-
-  </div>
-</div>
-
-
-<a name="dhfeatures"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
-
-<!-- DH 특징 Start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-  <div class="container">       
-	<div class="row d-flex justify-content-between align-items-center">
-	  <div class="col-lg-12">  
-		<div class="col-md-12">
-		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dh_features1.jpg);--bs-aspect-ratio: 60%;">
-		  </div>
-		</div>
-	   </div>		
-    </div>
-</div>	
-</div>	
-<!-- 특징설명 end -->
-
-
-
-
-<a name="dh_warranty"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
-
-<!-- DH 모터성적서 Start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-  <div class="container">       
-	<div class="row d-flex justify-content-between align-items-center">
-	  <div class="col-lg-12">  
-		<div class="col-md-12">
-		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dh_warranty.jpg);--bs-aspect-ratio: 56%;">
-		  </div>
-		</div>
-	   </div>		
-    </div>
-</div>	
-</div>	
-<!-- 모터성적서 end -->
-
-<!-- 모터제원 Start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhdetails">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage/homepage_details1.jpg);--bs-aspect-ratio: 62%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-
-<a name="dhdetails"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  	
-
-<!--모터 특성 1 Start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-<div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
- <div class="col-lg-12">  
-   <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage/homepage_details2.jpg);--bs-aspect-ratio: 61%;">
-      </div>
-    </div>
- </div>		
-</div>
-</div>	
-</div>	
-
-<a name="dhfeatures"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  	
-
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage/homepage_details3.jpg);--bs-aspect-ratio: 58%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage/homepage_details44.jpg);--bs-aspect-ratio: 60%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-<!-- 특징설명 end -->
-
-
-<a name="wire_controller_detail"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  		
-	
-
-<!-- 연동제어기 콘트롤러 특징 Start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhdetails">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/wire_controller_detail1.jpg);--bs-aspect-ratio: 58%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-<!-- 특징설명 end -->
-
-<!-- 연동제어기 콘트롤러 특징 Start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhdetails">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/wire_controller_detail2.jpg);--bs-aspect-ratio: 58%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-<!-- 특징설명 end -->
-	
-<!-- 연동제어기 콘트롤러 특징 Start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhdetails">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/wire_controller_detail3.jpg);--bs-aspect-ratio: 58%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-<!-- 특징설명 end -->
-
-
-<!-- 연동제어기 말하는 연동제어기 메뉴얼1 start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/controllermenual1.jpg);--bs-aspect-ratio: 58%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-<!-- 연동제어기 메뉴얼 end -->
-
-	
-<a name="speachcontroller"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  
-
-<!-- 연동제어기 메뉴얼2 start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/controllermenual2.jpg);--bs-aspect-ratio: 58%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-
-<!-- 연동제어기 메뉴얼3 start -->
-<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
-  <div class="container">       
-<div class="row d-flex justify-content-between align-items-center">
-  <div class="col-lg-12">  
-    <div class="col-md-12">
-      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/controllermenual3.jpg);--bs-aspect-ratio: 58%;">
-      </div>
-    </div>
-	</div>		
-  </div>
-		</div>	
-</div>	
-<!-- 연동제어기 메뉴얼 end -->
 
 <!-- 품질인정컨설틸  start -->
 <div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="qcwarranty1">
@@ -892,6 +724,470 @@ nav {
 <a name="qcwarranty2"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
 
 
+<!-- DH 특징 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures">
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+			<div class="col-lg-12">  
+				<div class="col-md-12">
+					<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dh_features1.jpg);--bs-aspect-ratio: 60%;">
+						</div>
+		</div>
+	</div>		
+</div>
+</div>	
+</div>	
+<!-- 특징설명 end -->
+
+<a name="dhfeatures"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<!-- DH 모터성적서 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dh_warranty">
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+			<div class="col-lg-12">  
+				<div class="col-md-12">
+					<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dh_warranty.jpg);--bs-aspect-ratio: 56%;">
+						</div>
+					</div>
+				</div>		
+			</div>
+		</div>	
+	</div>	
+	<!-- 모터성적서 end -->
+	
+	<a name="dh_warranty"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+<!-- 모터제원 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhdetails">
+  <div class="container">       
+<div class="row d-flex justify-content-between align-items-center">
+  <div class="col-lg-12">  
+    <div class="col-md-12">
+      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage_details1.jpg);--bs-aspect-ratio: 62%;">
+      </div>
+    </div>
+	</div>		
+  </div>
+		</div>	
+</div>	
+
+<a name="dhdetails"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  	
+
+<!--모터 특성 1 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures1">
+<div class="container">       
+<div class="row d-flex justify-content-between align-items-center">
+ <div class="col-lg-12">  
+   <div class="col-md-12">
+      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage_details2.jpg);--bs-aspect-ratio: 61%;">
+      </div>
+    </div>
+ </div>		
+</div>
+</div>	
+</div>	
+
+<a name="dhfeatures1"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  	
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures2">
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+			<div class="col-lg-12">  
+				<div class="col-md-12">
+					<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage_details3.jpg);--bs-aspect-ratio: 58%;">
+						</div>
+					</div>
+				</div>		
+			</div>
+		</div>	
+	</div>	
+
+<a name="dhfeatures2"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  	
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhfeatures3">
+  <div class="container">       
+<div class="row d-flex justify-content-between align-items-center">
+  <div class="col-lg-12">  
+    <div class="col-md-12">
+      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/homepage_details44.jpg);--bs-aspect-ratio: 60%;">
+      </div>
+    </div>
+	</div>		
+  </div>
+		</div>	
+</div>	
+<!-- 특징설명 end -->
+
+
+<a name="dhfeatures3"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  		
+
+
+<!-- 연동제어기 콘트롤러 특징 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="wire_controller_detail">
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+			<div class="col-lg-12">  
+				<div class="col-md-12">
+					<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/wire_controller_detail1.jpg);--bs-aspect-ratio: 58%;">
+						</div>
+					</div>
+				</div>		
+			</div>
+		</div>	
+	</div>	
+	<!-- 특징설명 end -->
+<a name="wire_controller_detail"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  		
+
+<!-- 연동제어기 콘트롤러 특징 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="wire_controller_detail1">
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+			<div class="col-lg-12">  
+				<div class="col-md-12">
+					<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/wire_controller_detail2.jpg);--bs-aspect-ratio: 58%;">
+						</div>
+					</div>
+				</div>		
+			</div>
+		</div>	
+	</div>	
+	<!-- 특징설명 end -->
+    <a name="wire_controller_detail1"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  		
+	
+	<!-- 연동제어기 콘트롤러 특징 Start -->
+	<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="wire_controller_detail2">
+		<div class="container">       
+			<div class="row d-flex justify-content-between align-items-center">
+				<div class="col-lg-12">  
+					<div class="col-md-12">
+						<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/wire_controller_detail3.jpg);--bs-aspect-ratio: 58%;">
+							</div>
+						</div>
+					</div>		
+				</div>
+			</div>	
+		</div>	
+	<!-- 특징설명 end -->
+
+<a name="wireless_controller_detail"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  		
+
+
+<!-- 무선 연동제어기 설정방법 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="wire_controller_detail3">
+  <div class="container">       
+<div class="row d-flex justify-content-between align-items-center">
+  <div class="col-lg-12">  
+    <div class="col-md-12">
+      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/controllermenual1.jpg);--bs-aspect-ratio: 58%;">
+      </div>
+    </div>
+	</div>		
+  </div>
+		</div>	
+</div>	
+<!-- 무선 연동제어기 설정방법 end -->
+
+	
+<a name="wire_controller_detail3"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  
+
+<!-- 연동제어기 메뉴얼2 start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="wire_controller_detail4">
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+			<div class="col-lg-12">  
+				<div class="col-md-12">
+					<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/controllermenual2.jpg);--bs-aspect-ratio: 58%;">
+						</div>
+					</div>
+				</div>		
+			</div>
+		</div>	
+</div>	
+	
+<a name="wire_controller_detail4"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  
+<!-- 연동제어기 메뉴얼3 start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="wire_controller_detail5">
+  <div class="container">       
+<div class="row d-flex justify-content-between align-items-center">
+  <div class="col-lg-12">  
+    <div class="col-md-12">
+      <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/controllermenual3.jpg);--bs-aspect-ratio: 58%;">
+      </div>
+    </div>
+	</div>		
+  </div>
+		</div>	
+</div>	
+<!-- 연동제어기 메뉴얼 end -->
+
+<a name="dhc_motor"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+<!-- DH-C OHD 모터 -->
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dhc_motor.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-C OHD 모터 end -->
+
+<!-- DH-C OHD 인증서 -->
+<a name="dhc_cert"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dhc_cert.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+	</div>
+</div>	
+</div>	
+<!-- DH-C OHD 인증서 end -->
+
+<!-- DH-C OHD 제어기 -->
+<a name="dhc_controller"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dhc_controller.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-C OHD 제어기 end -->
+
+<!-- DH-C OHD 제원표 -->
+<a name="dhc_spec"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden">
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dhc_spec.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-C OHD 제원표 end -->
+
+<!-- DH-C OHD 배선도 -->	
+<a name="dhc_wiring"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dhc_wiring.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-C OHD 배선도 end -->
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden">
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dhc_wiring1.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-C OHD 배선도 end -->
+
+<!-- DH-C OHD 오류코드 -->	
+<a name="dhc_error"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dhc_error.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-C OHD 오류코드 end -->
+
+<a name="dha_motor"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+<!-- DH-A OHD 모터 -->
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dha_motor.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-A OHD 모터 end -->
+
+<!-- DH-A OHD 모터2 -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden">
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dha_motor2.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-A OHD 모터2 end -->
+
+<!-- DH-A OHD 인증서 -->
+<a name="dha_cert"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dha_cert.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+	</div>
+</div>	
+</div>	
+<!-- DH-A OHD 인증서 end -->
+
+<!-- DH-A OHD 제어기 -->
+<a name="dha_controller"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dha_controller.jpg);--bs-aspect-ratio: 55%;">
+		  </div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-A OHD 제어기 end -->
+
+<!-- DH-A OHD 배선도 -->	
+<a name="dha_wiring"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dha_wiring.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-A OHD 배선도 end -->
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden">
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dha_wiring1.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-A OHD 배선도 end -->
+
+<!-- DH-A OHD 오류코드 -->	
+<a name="dha_error"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->
+
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/dha_error.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+
+<!-- DH-A OHD 오류코드 end -->
+<!-- DH-와이어원단 -->	
+<a name="slat_wire"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/slat_wire.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-와이어원단 end -->
+
+<!-- DH-가스켓/버미글라스/제연용원단 -->	
+<a name="slat_gas"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+  <div class="container">       
+	<div class="row d-flex justify-content-between align-items-center">
+	  <div class="col-lg-12">  
+		<div class="col-md-12">
+		  <div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/slat_gas.jpg);--bs-aspect-ratio: 55%;"></div>
+		</div>
+	   </div>		
+    </div>
+</div>	
+</div>	
+<!-- DH-가스켓/버미글라스/제연용원단 end -->
+
+<!-- DH-원단성적서 -->	
+<a name="slat_cert"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
+	<div class="container">       
+		<div class="row d-flex justify-content-between align-items-center">
+		<div class="col-lg-12">  
+			<div class="col-md-12">
+			<div class="shadow ratio ratio rounded bg-cover bp-center" data-aos="fade-right" style="background-image: url(img/slat_cert.jpg);--bs-aspect-ratio: 55%;"></div>
+			</div>
+		</div>		
+		</div>
+	</div>	
+</div>	
+<!-- DH-원단성적서 end -->
   
   <div class="col-12">
     <a href="#" class="btn btn-warning btn-xl shadow me-1 mt-4" data-aos="fade-down">사이트 둘러보기</a>

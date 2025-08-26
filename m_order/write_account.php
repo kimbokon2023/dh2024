@@ -13,8 +13,8 @@ $mode = $_REQUEST['mode'] ?? '';
 $num =  $_REQUEST["num"] ?? '';
 
 $title_message = "발주 입고차수별 송금액  ";
-
 $tablename = 'm_order';
+
 ?> 
 
 <link href="css/style.css" rel="stylesheet">    
@@ -65,6 +65,9 @@ if ($mode == "modify" || $mode == "view") {
         $inputDate2 = '';
         $inputDate3 = '';
         $inputDate4 = '';
+        $inputDate5 = '';
+        $inputDate6 = '';
+        $inputDate7 = '';
 
         // JSON 디코딩
         $orderlist = json_decode($row['orderlist'] ?? '[]', true);
@@ -97,6 +100,27 @@ if ($mode == "modify" || $mode == "view") {
                 && $item['col16'] !== '0000-00-00'
             ) {
                 $inputDate4 = $item['col16'];
+            }
+            // 5차 입고일 (col19)
+            if (empty($inputDate5) 
+                && !empty($item['col19']) 
+                && $item['col19'] !== '0000-00-00'
+            ) {
+                $inputDate5 = $item['col19'];
+            }
+            // 6차 입고일 (col22)
+            if (empty($inputDate6) 
+                && !empty($item['col22']) 
+                && $item['col22'] !== '0000-00-00'
+            ) {
+                $inputDate6 = $item['col22'];
+            }
+                // 7차 입고일 (col25)
+            if (empty($inputDate7) 
+                && !empty($item['col25']) 
+                && $item['col25'] !== '0000-00-00'
+            ) {
+                $inputDate7 = $item['col25'];
             }
 
             // 네 개 모두 채워졌으면 더 이상 반복할 필요 없음
@@ -203,23 +227,26 @@ if ($mode == "copy" || $mode == 'split') {
     <div class='d-flex justify-content-center  align-items-center  mt-4 mb-2'>		
         <span class='badge bg-dark fs-6 me-3'> 송금액 </span>
     </div>    
-    <div class='d-flex justify-content-center  align-items-center  mt-4 mb-2'>		
+    <div class='table-responsive mt-2 mb-2'>		
     <table class="table table-bordered w-auto align-middle text-center">
         <thead>
-        <tr>
-            <th colspan="1" class="bg-light fw-bold text-center"> 구분  </th>
-            <th colspan="1" class="bg-light fw-bold text-center"> 1차 </th>
-            <th colspan="1" class="bg-light fw-bold text-center"> 2차 </th>  
-            <th colspan="1" class="bg-light fw-bold text-center"> 3차 </th>  
-            <th colspan="1" class="bg-light fw-bold text-center"> 4차 </th>  
-            <th colspan="1" class="bg-light fw-bold text-center"> 합계 </th>  
-        </tr>
+            <tr>
+                <th colspan="1" class="bg-light fw-bold text-center"> 구분  </th>
+                <th colspan="1" class="bg-light fw-bold text-center"> 1차 </th>
+                <th colspan="1" class="bg-light fw-bold text-center"> 2차 </th>  
+                <th colspan="1" class="bg-light fw-bold text-center"> 3차 </th>  
+                <th colspan="1" class="bg-light fw-bold text-center"> 4차 </th>  
+                <th colspan="1" class="bg-light fw-bold text-center"> 5차 </th>  
+                <th colspan="1" class="bg-light fw-bold text-center"> 6차 </th>  
+                <th colspan="1" class="bg-light fw-bold text-center"> 7차 </th>  
+                <th colspan="1" class="bg-light fw-bold text-center"> 합계 </th>  
+            </tr>
         </thead>
         <tbody>
         <tr>
             <!-- 총 발주수량 -->
             <td class="bg-light fw-bold">총 발주수량</td>
-            <td colspan="5" class="text-start">
+            <td colspan="7" class="text-start">
                 <span id="totalsurangDisplay" class="form-control noborder-input text-start text-dark fw-bold fs-6"></span>
             </td>
         </tr>
@@ -238,9 +265,15 @@ if ($mode == "copy" || $mode == 'split') {
             <td>
             <span id="inputDate4" class="form-control   noborder-input text-center text-primary" readonly> <?= $inputDate4 ?></span>
             </td>
-            <td>            
+            <td>
+            <span id="inputDate5" class="form-control   noborder-input text-center text-primary" readonly> <?= $inputDate5 ?></span>
             </td>
-        </tr>
+            <td>
+            <span id="inputDate6" class="form-control   noborder-input text-center text-primary" readonly> <?= $inputDate6 ?></span>
+            </td>
+            <td>            
+            <span id="inputDate7" class="form-control   noborder-input text-center text-primary" readonly> <?= $inputDate7 ?></span>
+            </td>
         </tr>
         <tr>
             <!-- 입고금액 -->
@@ -256,6 +289,15 @@ if ($mode == "copy" || $mode == 'split') {
             </td>
             <td>
             <span id="inputSumDisplay4" class="form-control   noborder-input text-end text-primary fw-bold"></span>
+            </td>
+            <td>
+            <span id="inputSumDisplay5" class="form-control   noborder-input text-end text-primary fw-bold"></span>
+            </td>
+            <td>
+            <span id="inputSumDisplay6" class="form-control   noborder-input text-end text-primary fw-bold"></span>
+            </td>
+            <td>
+            <span id="inputSumDisplay7" class="form-control   noborder-input text-end text-primary fw-bold"></span>
             </td>
             <td>
             <span id="totalInputSum" class="form-control noborder-input text-end text-primary fw-bold"></span>
@@ -280,6 +322,18 @@ if ($mode == "copy" || $mode == 'split') {
             <input type="date" id="sendDate4" name="sendDate4" class="form-control noborder-input text-center fw-bold  " 
                     value="<?= $sendDate4 ?? '' ?>">
             </td>
+            <td>
+            <input type="date" id="sendDate5" name="sendDate5" class="form-control noborder-input text-center fw-bold  " 
+                    value="<?= $sendDate5 ?? '' ?>">
+            </td>
+            <td>
+            <input type="date" id="sendDate6" name="sendDate6" class="form-control noborder-input text-center fw-bold  " 
+                    value="<?= $sendDate6 ?? '' ?>">
+            </td>
+            <td>
+            <input type="date" id="sendDate7" name="sendDate7" class="form-control noborder-input text-center fw-bold  " 
+                    value="<?= $sendDate7 ?? '' ?>">
+            </td>
             <td>            
             </td>
         </tr>
@@ -303,7 +357,18 @@ if ($mode == "copy" || $mode == 'split') {
             <input type="text" id="exchange_rate4" name="exchange_rate4" class="form-control noborder-input text-end fw-bold text-dark" 
                     value="<?= (isset($exchange_rate4) && $exchange_rate4 != 0 && $exchange_rate4 !== '0' && $exchange_rate4 !== 0.0 && $exchange_rate4 !== '0.0') ? number_format(floatval($exchange_rate4),2) : '' ?>"  oninput="formatNumber(this)">
         </td>
-        <td>    </td>
+        <td>
+            <input type="text" id="exchange_rate5" name="exchange_rate5" class="form-control noborder-input text-end fw-bold text-dark" 
+                    value="<?= (isset($exchange_rate5) && $exchange_rate5 != 0 && $exchange_rate5 !== '0' && $exchange_rate5 !== 0.0 && $exchange_rate5 !== '0.0') ? number_format(floatval($exchange_rate5),2) : '' ?>"  oninput="formatNumber(this)">
+        </td>
+        <td>
+            <input type="text" id="exchange_rate6" name="exchange_rate6" class="form-control noborder-input text-end fw-bold text-dark" 
+                    value="<?= (isset($exchange_rate6) && $exchange_rate6 != 0 && $exchange_rate6 !== '0' && $exchange_rate6 !== 0.0 && $exchange_rate6 !== '0.0') ? number_format(floatval($exchange_rate6),2) : '' ?>"  oninput="formatNumber(this)">
+        </td>
+        <td>
+            <input type="text" id="exchange_rate7" name="exchange_rate7" class="form-control noborder-input text-end fw-bold text-dark" 
+                    value="<?= (isset($exchange_rate7) && $exchange_rate7 != 0 && $exchange_rate7 !== '0' && $exchange_rate7 !== 0.0 && $exchange_rate7 !== '0.0') ? number_format(floatval($exchange_rate7),2) : '' ?>"  oninput="formatNumber(this)">
+        </td>
         </tr>
         <tr>			
             <!-- 원화 입력 -->			  
@@ -329,10 +394,26 @@ if ($mode == "copy" || $mode == 'split') {
                         oninput="this.value=this.value.replace(/[^0-9]/g,'');">
             </td>
             <td>
+                <input type="text" id="send_amount_krw5" name="send_amount_krw5" class="form-control noborder-input text-end fw-bold text-dark" 
+                        value="<?= (isset($send_amount_krw5) && is_numeric(str_replace(',', '', $send_amount_krw5)) && floatval(str_replace(',', '', $send_amount_krw5)) != 0) ? number_format(floatval(str_replace(',', '', $send_amount_krw5))) : '' ?>" 
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </td>
+            <td>
+                <input type="text" id="send_amount_krw6" name="send_amount_krw6" class="form-control noborder-input text-end fw-bold text-dark" 
+                        value="<?= (isset($send_amount_krw6) && is_numeric(str_replace(',', '', $send_amount_krw6)) && floatval(str_replace(',', '', $send_amount_krw6)) != 0) ? number_format(floatval(str_replace(',', '', $send_amount_krw6))) : '' ?>" 
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </td>
+            <td>
+                <input type="text" id="send_amount_krw7" name="send_amount_krw7" class="form-control noborder-input text-end fw-bold text-dark" 
+                        value="<?= (isset($send_amount_krw7) && is_numeric(str_replace(',', '', $send_amount_krw7)) && floatval(str_replace(',', '', $send_amount_krw7)) != 0) ? number_format(floatval(str_replace(',', '', $send_amount_krw7))) : '' ?>" 
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </td>
+            <td>
                 <input type="text" id="send_amount_krw_sum" name="send_amount_krw_sum" class="form-control noborder-input text-end fw-bold text-primary" 
                         value="<?= (isset($send_amount_krw_sum) && is_numeric(str_replace(',', '', $send_amount_krw_sum)) && floatval(str_replace(',', '', $send_amount_krw_sum)) != 0) ? number_format(floatval(str_replace(',', '', $send_amount_krw_sum))) : '' ?>" 
                         readonly    >
             </td>
+
         </tr>
         <tr>			
             <!-- 송금수수료  입력 -->			  
@@ -358,6 +439,21 @@ if ($mode == "copy" || $mode == 'split') {
                         oninput="this.value=this.value.replace(/[^0-9]/g,'');">
             </td>
             <td>
+                <input type="text" id="remittance_fee5" name="remittance_fee5" class="form-control noborder-input text-end fw-bold text-dark" 
+                        value="<?= (isset($remittance_fee5) && is_numeric(str_replace(',', '', $remittance_fee5)) && floatval(str_replace(',', '', $remittance_fee5)) != 0) ? number_format(floatval(str_replace(',', '', $remittance_fee5))) : '' ?>" 
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </td>
+            <td>
+                <input type="text" id="remittance_fee6" name="remittance_fee6" class="form-control noborder-input text-end fw-bold text-dark" 
+                        value="<?= (isset($remittance_fee6) && is_numeric(str_replace(',', '', $remittance_fee6)) && floatval(str_replace(',', '', $remittance_fee6)) != 0) ? number_format(floatval(str_replace(',', '', $remittance_fee6))) : '' ?>" 
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </td>
+            <td>
+                <input type="text" id="remittance_fee7" name="remittance_fee7" class="form-control noborder-input text-end fw-bold text-dark" 
+                        value="<?= (isset($remittance_fee7) && is_numeric(str_replace(',', '', $remittance_fee7)) && floatval(str_replace(',', '', $remittance_fee7)) != 0) ? number_format(floatval(str_replace(',', '', $remittance_fee7))) : '' ?>" 
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </td>
+            <td>
                 <input type="text" id="remittance_fee_sum" name="remittance_fee_sum" class="form-control noborder-input text-end fw-bold text-primary" 
                         value="<?= (isset($remittance_fee_sum) && is_numeric(str_replace(',', '', $remittance_fee_sum)) && floatval(str_replace(',', '', $remittance_fee_sum)) != 0) ? number_format(floatval(str_replace(',', '', $remittance_fee_sum))) : '' ?>" 
                         readonly    >
@@ -377,6 +473,15 @@ if ($mode == "copy" || $mode == 'split') {
             </td>        
             <td>
                 <input type="text" id="krw_plus_remittance_fee4" name="krw_plus_remittance_fee4" class="form-control noborder-input text-end fw-bold text-dark" readonly>   
+            </td>
+            <td>
+                <input type="text" id="krw_plus_remittance_fee5" name="krw_plus_remittance_fee5" class="form-control noborder-input text-end fw-bold text-dark" readonly>   
+            </td>
+            <td>
+                <input type="text" id="krw_plus_remittance_fee6" name="krw_plus_remittance_fee6" class="form-control noborder-input text-end fw-bold text-dark" readonly>   
+            </td>
+            <td>
+                <input type="text" id="krw_plus_remittance_fee7" name="krw_plus_remittance_fee7" class="form-control noborder-input text-end fw-bold text-dark" readonly>   
             </td>
             <td>
                 <input type="text" id="krw_plus_remittance_fee_sum" name="krw_plus_remittance_fee_sum" class="form-control noborder-input text-end fw-bold text-primary" readonly >
@@ -406,11 +511,26 @@ if ($mode == "copy" || $mode == 'split') {
                     value="<?= is_numeric(str_replace(',', '', $sendMoney4)) ? number_format(floatval(str_replace(',', '', $sendMoney4)), 2) : $sendMoney4 ?>" 
                     oninput="formatNumber(this)">
         </td>
-            <td>
-            <input type="text" id="totalSendMoney" name="totalSendMoney" class="form-control noborder-input text-end fw-bold text-dark" 
-                    value="<?= is_numeric(str_replace(',', '', $totalSendMoney)) ? number_format(floatval(str_replace(',', '', $totalSendMoney)), 2) : $totalSendMoney ?>" 
-                    readonly>                
-            </td>
+        <td>
+            <input type="text" id="sendMoney5" name="sendMoney5" class="form-control noborder-input text-end fw-bold text-dark" 
+                    value="<?= is_numeric(str_replace(',', '', $sendMoney5)) ? number_format(floatval(str_replace(',', '', $sendMoney5)), 2) : $sendMoney5 ?>" 
+                    oninput="formatNumber(this)">
+        </td>
+        <td>
+            <input type="text" id="sendMoney6" name="sendMoney6" class="form-control noborder-input text-end fw-bold text-dark" 
+                    value="<?= is_numeric(str_replace(',', '', $sendMoney6)) ? number_format(floatval(str_replace(',', '', $sendMoney6)), 2) : $sendMoney6 ?>" 
+                    oninput="formatNumber(this)">
+        </td>
+        <td>
+            <input type="text" id="sendMoney7" name="sendMoney7" class="form-control noborder-input text-end fw-bold text-dark" 
+                    value="<?= is_numeric(str_replace(',', '', $sendMoney7)) ? number_format(floatval(str_replace(',', '', $sendMoney7)), 2) : $sendMoney7 ?>" 
+                    oninput="formatNumber(this)">
+        </td>
+        <td>
+        <input type="text" id="totalSendMoney" name="totalSendMoney" class="form-control noborder-input text-end fw-bold text-dark" 
+                value="<?= is_numeric(str_replace(',', '', $totalSendMoney)) ? number_format(floatval(str_replace(',', '', $totalSendMoney)), 2) : $totalSendMoney ?>" 
+                readonly>                
+        </td>
         </tr>
                         
         <tr id="sumRow">
@@ -437,6 +557,9 @@ if ($mode == "copy" || $mode == 'split') {
             <th colspan="1" class="bg-light fw-bold text-center"> 2차 </th>  
             <th colspan="1" class="bg-light fw-bold text-center"> 3차 </th>  
             <th colspan="1" class="bg-light fw-bold text-center"> 4차 </th>  
+            <th colspan="1" class="bg-light fw-bold text-center"> 5차 </th>  
+            <th colspan="1" class="bg-light fw-bold text-center"> 6차 </th>  
+            <th colspan="1" class="bg-light fw-bold text-center"> 7차 </th>  
             <th colspan="1" class="bg-light fw-bold text-center"> 소계 </th>  
             <th colspan="1" class="bg-light fw-bold text-center"> 누계 </th>  
         </tr>
@@ -460,6 +583,19 @@ if ($mode == "copy" || $mode == 'split') {
             <input type="date" id="customs_date4" name="customs_date4" class="form-control   noborder-input text-center text-dark  " 
                     value="<?= $customs_date4 ?? '' ?>">
             </td>
+            <td>
+            <input type="date" id="customs_date5" name="customs_date5" class="form-control  noborder-input text-center text-dark  " 
+                    value="<?= $customs_date5 ?? '' ?>">
+            </td>
+            <td>
+            <input type="date" id="customs_date6" name="customs_date6" class="form-control  noborder-input  text-center text-dark  " 
+                    value="<?= $customs_date6 ?? '' ?>">
+            </td>
+            <td>
+            <input type="date" id="customs_date7" name="customs_date7" class="form-control   noborder-input text-center text-dark  " 
+                    value="<?= $customs_date7 ?? '' ?>">
+            </td>
+
             <td>    </td>
             <td>    </td>
         </tr>
@@ -484,7 +620,23 @@ if ($mode == "copy" || $mode == 'split') {
                 <input type="text" id="customs_vat4" name="customs_vat4" class="form-control noborder-input text-end fw-bold customs_vat" 
                         value="<?= isset($customs_vat4) ? number_format(intval(str_replace(',', '', $customs_vat4))) : '' ?>" 
                         oninput="formatNumber(this)">
+                </td>                
+                <td>
+                <input type="text" id="customs_vat5" name="customs_vat5" class="form-control noborder-input text-end fw-bold customs_vat" 
+                        value="<?= isset($customs_vat5) ? number_format(intval(str_replace(',', '', $customs_vat5))) : '' ?>" 
+                        oninput="formatNumber(this)">
+                </td>            
+                <td>
+                <input type="text" id="customs_vat6" name="customs_vat6" class="form-control noborder-input text-end fw-bold customs_vat" 
+                        value="<?= isset($customs_vat6) ? number_format(intval(str_replace(',', '', $customs_vat6))) : '' ?>" 
+                        oninput="formatNumber(this)">
+                </td>            
+                <td>
+                <input type="text" id="customs_vat7" name="customs_vat7" class="form-control noborder-input text-end fw-bold customs_vat" 
+                        value="<?= isset($customs_vat7) ? number_format(intval(str_replace(',', '', $customs_vat7))) : '' ?>" 
+                        oninput="formatNumber(this)">
                 </td>
+
                 <td>
                 <input type="text" id="customs_vat_sum" name="customs_vat_sum" class="form-control noborder-input text-end fw-bold customs_vat_sum" 
                         value="<?= isset($customs_vat_sum) ? number_format(intval(str_replace(',', '', $customs_vat_sum))) : '' ?>" 
@@ -521,6 +673,21 @@ if ($mode == "copy" || $mode == 'split') {
                     oninput="formatNumber(this)">
         </td>
         <td>
+            <input type="text" id="customs_miscellaneous_fee5" name="customs_miscellaneous_fee5" class="form-control noborder-input text-end fw-bold text-dark customs_miscellaneous" 
+                    value="<?= isset($customs_miscellaneous_fee5) ? number_format(intval(str_replace(',', '', $customs_miscellaneous_fee5))) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>        
+        <td>
+            <input type="text" id="customs_miscellaneous_fee6" name="customs_miscellaneous_fee6" class="form-control noborder-input text-end fw-bold text-dark customs_miscellaneous" 
+                    value="<?= isset($customs_miscellaneous_fee6) ? number_format(intval(str_replace(',', '', $customs_miscellaneous_fee6))) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>        
+        <td>
+            <input type="text" id="customs_miscellaneous_fee7" name="customs_miscellaneous_fee7" class="form-control noborder-input text-end fw-bold text-dark customs_miscellaneous" 
+                    value="<?= isset($customs_miscellaneous_fee7) ? number_format(intval(str_replace(',', '', $customs_miscellaneous_fee7))) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>
+        <td>
             <input type="text" id="customs_miscellaneous_fee_sum" name="customs_miscellaneous_fee_sum" class="form-control noborder-input text-end fw-bold text-dark customs_miscellaneous_fee_sum" 
                     value="<?= isset($customs_miscellaneous_fee_sum) ? number_format(intval(str_replace(',', '', $customs_miscellaneous_fee_sum))) : '' ?>" 
                     oninput="formatNumber(this)">
@@ -551,6 +718,21 @@ if ($mode == "copy" || $mode == 'split') {
         <td>
             <input type="text" id="customs_container_fee4" name="customs_container_fee4" class="form-control noborder-input text-end fw-bold text-dark customs_container_fee" 
                     value="<?= isset($customs_container_fee4) ? number_format(intval(str_replace(',', '', $customs_container_fee4))) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>
+        <td>
+            <input type="text" id="customs_container_fee5" name="customs_container_fee5" class="form-control noborder-input text-end fw-bold text-dark customs_container_fee" 
+                    value="<?= isset($customs_container_fee5) ? number_format(intval(str_replace(',', '', $customs_container_fee5))) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>        
+        <td>
+            <input type="text" id="customs_container_fee6" name="customs_container_fee6" class="form-control noborder-input text-end fw-bold text-dark customs_container_fee" 
+                    value="<?= isset($customs_container_fee6) ? number_format(intval(str_replace(',', '', $customs_container_fee6))) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>        
+        <td>
+            <input type="text" id="customs_container_fee7" name="customs_container_fee7" class="form-control noborder-input text-end fw-bold text-dark customs_container_fee" 
+                    value="<?= isset($customs_container_fee7) ? number_format(intval(str_replace(',', '', $customs_container_fee7))) : '' ?>" 
                     oninput="formatNumber(this)">
         </td>
         <td>
@@ -588,6 +770,21 @@ if ($mode == "copy" || $mode == 'split') {
                         oninput="formatNumber(this)">
             </td>
             <td>
+                <input type="text" id="customs_commission5" name="customs_commission5" class="form-control noborder-input text-end fw-bold text-secondary customs_commission" 
+                        value="<?= isset($customs_commission5) ? number_format(intval(str_replace(',', '', $customs_commission5))) : '' ?>" 
+                        oninput="formatNumber(this)">
+            </td>
+            <td>
+                <input type="text" id="customs_commission6" name="customs_commission6" class="form-control noborder-input text-end fw-bold text-secondary customs_commission" 
+                        value="<?= isset($customs_commission6) ? number_format(intval(str_replace(',', '', $customs_commission6))) : '' ?>" 
+                        oninput="formatNumber(this)">
+            </td>
+            <td>
+                <input type="text" id="customs_commission7" name="customs_commission7" class="form-control noborder-input text-end fw-bold text-secondary customs_commission" 
+                        value="<?= isset($customs_commission7) ? number_format(intval(str_replace(',', '', $customs_commission7))) : '' ?>" 
+                        oninput="formatNumber(this)">
+            </td>            
+            <td>
                 <input type="text" id="customs_commission_sum" name="customs_commission_sum" class="form-control noborder-input text-end fw-bold text-secondary customs_commission_sum" 
                         value="<?= isset($customs_commission_sum) ? number_format(intval(str_replace(',', '', $customs_commission_sum))) : '' ?>" 
                         oninput="formatNumber(this)">
@@ -600,7 +797,7 @@ if ($mode == "copy" || $mode == 'split') {
         
         <!-- 통관비용 합계 -->			  
         <td class="bg-light bg-primary text-primary fw-bold"> 통관비용 합계 (원)</td>
-        <td>
+            <td>
                 <input type="text" id="customs_detail_total1" name="customs_detail_total1" class="form-control noborder-input text-end fw-bold text-secondary " 
                         value="<?= isset($customs_detail_total1) ? number_format(intval(str_replace(',', '', $customs_detail_total1))) : '' ?>" 
                         readonly>
@@ -619,7 +816,22 @@ if ($mode == "copy" || $mode == 'split') {
                 <input type="text" id="customs_detail_total4" name="customs_detail_total4" class="form-control noborder-input text-end fw-bold text-secondary " 
                         value="<?= isset($customs_detail_total4) ? number_format(intval(str_replace(',', '', $customs_detail_total4))) : '' ?>" 
                         readonly>
-            </td>            
+            </td>                        
+            <td>
+                <input type="text" id="customs_detail_total5" name="customs_detail_total5" class="form-control noborder-input text-end fw-bold text-secondary " 
+                        value="<?= isset($customs_detail_total5) ? number_format(intval(str_replace(',', '', $customs_detail_total5))) : '' ?>" 
+                        readonly>
+            </td>        
+            <td>
+                <input type="text" id="customs_detail_total6" name="customs_detail_total6" class="form-control noborder-input text-end fw-bold text-secondary " 
+                        value="<?= isset($customs_detail_total6) ? number_format(intval(str_replace(',', '', $customs_detail_total6))) : '' ?>" 
+                        readonly>
+            </td>        
+            <td>
+                <input type="text" id="customs_detail_total7" name="customs_detail_total7" class="form-control noborder-input text-end fw-bold text-secondary " 
+                        value="<?= isset($customs_detail_total7) ? number_format(intval(str_replace(',', '', $customs_detail_total7))) : '' ?>" 
+                        readonly>
+            </td>  
             <td colspan="2"></td>
         </tr>
         
@@ -644,7 +856,23 @@ if ($mode == "copy" || $mode == 'split') {
             <input type="text" id="customs_input_amount_cny4" name="customs_input_amount_cny4" class="form-control noborder-input text-end fw-bold text-dark customs_input_amount_cny" 
                     value="<?= isset($customs_input_amount_cny4) ? number_format(floatval(str_replace(',', '', $customs_input_amount_cny4)),2) : '' ?>" 
                     oninput="formatNumber(this)">
+        </td>        
+        <td>
+            <input type="text" id="customs_input_amount_cny5" name="customs_input_amount_cny5" class="form-control noborder-input text-end fw-bold text-dark customs_input_amount_cny" 
+                    value="<?= isset($customs_input_amount_cny5) ? number_format(floatval(str_replace(',', '', $customs_input_amount_cny5)),2) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>        
+        <td>
+            <input type="text" id="customs_input_amount_cny6" name="customs_input_amount_cny6" class="form-control noborder-input text-end fw-bold text-dark customs_input_amount_cny" 
+                    value="<?= isset($customs_input_amount_cny6) ? number_format(floatval(str_replace(',', '', $customs_input_amount_cny6)),2) : '' ?>" 
+                    oninput="formatNumber(this)">
+        </td>        
+        <td>
+            <input type="text" id="customs_input_amount_cny7" name="customs_input_amount_cny7" class="form-control noborder-input text-end fw-bold text-dark customs_input_amount_cny" 
+                    value="<?= isset($customs_input_amount_cny7) ? number_format(floatval(str_replace(',', '', $customs_input_amount_cny7)),2) : '' ?>" 
+                    oninput="formatNumber(this)">
         </td>
+
         <td colspan="2">
             <div class="d-flex justify-content-end">
                 (CNY) 통화  &nbsp;
@@ -684,6 +912,18 @@ if ($mode == "copy" || $mode == 'split') {
 					<!-- 4차 -->
 					<th class='text-center' style='width:80px;'>4차 입고일</th>
 					<th class='text-center' style='width:80px;'>4차 <br> 금액</th>
+
+					<!-- 5차 -->
+					<th class='text-center' style='width:80px;'>5차 입고일</th>
+					<th class='text-center' style='width:80px;'>5차 <br> 금액</th>
+
+					<!-- 6차 -->
+					<th class='text-center' style='width:80px;'>6차 입고일</th>
+					<th class='text-center' style='width:80px;'>6차 <br> 금액</th>
+
+					<!-- 7차 -->
+					<th class='text-center' style='width:80px;'>7차 입고일</th>
+					<th class='text-center' style='width:80px;'>7차 <br> 금액</th>
 
 					<!-- 계산 및 상태 -->
 					<th class='text-center' style='width:60px;'>구매<br> 수량합</th>
@@ -902,8 +1142,8 @@ function addRow(tableBody, rowData = {}, typebutton = '') {
         <td class="text-center" ><input type="text" name="col6[]" class="form-control text-end amount" readonly value="${rowData.col6 ? Number(rowData.col6).toLocaleString() : ''}"></td>
     `);
 
-    // 8~19: 1~4차 입고일(col7,10,13,16), 입고수량(col8,11,14,17), 로트번호(col9,12,15,18)
-    for (let i = 1; i <= 4; i++) {
+    // 8~25: 1~7차 입고일(col7,10,13,16,19,22,25), 입고수량(col8,11,14,17,20,23,26), 로트번호(col9,12,15,18,21,24,27)
+    for (let i = 1; i <= 7; i++) {
         const base = 6 + (i - 1) * 3;
 
         // 입고일은 표시
@@ -976,7 +1216,7 @@ function updateRowCalculation(input) {
 
     let totalInQty = 0;
 
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 7; i++) {
         const inQty = parseFloat($row.find(`.inqty${i}`).val().replace(/,/g, '')) || 0;
         const inAmount = inQty * unitPrice;
         $row.find(`.amountIn${i}`).val(inAmount.toLocaleString());
@@ -1013,6 +1253,9 @@ function updateTotalSummary() {
     let sum2 = 0;
     let sum3 = 0;
     let sum4 = 0;
+    let sum5 = 0;
+    let sum6 = 0;
+    let sum7 = 0;
 
     $("input.purchase-qty").each(function () {
         const qty = parseFloat($(this).val().replace(/,/g, "")) || 0;
@@ -1044,6 +1287,21 @@ function updateTotalSummary() {
         sum4 += val;
     });
 
+    $("input.amountIn5").each(function () {
+        const val = parseFloat($(this).val().replace(/,/g, "")) || 0;
+        sum5 += val;
+    });
+
+    $("input.amountIn6").each(function () {
+        const val = parseFloat($(this).val().replace(/,/g, "")) || 0;
+        sum6 += val;
+    });
+
+    $("input.amountIn7").each(function () {
+        const val = parseFloat($(this).val().replace(/,/g, "")) || 0;
+        sum7 += val;
+    });
+
     // 총 구매 수량 표시
     $("#totalsurangDisplay").text(totalQty.toLocaleString());
 
@@ -1058,6 +1316,9 @@ function updateTotalSummary() {
     $("#inputSumDisplay2").text(sum2 === 0 ? '' : sum2.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
     $("#inputSumDisplay3").text(sum3 === 0 ? '' : sum3.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
     $("#inputSumDisplay4").text(sum4 === 0 ? '' : sum4.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+    $("#inputSumDisplay5").text(sum5 === 0 ? '' : sum5.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+    $("#inputSumDisplay6").text(sum6 === 0 ? '' : sum6.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+    $("#inputSumDisplay7").text(sum7 === 0 ? '' : sum7.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
     $("#inputSumDisplay").text(totalAmount === 0 ? '' : totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
 	
 	// 최초 로드시 계산 (입고합계)
@@ -1170,10 +1431,154 @@ function saveData() {
         formData.push(rowData);
     });
     let jsonString = JSON.stringify(formData);
-    $('#orderlist').val(jsonString);
 
-    var form = $('#board_form')[0];
-    var datasource = new FormData(form);
+    // 필수 기본 폼 데이터만 수집 - 모든 필드를 수동으로 추가
+    var basicFormData = {
+        num: $("#num").val(),
+        mode: $("#mode").val(),
+        tablename: $("#tablename").val(),
+        first_writer: $("#first_writer").val(),
+        update_log: $("#update_log").val(),
+        orderlist: jsonString,
+        orderDate: $("#orderDate").val(),
+        memo: $("#memo").val() || '',
+        
+        // 송금일자
+        sendDate1: $("#sendDate1").val() || '',
+        sendDate2: $("#sendDate2").val() || '',
+        sendDate3: $("#sendDate3").val() || '',
+        sendDate4: $("#sendDate4").val() || '',
+        sendDate5: $("#sendDate5").val() || '',
+        sendDate6: $("#sendDate6").val() || '',
+        sendDate7: $("#sendDate7").val() || '',
+        
+        // 통관일자
+        customs_date1: $("#customs_date1").val() || '',
+        customs_date2: $("#customs_date2").val() || '',
+        customs_date3: $("#customs_date3").val() || '',
+        customs_date4: $("#customs_date4").val() || '',
+        customs_date5: $("#customs_date5").val() || '',
+        customs_date6: $("#customs_date6").val() || '',
+        customs_date7: $("#customs_date7").val() || '',
+        
+        // 수량 및 금액 관련 필드들
+        totalsurang: $("#totalsurang").val() || '',
+        totalamount: $("#totalamount").val() || '',
+        inputSum1: $("#inputSum1").val() || '',
+        inputSum2: $("#inputSum2").val() || '',
+        inputSum3: $("#inputSum3").val() || '',
+        inputSum4: $("#inputSum4").val() || '',
+        inputSum5: $("#inputSum5").val() || '',
+        inputSum6: $("#inputSum6").val() || '',
+        inputSum7: $("#inputSum7").val() || '',
+        
+        // 송금 금액
+        sendMoney1: $("#sendMoney1").val() || '',
+        sendMoney2: $("#sendMoney2").val() || '',
+        sendMoney3: $("#sendMoney3").val() || '',
+        sendMoney4: $("#sendMoney4").val() || '',
+        sendMoney5: $("#sendMoney5").val() || '',
+        sendMoney6: $("#sendMoney6").val() || '',
+        sendMoney7: $("#sendMoney7").val() || '',
+        
+        // 통관비용 관련
+        customs_fee1: $("#customs_fee1").val() || '',
+        customs_fee2: $("#customs_fee2").val() || '',
+        customs_fee3: $("#customs_fee3").val() || '',
+        customs_fee4: $("#customs_fee4").val() || '',
+        customs_fee5: $("#customs_fee5").val() || '',
+        customs_fee6: $("#customs_fee6").val() || '',
+        customs_fee7: $("#customs_fee7").val() || '',
+        
+        customs_fee_total1: $("#customs_fee_total1").val() || '',
+        customs_fee_total2: $("#customs_fee_total2").val() || '',
+        customs_fee_total3: $("#customs_fee_total3").val() || '',
+        customs_fee_total4: $("#customs_fee_total4").val() || '',
+        customs_fee_total5: $("#customs_fee_total5").val() || '',
+        customs_fee_total6: $("#customs_fee_total6").val() || '',
+        customs_fee_total7: $("#customs_fee_total7").val() || '',
+        
+        // 부가세
+        customs_vat1: $("#customs_vat1").val() || '',
+        customs_vat2: $("#customs_vat2").val() || '',
+        customs_vat3: $("#customs_vat3").val() || '',
+        customs_vat4: $("#customs_vat4").val() || '',
+        customs_vat5: $("#customs_vat5").val() || '',
+        customs_vat6: $("#customs_vat6").val() || '',
+        customs_vat7: $("#customs_vat7").val() || '',
+        
+        // 선임 및 부대비
+        customs_miscellaneous_fee1: $("#customs_miscellaneous_fee1").val() || '',
+        customs_miscellaneous_fee2: $("#customs_miscellaneous_fee2").val() || '',
+        customs_miscellaneous_fee3: $("#customs_miscellaneous_fee3").val() || '',
+        customs_miscellaneous_fee4: $("#customs_miscellaneous_fee4").val() || '',
+        customs_miscellaneous_fee5: $("#customs_miscellaneous_fee5").val() || '',
+        customs_miscellaneous_fee6: $("#customs_miscellaneous_fee6").val() || '',
+        customs_miscellaneous_fee7: $("#customs_miscellaneous_fee7").val() || '',
+        
+        // 컨테이너 운송
+        customs_container_fee1: $("#customs_container_fee1").val() || '',
+        customs_container_fee2: $("#customs_container_fee2").val() || '',
+        customs_container_fee3: $("#customs_container_fee3").val() || '',
+        customs_container_fee4: $("#customs_container_fee4").val() || '',
+        customs_container_fee5: $("#customs_container_fee5").val() || '',
+        customs_container_fee6: $("#customs_container_fee6").val() || '',
+        customs_container_fee7: $("#customs_container_fee7").val() || '',
+        
+        // 통관수수료
+        customs_commission1: $("#customs_commission1").val() || '',
+        customs_commission2: $("#customs_commission2").val() || '',
+        customs_commission3: $("#customs_commission3").val() || '',
+        customs_commission4: $("#customs_commission4").val() || '',
+        customs_commission5: $("#customs_commission5").val() || '',
+        customs_commission6: $("#customs_commission6").val() || '',
+        customs_commission7: $("#customs_commission7").val() || '',
+        
+        // 세부 총합
+        customs_detail_total1: $("#customs_detail_total1").val() || '',
+        customs_detail_total2: $("#customs_detail_total2").val() || '',
+        customs_detail_total3: $("#customs_detail_total3").val() || '',
+        customs_detail_total4: $("#customs_detail_total4").val() || '',
+        customs_detail_total5: $("#customs_detail_total5").val() || '',
+        customs_detail_total6: $("#customs_detail_total6").val() || '',
+        customs_detail_total7: $("#customs_detail_total7").val() || '',
+        
+        // 입고물량대금 CNY
+        customs_input_amount_cny1: $("#customs_input_amount_cny1").val() || '',
+        customs_input_amount_cny2: $("#customs_input_amount_cny2").val() || '',
+        customs_input_amount_cny3: $("#customs_input_amount_cny3").val() || '',
+        customs_input_amount_cny4: $("#customs_input_amount_cny4").val() || '',
+        customs_input_amount_cny5: $("#customs_input_amount_cny5").val() || '',
+        customs_input_amount_cny6: $("#customs_input_amount_cny6").val() || '',
+        customs_input_amount_cny7: $("#customs_input_amount_cny7").val() || '',
+        
+        // 환율
+        exchange_rate1: $("#exchange_rate1").val() || '',
+        exchange_rate2: $("#exchange_rate2").val() || '',
+        exchange_rate3: $("#exchange_rate3").val() || '',
+        exchange_rate4: $("#exchange_rate4").val() || '',
+        exchange_rate5: $("#exchange_rate5").val() || '',
+        exchange_rate6: $("#exchange_rate6").val() || '',
+        exchange_rate7: $("#exchange_rate7").val() || '',
+        
+        // 송금액(원화)
+        send_amount_krw1: $("#send_amount_krw1").val() || '',
+        send_amount_krw2: $("#send_amount_krw2").val() || '',
+        send_amount_krw3: $("#send_amount_krw3").val() || '',
+        send_amount_krw4: $("#send_amount_krw4").val() || '',
+        send_amount_krw5: $("#send_amount_krw5").val() || '',
+        send_amount_krw6: $("#send_amount_krw6").val() || '',
+        send_amount_krw7: $("#send_amount_krw7").val() || '',
+        
+        // 송금수수료
+        remittance_fee1: $("#remittance_fee1").val() || '',
+        remittance_fee2: $("#remittance_fee2").val() || '',
+        remittance_fee3: $("#remittance_fee3").val() || '',
+        remittance_fee4: $("#remittance_fee4").val() || '',
+        remittance_fee5: $("#remittance_fee5").val() || '',
+        remittance_fee6: $("#remittance_fee6").val() || '',
+        remittance_fee7: $("#remittance_fee7").val() || ''
+    };
 
     if (ajaxRequest_write !== null) {
         ajaxRequest_write.abort();
@@ -1182,14 +1587,11 @@ function saveData() {
 	showMsgModal(2); // 1 이미지 저장, 2 파일저장
 	
     ajaxRequest_write = $.ajax({
-        enctype: 'multipart/form-data',
-        processData: false,
-        contentType: false,
         cache: false,
         timeout: 600000,
         url: "insert_account.php",
         type: "post",
-        data: datasource,
+        data: basicFormData,
         dataType: "json",
         success: function(data) {
 			console.log(data);
@@ -1358,7 +1760,7 @@ function generateExcel() {
 function calculateSummary() {
   // 입고금액합
   let inputSumTotal = 0;
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     const $span = $(`#inputSumDisplay${i}`);
     if ($span.length) {
       const val = parseFloat($span.text().replace(/,/g, '')) || 0;
@@ -1368,7 +1770,7 @@ function calculateSummary() {
 
   // 송금액합
   let sendMoneyTotal = 0;
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     const $input = $(`#sendMoney${i}`);
     if ($input.length) {
       const val = parseFloat($input.val().replace(/,/g, '')) || 0;
@@ -1377,7 +1779,7 @@ function calculateSummary() {
   }
   // 원화입력 자동합계  
   let send_amount_krw_sum = 0;
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     const $input = $(`#send_amount_krw${i}`);
     if ($input.length) {
       const val = parseFloat($input.val().replace(/,/g, '')) || 0;
@@ -1386,7 +1788,7 @@ function calculateSummary() {
   }
   // 송금수수료 자동 합계  
   let remittance_fee_sum = 0;
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     const $input = $(`#remittance_fee${i}`);
     if ($input.length) {
       const val = parseFloat($input.val().replace(/,/g, '')) || 0;
@@ -1395,7 +1797,7 @@ function calculateSummary() {
   }
   // 원화입력 + 송금수수료 자동 합계  
   let krw_plus_remittance_fee_sum = 0;
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     const $input = $(`#krw_plus_remittance_fee${i}`);
     if ($input.length) {
       const val = parseFloat($input.val().replace(/,/g, '')) || 0;
@@ -1425,7 +1827,7 @@ function calculateSummary() {
 function calculateKrwPlusRemittanceFee() {
   let totalSum = 0;
   
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     // 원화입력 값 가져오기
     const krwValue = parseFloat($(`#send_amount_krw${i}`).val().replace(/,/g, '')) || 0;
     
@@ -1451,7 +1853,7 @@ function calculateKrwPlusRemittanceFee() {
 <script>
 $(document).ready(function() {
     // 1~4차 송금액 input에 이벤트 연결
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 7; i++) {
         const $input = $(`#sendMoney${i}`);
         if ($input.length) {
             $input.on('input', function() {
@@ -1471,7 +1873,7 @@ $(document).ready(function() {
     }
 
     // 원화입력 + 송금수수료 합계 자동 계산 이벤트 연결
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 7; i++) {
         // 원화입력 이벤트
         $(`#send_amount_krw${i}`).on('input', function() {
             formatNumber(this);
@@ -1633,7 +2035,7 @@ function calculateAllRunningTotals() {
 function calculateCustomsDetailTotals() {
   console.log('=== 통관비용 차수별 합계 계산 시작 ===');
   
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     let total = 0;
     
     // 부가세
@@ -1664,7 +2066,7 @@ function calculateCustomsDetailTotals() {
 
 // 이벤트 리스너 등에서 정리된 함수만 호출하도록 유지
 $(document).ready(function() {
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 7; i++) {
     $(`#customs_vat${i}`).on('input', function() {
       formatNumber(this);
       calculateCustomsSums();

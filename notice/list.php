@@ -1,34 +1,26 @@
 ﻿<?php
 require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
-   
+
    // 첫 화면 표시 문구
-$title_message = '공지사항';
-   
+$title_message = '공지사항';  
 
  if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
 		 sleep(1);
 		  header("Location:" . $WebSite . "login/login_form.php"); 
          exit;
    }   
-
-include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';   
-
+  include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';   
  ?>
   
 <title>  <?=$title_message?>  </title> 
-
     <style>
         .table-hover tbody tr:hover {
             cursor: pointer;
         }
-    </style> 
- 
- </head> 
- 
+    </style>  
+ </head>  
 <body>
-
   <?php require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php'); ?>   
-
 <?php
 
 $tablename = "notice";
@@ -74,16 +66,18 @@ try{
    
   <div class="container justify-content-center">  
 	<div class="card mt-2 mb-4">  
+    <div class="card-header d-flex justify-content-center align-items-center">
+      <span class="text-center fs-5"> <?=$title_message?> </span>	
+      <button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+      <small class="mx-3 text-muted"> 전체 공지할 내용을 신규 등록해서 저장합니다. </small>  
+  </div>	
 	<div class="card-body">  
-		<div class="d-flex mt-3 mb-2 justify-content-center">  
-			<h5>  <?=$title_message?> </h5> 
-		</div>	
   
  <div class="d-flex mt-3 mb-1 justify-content-center  align-items-center"> 
  
     <div class="input-group p-1 mb-1 justify-content-center">	  
 			<button type="button" class="btn btn-dark  btn-sm me-2" id="writeBtn"> <ion-icon name="pencil-outline"></ion-icon> 신규  </button> 			   
-		   <input type="text" name="search" id="search" value="<?=$search?>" size="25" onkeydown="JavaScript:SearchEnter();" placeholder="검색어"> 
+		   <input type="text" name="search" id="search" value="<?=$search?>" size="25" onkeydown="JavaScript:SearchEnter();" placeholder="검색어" autocomplete="off"> 
 			<button type="button" id="searchBtn" class="btn btn-dark"  > <i class="bi bi-search"></i> 검색 </button>				
 	</div>
 	</div>

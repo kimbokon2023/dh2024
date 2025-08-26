@@ -8,9 +8,7 @@ $title_message = '업무요청사항';
 		  header("Location:" . $WebSite . "login/login_form.php"); 
          exit;
    }   
-
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';   
-
  ?>
   
 <title>  <?=$title_message?>  </title> 
@@ -18,6 +16,33 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
     <style>
         .table-hover tbody tr:hover {
             cursor: pointer;
+        }
+        
+        /* 검색 타입 선택 스타일 */
+        .search-type-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .search-type-container input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        .search-type-container label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* 동적 검색 컨트롤 스타일 */
+        .year-select, .month-select, .period-select {
+            display: none;
+            min-width: 200px;
+        }
+
+        .year-select select, .month-select input, .period-select .d-flex {
+            width: 100%;
         }
     </style> 
  
@@ -33,15 +58,57 @@ $pdo = db_connect();
 	 
 $mode=$_REQUEST["mode"] ?? '' ;
 $search=$_REQUEST["search"] ?? '';
-     
+$search_type = isset($_REQUEST['search_type']) ? $_REQUEST['search_type'] : 'period'; // 기본값은 기간별
+$selected_year = isset($_REQUEST['selected_year']) ? $_REQUEST['selected_year'] : date('Y');
+$selected_month = isset($_REQUEST['selected_month']) ? $_REQUEST['selected_month'] : date('Y-m');
+$fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
+$todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
+
+// 현재 날짜
+$currentDate = date("Y-m-d");
+
+// 검색 타입에 따른 날짜 설정
+if ($search_type === 'year') {
+    // 연도별 검색
+    $fromdate = $selected_year . "-01-01";
+    $todate = $selected_year . "-12-31";
+} elseif ($search_type === 'month') {
+    // 월별 검색
+    $fromdate = $selected_month . "-01";
+    $todate = $selected_year . "-01-01";
+} else {
+    // 기간별 검색 (기본값)
+    if ($fromdate === "" || $fromdate === null || $todate === "" || $todate === null) {
+        $fromdate = date("Y-m-01", strtotime("-1 month"));	
+        $todate = $currentDate;
+    }
+}
+
+// 연도 옵션 생성 (현재년도 + 과거 3년)
+$current_year = date('Y');
+$year_options = '';
+for ($i = 0; $i < 4; $i++) {
+    $year = $current_year - $i;
+    $selected = ($year == $selected_year) ? 'selected' : '';
+    $year_options .= "<option value='$year' $selected>" . $year . "년</option>";
+}
+
 if($mode=="search"){
     if(!$search) {
-		$sql ="select * from " . $DB . "." . $tablename . " order  by num desc "; 				
-    }
-        $sql="select * from " . $DB . "." . $tablename . " where name like '%$search%' or subject like '%$search%'  or regist_day like '%$search%'   or searchtext like '%$search%'  order by num desc ";              
+        $sql ="select * from " . $DB . "." . $tablename . " 
+            WHERE regist_day BETWEEN '$fromdate' AND '$todate' 
+            order by num desc "; 				
     } else {
-        $sql="select * from " . $DB . "." . $tablename . " order  by num desc";              
+        $sql="select * from " . $DB . "." . $tablename . " 
+            where (name like '%$search%' or subject like '%$search%' or regist_day like '%$search%' or searchtext like '%$search%') 
+            AND regist_day BETWEEN '$fromdate' AND '$todate' 
+            order by num desc ";              
     }
+} else {
+    $sql="select * from " . $DB . "." . $tablename . " 
+        WHERE regist_day BETWEEN '$fromdate' AND '$todate' 
+        order by num desc";              
+}
 	 	 
 try{  
 	$stmh = $pdo->query($sql); 
@@ -56,10 +123,54 @@ try{
 		<div class="card-header">
 			<div class="d-flex justify-content-center text-center align-items-center">										 
 				<span class="text-center fs-5"> <?=$title_message?> </span>		
-				<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+				<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  	
+				<small class="ms-5 text-muted">  업무요청시 담당자 지정, 요청내용 및 기간을 정확히 기재하여 저장합니다. </small>  	
 			</div>
 		</div>
 		<div class="card-body">								
+			<!-- 검색 타입 선택 -->
+			<div class="row justify-content-center mb-3">
+				<div class="col-auto">
+					<div class="search-type-container">
+						<label class="me-3">
+							<input type="radio" name="search_type" value="year" <?= $search_type === 'year' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 연도별
+						</label>
+						<label class="me-3">
+							<input type="radio" name="search_type" value="month" <?= $search_type === 'month' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 월별
+						</label>
+						<label>
+							<input type="radio" name="search_type" value="period" <?= $search_type === 'period' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 기간별
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<!-- 동적 검색 컨트롤 -->
+			<div class="row justify-content-center mb-3">
+				<div class="col-auto">
+					<!-- 연도별 검색 -->
+					<div class="year-select">
+						<select id="selected_year" name="selected_year" class="form-select form-select-sm" onchange="autoSubmit()">
+							<?= $year_options ?>
+						</select>
+					</div>
+
+					<!-- 월별 검색 -->
+					<div class="month-select">
+						<input type="month" id="selected_month" name="selected_month" class="form-control" value="<?=$selected_month?>" onchange="autoSubmit()">
+					</div>
+
+					<!-- 기간별 검색 -->
+					<div class="period-select">
+						<div class="d-flex align-items-center">
+							<input type="date" id="fromdate" name="fromdate" class="form-control me-2" value="<?=$fromdate?>" onchange="autoSubmit()">
+							<span class="me-2">~</span>
+							<input type="date" id="todate" name="todate" class="form-control" value="<?=$todate?>" onchange="autoSubmit()">
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<div class="d-flex justify-content-center text-center align-items-center mb-2">										 
 				▷ <?= $total_row ?> &nbsp; 
 				<div class="inputWrap30">			
@@ -75,7 +186,7 @@ try{
 			   <thead class="table-primary">
 					<tr>
 						 <th class="text-center" > 번호 </th>
-						 <th class="text-center" > 요청사항 제목 th>						 
+						 <th class="text-center" > 요청사항 제목 </th>						 
 						 <th class="text-center" > 작성자 </th>
 						 <th class="text-center" > 업무담당자   </th>
 						 <th class="text-center" > 작성일 </th>   
@@ -136,11 +247,48 @@ try{
 
 <!-- 페이지로딩 -->
 <script>
+// 검색 타입에 따른 동적 컨트롤 표시/숨김
+function toggleSearchType() {
+    var searchType = $('input[name="search_type"]:checked').val();
+    
+    // 모든 검색 컨트롤 숨기기
+    $('.year-select, .month-select, .period-select').hide();
+    
+    // 선택된 타입에 따라 해당 컨트롤만 표시
+    if (searchType === 'year') {
+        $('.year-select').show();
+    } else if (searchType === 'month') {
+        $('.month-select').show();
+    } else if (searchType === 'period') {
+        $('.period-select').show();
+    }
+}
+
+// 검색 타입 변경 시 자동 검색 실행
+function toggleSearchTypeAndSubmit() {
+    toggleSearchType();
+    
+    // 약간의 지연 후 폼 제출 (UI 업데이트를 위해)
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 100);
+}
+
+// 검색 조건 변경 시 자동 검색 실행
+function autoSubmit() {
+    // 약간의 지연 후 폼 제출 (사용자 입력 완료를 위해)
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 300);
+}
+
 // 페이지 로딩
 $(document).ready(function(){	
     var loader = document.getElementById('loadingOverlay');
 	if(loader)
 		loader.style.display = 'none';
+		
+    toggleSearchType(); // 초기 로드 시 검색 타입에 맞는 컨트롤 표시
 });
 
 var dataTable; // DataTables 인스턴스 전역 변수

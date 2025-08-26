@@ -497,23 +497,27 @@ function Fninsert() {
 
 	// HTML 문자열을 DOM 요소로 변환
 	let tempDiv = document.createElement('div');
-	tempDiv.innerHTML = content;
+	// JSON으로 보낼 때 문제가 될 수 있는 script, style, iframe, object, embed, form, input, button, textarea, select 태그를 제거
+	let cleanedContent = content.replace(/<(script|style|iframe|object|embed|form|input|button|textarea|select)[^>]*>[\s\S]*?<\/\1>/gi, '');
+	// 또한, on* 이벤트 속성도 제거
+	cleanedContent = cleanedContent.replace(/ on\w+="[^"]*"/gi, '');
+	tempDiv.innerHTML = cleanedContent;
 
-	// 이제 tempDiv 내부에서 원하는 태그를 선택할 수 있습니다.
-	let elements = tempDiv.querySelectorAll('p, b');
+	// // 이제 tempDiv 내부에서 원하는 태그를 선택할 수 있습니다.
+	// let elements = tempDiv.querySelectorAll('p, b');
 
-	let extractedTexts = [];
-	elements.forEach(element => {
-		extractedTexts.push(element.textContent);
-	});
+	// let extractedTexts = [];
+	// elements.forEach(element => {
+	// 	extractedTexts.push(element.textContent);
+	// });
 
-	console.log(extractedTexts.join(','));
+	// // console.log(extractedTexts.join(','));
 
-    var extractedText = extractedTexts.join(',');
+    // var extractedText = extractedTexts.join(',');
 
-	console.log('extractedTexts');
-	console.log(extractedTexts);
-	$("#searchtext").val(extractedText);
+	// // console.log('extractedTexts');
+	// // console.log(extractedTexts);
+	// $("#searchtext").val(extractedText);
 
     var form = $('#board_form')[0];
     var data = new FormData(form);

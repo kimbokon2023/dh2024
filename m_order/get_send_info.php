@@ -6,7 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 $num = isset($_GET['num']) ? $_GET['num'] : '';
 $round = isset($_GET['round']) ? intval($_GET['round']) : 0;
 
-if (!$num || $round < 1 || $round > 4) {
+if (!$num || $round < 1 || $round > 7) {
     echo json_encode(['success' => false, 'message' => 'Invalid parameters']);
     exit;
 }

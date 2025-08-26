@@ -434,8 +434,8 @@ function addRow(tableBody, rowData, typebutton) {
         var nameInput = '<div class="specialinputWrap">  <input type="text" name="col2[]" class="form-control item-name" placeholder="품목명" autocomplete="off" value="' + (rowData.col2 || '') + '"> <button class="specialbtnClear"></button> </div>';
         newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '">' + nameInput + '</td>');
 
-        newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '"><input type="number" name="col3[]" class="form-control text-end purchase-qty" autocomplete="off" value="' + (rowData.col3 || '') + '" required onkeyup="updateRowCalculation(this);"></td>');
-        newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '"><input type="number" name="col4[]" class="form-control text-end unit-price" autocomplete="off" value="' + (rowData.col4 || '') + '" required onkeyup="updateRowCalculation(this);"></td>');
+        newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '"><input type="text" name="col3[]" class="form-control text-end purchase-qty" autocomplete="off" value="' + (rowData.col3 || '') + '" required onkeyup="updateRowCalculation(this);"></td>');
+        newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '"><input type="text" name="col4[]" class="form-control text-end unit-price" autocomplete="off" value="' + (rowData.col4 || '') + '" required onkeyup="updateRowCalculation(this);"></td>');
         newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '"><input type="text" name="col5[]" class="form-control" autocomplete="off" value="' + (rowData.col5 || '') + '"></td>');
         newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '"><input type="text" name="col6[]" class="form-control text-end amount" autocomplete="off" value="' + (rowData.col6 ? Number(rowData.col6).toLocaleString() : '') + '" readonly></td>');
 
@@ -893,29 +893,30 @@ function generateExcel() {
     };
 
     // 전송
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "order_saveExcel.php", true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.onreadystatechange = function () {
-         if (xhr.readyState === 4) {
-             if (xhr.status === 200) {
-                 try {
-                     var response = JSON.parse(xhr.responseText);
-                     if (response.success) {
-                         console.log('Excel file generated successfully.');
-                         window.location.href = 'downloadExcel.php?filename=' + encodeURIComponent(response.filename.split('/').pop());
-                     } else {
-                         console.log('Failed to generate Excel file: ' + response.message);
-                     }
-                 } catch (e) {
-                     console.log('Error parsing response: ' + e.message + '\nResponse text: ' + xhr.responseText);
-                 }
-             } else {
-                 console.log('Failed to generate Excel file: Server returned status ' + xhr.status);
-             }
-         }
-    };
-    xhr.send(JSON.stringify(payload));
+    $.ajax({
+        type: "POST",
+        url: "order_saveExcel.php",
+        data: { excelData: JSON.stringify(payload) },
+        dataType: "json",
+        success: function(response) {
+            try {
+                if (response.success) {
+                    console.log('Excel file generated successfully.');
+                    window.location.href = 'downloadExcel.php?filename=' + encodeURIComponent(response.filename.split('/').pop());
+                } else {
+                    console.log('Failed to generate Excel file: ' + response.message);
+                }
+            } catch (e) {
+                console.log('Error parsing response: ' + e.message + '\nResponse text: ' + response);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.log('Failed to generate Excel file: ' + error);
+            console.log('Status: ' + status);
+            console.log('Response Text: ' + xhr.responseText);
+            console.log('Status Code: ' + xhr.status);
+        }
+    });
 }
 
 </script>

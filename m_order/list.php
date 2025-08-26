@@ -238,9 +238,10 @@ try {
     <div class="d-flex justify-content-center">
     <div class="card mb-2 mt-2 w-75">
         <div class="card-body">
-            <div class="d-flex mt-1 mb-4 justify-content-center align-items-center">         
-                <h5 class="mx-1">  <?=$title_message?>  <?=$titletag?> </h5>  &nbsp;&nbsp;
-				<button type="button" class="btn btn-dark btn-sm mx-2"  onclick='location.reload();' > <i class="bi bi-arrow-clockwise"></i> </button>  	   		  						
+            <div class="card-header d-flex justify-content-center align-items-center mb-2">   
+                <span class="text-center fs-5">  <?=$title_message?>   </span>     
+				<button type="button" class="btn btn-dark btn-sm mx-1" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>      						 
+				<small class="ms-5 text-muted"> 중국측 구매를 위한 발주서 (발주서 작성 후 중국측 발송)</small>              
 				<button type="button" class="btn btn-primary btn-sm mx-3"  onclick='location.href="list_input.php";' title="발주 입고창 이동" >  <i class="bi bi-list-columns"></i> </button>  	   		  						
 				<?php if(intval($level) === 1) : ?>
 					<button type="button" class="btn btn-danger btn-sm "  onclick='location.href="list_account.php";' title="송금액 이동" >  <i class="bi bi-currency-dollar"></i> </button>  	   		  										

@@ -74,25 +74,39 @@ function checkNull($strtmp) {
 
 $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';  
 $mode = isset($_REQUEST["mode"]) ? $_REQUEST["mode"] : '';
-$search_type = isset($_REQUEST['search_type']) ? $_REQUEST['search_type'] : 'period';
+$search_type = isset($_REQUEST['search_type']) ? $_REQUEST['search_type'] : 'period'; // 기본값은 기간별
 $selected_year = isset($_REQUEST['selected_year']) ? $_REQUEST['selected_year'] : date('Y');
 $selected_month = isset($_REQUEST['selected_month']) ? $_REQUEST['selected_month'] : date('Y-m');
 $fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
 $todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
 
+// 현재 날짜
 $currentDate = date("Y-m-d");
 
+// 검색 타입에 따른 날짜 설정
 if ($search_type === 'year') {
+    // 연도별 검색
     $fromdate = $selected_year . "-01-01";
     $todate = $selected_year . "-12-31";
 } elseif ($search_type === 'month') {
+    // 월별 검색
     $fromdate = $selected_month . "-01";
     $todate = date("Y-m-t", strtotime($selected_month . "-01"));
 } else {
+    // 기간별 검색 (기본값)
     if ($fromdate === "" || $fromdate === null || $todate === "" || $todate === null) {
-        $fromdate = date("Y-m-01", strtotime("-1 month"));
+        $fromdate = date("Y-01-01");	
         $todate = $currentDate;
     }
+}
+
+// 연도 옵션 생성 (현재년도 + 과거 3년)
+$current_year = date('Y');
+$year_options = '';
+for ($i = 0; $i < 4; $i++) {
+    $year = $current_year - $i;
+    $selected = ($year == $selected_year) ? 'selected' : '';
+    $year_options .= "<option value='$year' $selected>" . $year . "년</option>";
 }
 
 $tablename = 'material_reg';
@@ -101,11 +115,16 @@ $pdo = db_connect();
 
 $order = " ORDER BY inoutdate DESC, registedate desc, inout_item_code asc ";
 
-$sql = "SELECT * FROM " . $DB . "." . $tablename . " WHERE is_deleted IS NULL AND inoutdate BETWEEN '$fromdate' AND '$todate' ";
+// 검색 조건에 따른 SQL 쿼리 구성
 if (checkNull($search)) {
-    $sql .= " AND searchtag LIKE '%$search%'";
+    $sql = "SELECT * FROM ".$DB.".".$tablename." 
+        WHERE searchtag LIKE '%$search%' AND is_deleted IS NULL 
+        AND inoutdate BETWEEN '$fromdate' AND '$todate' " . $order;	
+} else {
+    $sql = "SELECT * FROM ".$DB.".".$tablename." 
+        WHERE is_deleted IS NULL 
+        AND inoutdate BETWEEN '$fromdate' AND '$todate' " . $order;
 }
-$sql .= $order;
 
 try {      
     $stmh = $pdo->query($sql);
@@ -138,39 +157,71 @@ try {
     <div class="card-header d-flex justify-content-center align-items-center">
         <span class="text-center fs-5 me-4"><?=$title_message?></span>   
         <button type="button" class="btn btn-dark btn-sm me-1" onclick='location.href="list.php?header=header"'> <i class="bi bi-arrow-clockwise"></i> </button> 
+        <small class="ms-5 text-muted"> 중국에서 입고된 품목들을 일자별 등록하고 저장 (1~7차까지 등록가능) </small>  
     </div>
     <div class="card-body">
-        <div class="d-flex justify-content-center mt-3 mb-2">
-            <label><input type="radio" name="search_type" class="form-check-input mx-2" value="year" <?= $search_type === 'year' ? 'checked' : '' ?> onchange="this.form.submit()"> 연도별</label>
-            &nbsp;
-            <label><input type="radio" name="search_type" class="form-check-input mx-2" value="month" <?= $search_type === 'month' ? 'checked' : '' ?> onchange="this.form.submit()"> 월별</label>
-            &nbsp;
-            <label><input type="radio" name="search_type" class="form-check-input mx-2" value="period" <?= $search_type === 'period' ? 'checked' : '' ?> onchange="this.form.submit()"> 기간별</label>
+        <div class="container mt-2 mb-2">   
+        ▷ <?= $total_row ?> &nbsp; 
+        
+        <!-- 검색 타입 선택 -->
+        <div class="row justify-content-center mb-3">
+            <div class="col-auto">
+                <div class="search-type-container">
+                    <label class="me-3">
+                        <input type="radio" name="search_type" value="year" <?= $search_type === 'year' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 연도별
+                    </label>
+                    <label class="me-3">
+                        <input type="radio" name="search_type" value="month" <?= $search_type === 'month' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 월별
+                    </label>
+                    <label>
+                        <input type="radio" name="search_type" value="period" <?= $search_type === 'period' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 기간별
+                    </label>
+                </div>
+            </div>
         </div>
-        <div class="d-flex justify-content-center mb-3">
-            <?php
-            if ($search_type === 'year') {
-                echo "<select name='selected_year' class='form-select w-auto' style='font-size:0.7rem;' onchange='this.form.submit()'>";
-                for ($i = 0; $i < 4; $i++) {
-                    $y = date('Y') - $i;
-                    $sel = ($y == $selected_year) ? "selected" : "";
-                    echo "<option value='{$y}' {$sel}>{$y}년</option>";
-                }
-                echo "</select>";
-            } elseif ($search_type === 'month') {
-                echo "<input type='month' name='selected_month' class='form-control w100px' value='{$selected_month}' onchange='this.form.submit()'>";
-            } else {
-                echo "<input type='date' name='fromdate' class='form-control w100px' value='{$fromdate}'> &nbsp; ~ &nbsp; <input type='date' name='todate' class='form-control w100px' value='{$todate}'>";
-            }
-            ?>
-            &nbsp;&nbsp;
-            <input type="text" name="search" class="form-control w150px" value="<?=$search?>" autocomplete="off" placeholder="검색어">
-            <button class="btn btn-outline-dark btn-sm mx-1" type="button" id="searchBtn"> <i class="bi bi-search"></i> </button> &nbsp;&nbsp;&nbsp;&nbsp;        
+
+        <!-- 동적 검색 컨트롤 -->
+        <div class="row justify-content-center mb-3">
+            <div class="col-auto">
+                <!-- 연도별 검색 -->
+                <div class="year-select">
+                    <select id="selected_year" name="selected_year" class="form-select form-select-sm" onchange="autoSubmit()">
+                        <?= $year_options ?>
+                    </select>
+                </div>
+
+                <!-- 월별 검색 -->
+                <div class="month-select">
+                    <input type="month" id="selected_month" name="selected_month" class="form-control" value="<?=$selected_month?>" onchange="autoSubmit()">
+                </div>
+
+                <!-- 기간별 검색 -->
+                <div class="period-select">
+                    <div class="d-flex align-items-center">
+                        <input type="date" id="fromdate" name="fromdate" class="form-control me-2" value="<?=$fromdate?>" onchange="autoSubmit()">
+                        <span class="me-2">~</span>
+                        <input type="date" id="todate" name="todate" class="form-control" value="<?=$todate?>" onchange="autoSubmit()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검색어 입력 및 검색 버튼 (항상 유지) -->
+        <div class="row justify-content-center mb-3">
+            <div class="col-auto">
+                <div class="d-flex align-items-center">
+                    <div class="inputWrap30 me-2">			
+                        <input type="text" id="search" class="form-control" style="width:150px;" name="search" value="<?=$search?>" autocomplete="off" onKeyPress="if (event.keyCode==13){ enter(); }" placeholder="검색어 입력">
+                        <button class="btnClear"></button>
+                    </div>							
+                    <button class="btn btn-outline-dark btn-sm me-2" type="button" id="searchBtn"> <i class="bi bi-search"></i> 검색 </button> &nbsp;&nbsp;&nbsp;&nbsp;			
+                    <button id="newBtn" type="button" class="btn btn-dark btn-sm me-2"> <i class="bi bi-pencil-square"></i> 신규 </button>				
+                </div>
+            </div>
         </div>
     
-    <button id="newBtn" type="button" class="btn btn-dark btn-sm ms-1 me-2"> <i class="bi bi-pencil-square"></i> 신규 </button>    
     <?php if($header !== 'header') 
-            print '<button id="closeBtn" type="button" class="btn btn-outline-dark btn-sm"> &times; 닫기 </button>';
+            print '<button id="closeBtn" type="button" class="btn btn-outline-dark btn-sm"> <i class="bi bi-x-lg"></i> 창닫기 </button>';
     ?>            
     </div>	
     </div>	
@@ -231,6 +282,41 @@ try {
 var ajaxRequest = null;
 var itemData = [];
 var lotnumData = [];
+
+// 검색 타입에 따른 동적 컨트롤 표시/숨김
+function toggleSearchType() {
+    var searchType = $('input[name="search_type"]:checked').val();
+    
+    // 모든 검색 컨트롤 숨기기
+    $('.year-select, .month-select, .period-select').hide();
+    
+    // 선택된 타입에 따라 해당 컨트롤만 표시
+    if (searchType === 'year') {
+        $('.year-select').show();
+    } else if (searchType === 'month') {
+        $('.month-select').show();
+    } else if (searchType === 'period') {
+        $('.period-select').show();
+    }
+}
+
+// 검색 타입 변경 시 자동 검색 실행
+function toggleSearchTypeAndSubmit() {
+    toggleSearchType();
+    
+    // 약간의 지연 후 폼 제출 (UI 업데이트를 위해)
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 100);
+}
+
+// 검색 조건 변경 시 자동 검색 실행
+function autoSubmit() {
+    // 약간의 지연 후 폼 제출 (사용자 입력 완료를 위해)
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 300);
+}
 
 function fetchItemData() {
     $.ajax({
@@ -348,7 +434,6 @@ function initializeAutocomplete(input) {
 $(document).ready(function() {
     fetchItemData();
     fetchLotnumData();
-
 });
 
 function loadForm(mode, num = null) {
@@ -580,7 +665,11 @@ function restorePageNumber() {
 <script>
 $(document).ready(function(){    
     var loader = document.getElementById('loadingOverlay');
-    loader.style.display = 'none';
+    if (loader) {
+        loader.style.display = 'none';
+    }
+    
+    toggleSearchType(); // 초기 로드 시 검색 타입에 맞는 컨트롤 표시
 
     var modal = document.getElementById("myModal");
     var span = document.getElementsByClassName("close")[0];
@@ -640,27 +729,6 @@ $(document).on("keypress", "input", function(event) {
 
 $(document).ready(function(){
 	saveLogData('자재 입고'); 
-});
-</script>
-
-<script>
-function toggleSearchType() {
-    const type = document.querySelector('input[name="search_type"]:checked').value;
-    document.querySelector('.year-select').style.display = 'none';
-    document.querySelector('.month-select').style.display = 'none';
-    document.querySelector('.period-select').style.display = 'none';
-
-    if (type === 'year') {
-        document.querySelector('.year-select').style.display = 'block';
-    } else if (type === 'month') {
-        document.querySelector('.month-select').style.display = 'block';
-    } else {
-        document.querySelector('.period-select').style.display = 'block';
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-    toggleSearchType();
 });
 </script>
 

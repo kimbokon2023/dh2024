@@ -490,6 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="d-flex  p-1 m-1 mt-1 justify-content-center align-items-center ">
                     <h5>  <?=$title_message?> </h5>
 					<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+                    <small class="ms-5 text-muted"> 연간 및 월간 일정을 등록하고 수정합니다. </small>  
                 </div>
 
                 <div class="d-flex  p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">

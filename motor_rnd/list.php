@@ -8,13 +8,10 @@ if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
 }   
 
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
-
-   // 첫 화면 표시 문구
+// 첫 화면 표시 문구
  $title_message = '모터 개발일지';   
-
  ?>
 <title>  <?=$title_message?>  </title> 
-
 </head> 
 <body> 
 <?php require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php'); ?>   
@@ -23,12 +20,8 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 // Check if 'navibar' and 'menu' are set in the request and assign their values; if not, set them to an empty string
 $navibar = isset($_REQUEST['navibar']) ? $_REQUEST['navibar'] : '';
 $menu = isset($_REQUEST['menu']) ? $_REQUEST['menu'] : '';
-
-?>
- 
+?> 
 <?php
-
-
 $tablename = "motor_rnd";
 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
@@ -68,10 +61,8 @@ $pdo = db_connect();
 // var_dump($sql);
 	 
  try{  
-		$stmh = $pdo->query($sql); 
-         ?>
-
-
+	 $stmh = $pdo->query($sql); 
+   ?>
 
 <form name="board_form" id="board_form"  method="post" action="list.php?mode=search&search=<?=$search?>">
 
@@ -82,13 +73,12 @@ $pdo = db_connect();
   
   
 	<div class="card mt-2 mb-4">  
+	<div class="card-header d-flex justify-content-center align-items-center">
+		<span class="text-center fs-5"> <?=$title_message?> </span>	
+		<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+		<small class="mx-3 text-muted"> 모터 개발 및 업그레이드 등 제품에 관한 회의내용 상세히 기재 (일자, 시간, 참석자, 내용, 결과) </small>  
+	</div>	
 	<div class="card-body">  
-		<div class="d-flex mt-3 mb-2 justify-content-center">  
-				<h5>  <?=$title_message?> </h5> 
-				<button type="button" class="btn btn-dark btn-sm mx-1" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>      						 
-		</div>	
-  
- 
  <div class="d-flex mt-3 mb-1 justify-content-center  align-items-center"> 
     <div class="input-group p-1 mb-1 justify-content-center">	  
 			<button type="button" class="btn btn-dark  btn-sm me-2" id="writeBtn"> <ion-icon name="pencil-outline"></ion-icon> 신규  </button> 			   
@@ -96,8 +86,7 @@ $pdo = db_connect();
 			<button type="button" id="searchBtn" class="btn btn-dark"  > <i class="bi bi-search"></i> 검색 </button>				
 	</div>
 </div>
-	   
-	   
+
  <div class="row d-flex"  >
  <table class="table table-hover" id="myTable">
    <thead class="table-primary" >	    

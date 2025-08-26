@@ -69,12 +69,9 @@ else
    
  try{  	  
 	$stmh = $pdo->query($sql);            // 검색조건에 맞는글 stmh
-	$total_row=$stmh->rowCount();			  
-   	
+	$total_row=$stmh->rowCount();	
 ?>	
-
-<form id="board_form" name="board_form" method="post" enctype="multipart/form-data"   >			 
-
+<form id="board_form" name="board_form" method="post" enctype="multipart/form-data"   >		
 	<input type="hidden" id="mode" name="mode" value="<?=$mode?>">             
 	<input type="hidden" id="num" name="num"  > 
 	<input type="hidden" id="tablename" name="tablename" value="<?=$tablename?>" > 				
@@ -90,13 +87,16 @@ else
 		}
 		else
 		{
-			print '<div class="container" >	';
+			print '<div class="container-fluid" >	';
 			print '<div class="card justify-content-center text-center mt-5" >';
 		}
 ?>	 
 	<div class="card-header">
 		<div class="d-flex  justify-content-center text-center align-items-center " >										
-			<span class="text-center fs-5" >  <?=$title_message?>   </span>								
+			<span class="text-center fs-5" >  <?=$title_message?>   </span>		
+			<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+            <small class="ms-5 text-muted"> 거래처를 검색하고 신규로 등록할 수 있습니다.(거래처별 담당자 등록은 거래처 클릭하고 +버튼을 눌러 등록합니다)
+            </small>  
 		</div>
 		<div class="d-flex  justify-content-center text-center align-items-center mt-1 " >										
 			<h5> <span class="text-center badge bg-danger" > (주의사항) 담당자 아이디 생성시 반드시 + 버튼을 이용해야 합니다.  </span>	</h5>
@@ -131,6 +131,7 @@ else
 				 <th class="text-center" >담당자</th>
 				 <th class="text-center" >전화번호</th>
 				 <th class="text-center text-primary w150px"> 결제일</th>				 
+				 <th class="text-center text-primary w300px"> 비고</th>				 
 				 <th class="text-center w130px"> 수정/삭제</th>
 			 </tr>			   
 			</thead>
@@ -147,16 +148,32 @@ else
 			else
 				$savenum= $num;
 	?>					 
-<tr onclick="maketext('<?=$manager_name?>', '<?=$representative_name?>', '<?=$phone?>', '<?=$vendor_name?>', '<?=$contact_info?>', '<?=$savenum?>', '<?=$screendc?>', '<?=$etcdc?>', '<?=$controllerdc?>', '<?=$fabricdc?>', '<?=$num?>');">
+<tr onclick="maketext(
+    '<?= addslashes($manager_name) ?>', 
+    '<?= addslashes($representative_name) ?>', 
+    '<?= addslashes($phone) ?>', 
+    '<?= addslashes($vendor_name) ?>', 
+    '<?= addslashes($contact_info) ?>', 
+    '<?= addslashes($savenum) ?>', 
+    '<?= addslashes($screendc) ?>', 
+    '<?= addslashes($etcdc) ?>', 
+    '<?= addslashes($controllerdc) ?>', 
+    '<?= addslashes($fabricdc) ?>', 
+    '<?= addslashes($num) ?>', 
+    '<?= addslashes(str_replace(array("\r\n", "\n", "\r"), "\\n", $note)) ?>'   // 줄바꿈 문자 처리     
+);">
 	<td class="text-center" ><?= $start_num ?></td>
 	<td class="text-center text-primary fw-bold" ><?= $represent ?></td>
 	<td class="text-center  text-secondary" ><?= $secondordnum ?></td>
-	<td class="text-center text-dark fw-bold" title="<?=$vendor_name?>"><?= $vendor_name ?></td>
+	<td class="text-start text-dark fw-bold" title="<?=$vendor_name?>"><?= $vendor_name ?></td>
 	<td  class="text-center" title="<?=$representative_name?>"><?= $representative_name ?></td>
 	<td class="text-center" title="<?=$manager_name?>"><?= $manager_name ?></td>
 	<td class="text-center" title="<?=$contact_info?>"><?= $contact_info ?></td>
 	<td class="text-center text-primary fw-bold">
 		<?= $represent == '아이디부여' ? $paydate : '' ?>
+	</td>
+	<td class="text-start" >
+		<?= $note ?>
 	</td>
 	<td class="text-end" >
 	   <?php if(!empty($represent)) { ?>
@@ -260,8 +277,15 @@ function enter()
 
 
 		
-	function maketext(managerName, representativeName, phone, vendorName, contact_info, savenum, screendc, etcdc, controllerdc, fabricdc, num)  
-	  {
+	function maketext(managerName, representativeName, phone, vendorName, contact_info, savenum, screendc, etcdc, controllerdc, fabricdc, num, note)  
+	{
+		// note 변수의 \n을 <br>로 변환하여 줄바꿈이 HTML에서 적용되도록 처리
+		if (typeof note === 'string') {
+			note = note.replace(/\n/g, '<br>');
+		}
+
+        console.log(note);
+
 		var managerFieldID = 'secondordman'; // ID of the manager input field in the parent document
 		var repFieldID = 'representative'; // ID of the representative input field in the parent document
 		var phoneFieldID = 'secondordmantel'; // ID of the phone input field in the parent document
@@ -272,9 +296,10 @@ function enter()
 		var opener_controllerdc = 'controller_company_dc_value'; 		
 		var opener_fabricdc = 'fabric_company_dc_value'; 
 		var textmsg;
+        var opener_note = 'custNote';
 		var header = $("#header").val();
 		var getmoney = $("#getmoney").val();
-		var returnID = $("#returnID").val();
+		var returnID = $("#returnID").val();        
 		
 		// 업체코드 세팅
 		$("#secondordnum").val(savenum);
@@ -332,7 +357,10 @@ function enter()
 				$("#" + opener_etcdc, opener.document).val(etcdc); 
 				$("#" + opener_controllerdc, opener.document).val(controllerdc); 
 				$("#" + opener_fabricdc, opener.document).val(fabricdc); 
-					
+                
+                // 발주주소록 비고 적용 (수주서에 적용)
+				$("#" + opener_note, opener.document).val(note); 
+                					
 				if (opener && !opener.closed) {
 					opener.companydc();  // Calls the function `companydc()` defined in the parent window
 				}
@@ -354,9 +382,7 @@ function enter()
 		}
 
 	 }
-
-
-		
+	
 	function  updateFn(num) {	
 		var header = $("#header").val();
 		
@@ -599,8 +625,9 @@ function renderExceptTable(container, data, isFavoriteTab, isExceptTab) {
 }
 
 
-    function renderDeliveryTable(container, data, isFavoriteTab) {
-        var secondordnum = document.getElementById('secondordnum').value;
+    function renderDeliveryTable(container, data, isFavoriteTab) { 
+        const secondordnum = document.getElementById('secondordnum').value;
+        console.log('renderDeliveryTable - secondordnum', secondordnum);
         let tableHTML = `<table class="table table-bordered table-hover">
             <thead class="table-secondary text-center">
                 <tr>
@@ -665,7 +692,7 @@ function renderExceptTable(container, data, isFavoriteTab, isExceptTab) {
             let isFavorite = item.isFavorite ? '★' : '☆';
             tableHTML += `<tr>
 				<td><input type="checkbox" class="exclude-checkbox" data-deliverymethod="${item.deliverymethod}" data-address="${item.address}" data-receiver="${item.receiver}" data-tel="${item.tel}"></td>
-                <td class="favorite" onclick="toggleFavorite('${secondordnum}', '${item.deliverymethod}', '${item.address}', '${item.receiver}', '${item.tel}', '${item.carinfo}', '${item.delcompany}', '${item.chargedman}', '${item.chargedmantel}', '${item.delcaritem}', '${item.delbranch}', ${isFavoriteTab})">${isFavorite}</td>
+                <td class="favorite" onclick="toggleFavorite('${item.secondordnum}', '${item.deliverymethod}', '${item.address}', '${item.receiver}', '${item.tel}', '${item.carinfo}', '${item.delcompany}', '${item.chargedman}', '${item.chargedmantel}', '${item.delcaritem}', '${item.delbranch}', ${isFavoriteTab})">${isFavorite}</td>
                 <td onclick="selectNum('${item.deliverymethod}', '${item.address}', '${item.receiver}', '${item.tel}', '${item.chargedman}', '${item.chargedmantel}', '${item.delcaritem}', '${item.delcompany}');">${item.deliverymethod}</td>
                 <td onclick="selectNum('${item.deliverymethod}', '${item.address}', '${item.receiver}', '${item.tel}', '${item.chargedman}', '${item.chargedmantel}', '${item.delcaritem}', '${item.delcompany}');">${item.address}</td>
                 <td onclick="selectNum('${item.deliverymethod}', '${item.address}', '${item.receiver}', '${item.tel}', '${item.chargedman}', '${item.chargedmantel}', '${item.delcaritem}', '${item.delcompany}');">${item.receiver}</td>
@@ -697,43 +724,92 @@ function renderExceptTable(container, data, isFavoriteTab, isExceptTab) {
 		loadExceptData();
 	});
 
-    function toggleFavorite(secondordnum, deliverymethod, address, receiver, tel, carinfo, delcompany, chargedman, chargedmantel, delcaritem, delbranch, isFavoriteTab) {
-        console.log('toggleFavorite 호출값 :', secondordnum, deliverymethod, address, receiver, tel, carinfo, delcompany, chargedman, chargedmantel, delcaritem, delbranch, isFavoriteTab);
-        fetch('toggle_favorite.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                secondordnum: secondordnum,
-                deliverymethod: deliverymethod,
-                address: address,
-                receiver: receiver,
-                tel: tel,
-                carinfo: carinfo,
-                delcompany: delcompany,
-                chargedman: chargedman,
-                chargedmantel: chargedmantel,
-                delcaritem: delcaritem,
-                delbranch: delbranch
-            })
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('toggleFavorite data', data);
-            if (isFavoriteTab) {
-                loadFavoritesData();
-                display('즐겨찾기에서 제거되었습니다.');
-            } else {
-                loadAllData();
-                display('즐겨찾기 추가되었습니다.');
+    
+// 즐겨찾기 기능 구현 함수
+function toggleFavorite(secondordnum, deliverymethod, address, receiver, tel, carinfo, delcompany, chargedman, chargedmantel, delcaritem, delbranch, isFavoriteTab = false) {
+    const payload = {
+        secondordnum: parseInt(secondordnum) || 0,
+        deliverymethod: deliverymethod || '',
+        address: address || '',
+        receiver: receiver || '',
+        tel: tel || '',
+        carinfo: carinfo || '',
+        delcompany: delcompany || '',
+        chargedman: chargedman || '',
+        chargedmantel: chargedmantel || '',
+        delcaritem: delcaritem || '',
+        delbranch: delbranch || ''
+    };
+
+    console.log('toggleFavorite 호출값 :', payload);
+    console.log('toggleFavorite JSON string:', JSON.stringify(payload));
+
+    $.ajax({
+        url: './toggle_favorite.php',
+        type: 'POST',
+        // contentType을 지정하지 않음(기본: application/x-www-form-urlencoded)
+        // processData 기본값 true 유지
+        data: { data: JSON.stringify(payload) },  // 폼 필드로 JSON 문자열 전송
+        dataType: 'json',
+        timeout: 10000,
+        success: function (result) {
+            console.log('toggleFavorite 응답 데이터:', result);
+
+            if (result.error) {
+                display(`오류: ${result.error}`);
+                return;
             }
-        })
-        .catch(error => console.error('Error:', error));
-    }
+
+            if (result.success) {
+                if (isFavoriteTab) {
+                    loadFavoritesData();
+                    display('즐겨찾기에서 제거되었습니다.');
+                } else {
+                    loadAllData();
+                    display('즐겨찾기 추가되었습니다.');
+                }
+            } else {
+                display('처리 결과를 확인할 수 없습니다.');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('toggleFavorite 오류:', error);
+            console.error('상태 코드:', xhr.status);
+            console.error('상태 텍스트:', xhr.statusText);
+            console.error('서버 응답:', xhr.responseText);
+            console.error('요청 URL:', xhr.responseURL);
+            console.error('응답 헤더:', xhr.getAllResponseHeaders());
+
+            let errorMessage = '서버와 통신 중 오류가 발생했습니다.';
+            if (xhr.status === 400) {
+                errorMessage = '잘못된 요청입니다. (400 Bad Request)';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) errorMessage = `요청 오류: ${response.error}`;
+                } catch (e) {
+                    errorMessage = `요청 오류: ${xhr.responseText}`;
+                }
+            } else if (xhr.status === 500) {
+                errorMessage = '서버 내부 오류입니다. (500 Internal Server Error)';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) errorMessage = `서버 오류: ${response.error}`;
+                } catch (e) {
+                    errorMessage = `서버 오류: ${xhr.responseText}`;
+                }
+            } else if (xhr.status === 0) {
+                errorMessage = '네트워크 연결 오류입니다.';
+            } else if (xhr.status === 404) {
+                errorMessage = '요청한 파일을 찾을 수 없습니다. (404 Not Found)';
+            } else if (xhr.status === 'timeout') {
+                errorMessage = '요청 시간이 초과되었습니다. (10초)';
+            }
+
+            display(errorMessage);
+        }
+    });
+}
+    
 
     function selectNum(deliverymethod,address,receiver,tel,chargedman, chargedmantel, delcaritem, delcompany) {
         $("#deliverymethod", opener.document).val(deliverymethod); 	

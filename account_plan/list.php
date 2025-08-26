@@ -6,7 +6,6 @@
  * 사용자 세션을 확인하고 권한에 따라 페이지 접근을 제어합니다.
  * 데이터베이스에서 데이터를 조회하고 계산하여 HTML 테이블 형태로 출력합니다.
  */
-
 require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");
 
 // 세션 확인 및 사용자 권한 검사
@@ -27,7 +26,6 @@ $title_message = '월별 수입/지출 예상내역서';
 
 // 데이터베이스 연결 설정 파일 로드
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
-
 ?>
 
 <link href="css/style.css" rel="stylesheet">
@@ -355,13 +353,6 @@ $totalExpense = $totalExpenseResult[0]['totalExpense'];
 // 최종 잔액 계산
 $finalBalance = $initialBalance + $totalIncome - $totalExpense;
 
-// Bankbook options (은행 계좌 정보)
-$bankbookOptions = [];
-$bankbookFilePath = $_SERVER['DOCUMENT_ROOT'] . "/account/bankbook.txt";
-if (file_exists($bankbookFilePath)) {
-	$bankbookOptions = file($bankbookFilePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-}
-
 // 수입/지출 내역 조회를 위한 연도 설정
 $year = isset($_REQUEST['year']) ? $_REQUEST['year'] : date('Y');
 
@@ -496,8 +487,7 @@ foreach ($incomeData as $incomeRow) {
 		
 		// 나머지 미수금이 0보다 크거나 같으면 배열에 추가
 		if ($remainingAmount >= 0) {
-			$incomeRow['receivableAmount'] = $remainingAmount;
-			$incomeRow['totalAmount'] = $incomeRow['totalAmount']; // totalAmount는 원래의 매출 금액으로 유지
+			$incomeRow['receivableAmount'] = $remainingAmount;			
 			$filteredIncomeData[] = $incomeRow;
 		}
 	} else {
@@ -597,6 +587,7 @@ $expenseDetailSql = "
 	FROM {$accountPlanTable}
 	WHERE inoutsep = '지출'
 	AND (is_deleted = '0' or is_deleted IS NULL)
+	ORDER BY ForeDate ASC, num ASC
 ";
 $expenseDetailData = executeQuery($pdo, $expenseDetailSql);
 
@@ -662,6 +653,9 @@ usort($filteredIncomeData, function ($a, $b) {
 	return strcmp($a['customer_name'], $b['customer_name']);
 });
 
+// 멀티 계좌정보(잔액) 가져오기
+require_once ($_SERVER['DOCUMENT_ROOT'] . "/account/bankbook.php");
+
 ?>
 <form id="board_form" name="board_form" method="post" enctype="multipart/form-data">
 
@@ -691,6 +685,7 @@ usort($filteredIncomeData, function ($a, $b) {
 				<span class="text-center fs-5"> <?= $title_message ?>
 					<button type="button" class="btn btn-dark btn-sm me-1" onclick='location.reload()'> <i class="bi bi-arrow-clockwise"></i> </button>
 				</span>
+				<small class="ms-5 text-muted"> 예상하는 수입과 지출을 등록하고 저장합니다. </small>  
 			</div>
 			<div class="card-body">
 				<div class="row mb-3">
@@ -707,21 +702,23 @@ usort($filteredIncomeData, function ($a, $b) {
 						<button type="button" class="btn btn-dark btn-sm mx-1" id="csvDownload"> <i class="bi bi-floppy-fill"></i>  CSV </button>
 					</div>
 				</div>
-
-				<div class="row w400px m-1 mt-4" style="padding:2px;margin:2px;">
-					<table class="table table-bordered" style="padding:2px;">
-						<thead class="table-secondary" style="padding:2px;">
-							<tr>
-								<?php
-								$bankbookTitle = ' ' . $bankbookOptions[0] . ' (계좌 잔액) : ';
-								$formattedFinalBalance = isset($finalBalance) ? number_format($finalBalance) : '';
-								?>
-								<th class="text-center" style="width:200px;"><?= $bankbookTitle ?></th>
-								<th class="text-end text-primary fw-bold" style="width:100px;"><?= $formattedFinalBalance ?></th>
-							</tr>
-						</thead>
-					</table>
-				</div>
+            <!-- 멀티 계좌별 잔액 표시 -->
+            <div class="d-flex flex-wrap justify-content-start align-items-center mt-2 p-2 border rounded" style="gap: 10px;">
+                <strong class="me-2">계좌 잔액:</strong>
+                    <?php foreach ($accountFinalBalances as $summary): ?>
+                        <?php if ($summary['balance'] > 0): ?>
+                            <?php 
+                            // USD가 포함된 경우 금액 앞에 $ 추가
+                            $isUSD = stripos($summary['name'], 'USD') !== false;
+                            $formattedBalance = $isUSD ? '$' . number_format($summary['balance']) : number_format($summary['balance']);
+                            ?>
+                            <div class="border rounded p-1" style="font-size: 0.8em;">
+                                <span class="text-secondary"><?= htmlspecialchars($summary['name']) ?>:</span>
+                                <span class="fw-bold ms-1"><?= $formattedBalance ?></span>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+            </div>            				 
 				<div class="row mb-4">
 					<table class="table table-hover" id="detailTable">
 						<thead class="table-info">

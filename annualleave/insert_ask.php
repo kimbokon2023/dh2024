@@ -36,7 +36,6 @@ if ($mode == "modify") {
         print "오류: " . $Exception->getMessage();
     }
 // 전자 결재에 보여질 내용 data 수정 update       
-
 		$data = array(
 			"author" => $author,
 			"al_item" => $al_item,
@@ -101,7 +100,7 @@ if ($mode == "insert") {
         }
 
         // Set status based on the part
-        $status = ($al_part == '제조파트') ? 'send' : 'send';
+        $status = 'send';
 		$e_title = '연차신청';
 		
 // 전자 결재에 보여질 내용 data 수정 update       

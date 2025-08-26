@@ -35,12 +35,39 @@ if ($mode === 'update' && $num) {
 
 $title_message = ($mode === 'update') ? '금전출납부 수정' : '금전출납부 신규 등록';
 
+// // Bankbook options
+// $bankbookOptions = [];
+// $bankbookFilePath = $_SERVER['DOCUMENT_ROOT'] . "/account/bankbook.txt";
+// if (file_exists($bankbookFilePath)) {
+//     $bankbookOptions = file($bankbookFilePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// }
+
+// Bankbook options
 // Bankbook options
 $bankbookOptions = [];
-$bankbookFilePath = $_SERVER['DOCUMENT_ROOT'] . "/account/bankbook.txt";
-if (file_exists($bankbookFilePath)) {
-    $bankbookOptions = file($bankbookFilePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$jsonFile = $_SERVER['DOCUMENT_ROOT'] . "/account/accountlist.json";
+$accounts = [];
+$selectedAccount = null;
+
+if (file_exists($jsonFile)) {
+    $jsonContent = file_get_contents($jsonFile);
+    $accounts = json_decode($jsonContent, true);
+    if (is_array($accounts) && !empty($accounts)) {
+        // 선택된 계좌 또는 기본 계좌(첫 번째) 설정
+        $selectedAccountIndex = isset($_REQUEST['selected_account']) ? intval($_REQUEST['selected_account']) : 0;
+        $selectedAccount = $accounts[$selectedAccountIndex] ?? $accounts[0];
+        
+        // bankbookOptions 배열에 계좌 정보 추가
+        foreach ($accounts as $account) {
+            $displayText = $account['company'] . ' ' . $account['number'];
+            if (!empty($account['memo'])) {
+                $displayText .= ' (' . $account['memo'] . ')';
+            }
+            $bankbookOptions[] = $displayText;
+        }
+    }
 }
+
 
 // 수입/지출 계정 정보 가져오기
 include 'fetch_options.php';
@@ -146,9 +173,16 @@ ksort($Suboptions);
                                 <tr>
                                     <td class="text-center fs-6 fw-bold">계좌</td>
                                     <td class="text-center" colspan="3">
-                                        <select class="form-control fs-6" id="bankbook" name="bankbook">
-                                            <?php foreach ($bankbookOptions as $option): ?>
-                                                <option value="<?= htmlspecialchars($option) ?>"><?= htmlspecialchars($option) ?></option>
+                                         <select class="form-select w-auto" style="font-size: 0.8rem;height: 32px;" id="bankbook" name="bankbook">
+                                            <?php 
+                                            // _row.php에서 설정된 $bankbook 변수 사용
+                                            $currentBankbook = isset($bankbook) ? $bankbook : '';
+                                            
+                                            // JSON 계좌 옵션들 추가
+                                            foreach ($bankbookOptions as $option): 
+                                                $isSelected = ($currentBankbook === $option);
+                                            ?>
+                                                <option value="<?= htmlspecialchars($option) ?>" <?= $isSelected ? 'selected' : '' ?>><?= htmlspecialchars($option) ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </td>
@@ -156,7 +190,7 @@ ksort($Suboptions);
                                 <tr>
                                     <td class="text-center fs-6 fw-bold" style="width:150px;">항목</td>
                                     <td class="text-center">
-                                        <select class="form-control fs-6" id="content" name="content">
+                                        <select class="form-select w-auto" style="font-size: 0.8rem;height: 32px;" id="content" name="content">
                                             <?php foreach ($options as $key => $value): ?>
                                                 <option value="<?= htmlspecialchars($key) ?>" <?= $content === $key ? 'selected' : '' ?>><?= htmlspecialchars($key) ?></option>
                                             <?php endforeach; ?>
@@ -167,7 +201,7 @@ ksort($Suboptions);
                                     </td>
 								<td class="text-center fs-6 fw-bold" style="width:150px;">세부항목</td>
 								<td class="text-center">
-									<select class="form-control fs-6" id="contentSub" name="contentSub">
+									<select class="form-select w-auto" style="font-size: 0.8rem;height: 32px;" id="contentSub" name="contentSub">
 										<?php foreach ($Suboptions as $value): // 키를 사용하지 않고 값만 사용 ?>
 											<option value="<?= htmlspecialchars($value) ?>" <?= $contentSub === $value ? 'selected' : '' ?>>
 												<?= htmlspecialchars($value) ?>

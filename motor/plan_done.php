@@ -62,6 +62,7 @@ $sum=array();
 $fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
 $todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';     
 $mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';  
+$search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';  
 
 if($fromdate=="")
 {
@@ -82,11 +83,19 @@ if($todate=="")
  
 	// 검색 기간이 설정된 경우 해당 기간으로, 아니면 오늘부터 검색
 	if($fromdate != "" && $todate != "") {
-		$common = " WHERE outputdate >= '$fromdate' AND outputdate <= '$Transtodate' AND is_deleted IS NULL ORDER BY outputdate ASC ";
+		$common = " WHERE outputdate >= '$fromdate' AND outputdate <= '$Transtodate' AND is_deleted IS NULL ";
 	} else {
 		// 납기일(deadline)이 오늘 자정부터 미래인 경우를 조건으로 설정
-		$common = " WHERE outputdate >= CURDATE() AND is_deleted IS NULL ORDER BY outputdate ASC ";
+		$common = " WHERE outputdate >= CURDATE() AND is_deleted IS NULL ";
 	}
+	
+	// 검색어가 있는 경우 검색 조건 추가
+	if($search != "") {
+		$search_condition = " AND (secondord LIKE '%$search%' OR address LIKE '%$search%' OR workplacename LIKE '%$search%' OR chargedman LIKE '%$search%') ";
+		$common .= $search_condition;
+	}
+	
+	$common .= " ORDER BY outputdate ASC ";
 	
 	
 	$sql = "select * from " . $DB . "." . $tablename .  " " . $common; 			
@@ -149,6 +158,7 @@ if($todate=="")
 					   <input type="date" id="fromdate" name="fromdate"   class="form-control"   style="width:100px;" value="<?=$fromdate?>" >  &nbsp;   ~ &nbsp;  
 					   <input type="date" id="todate" name="todate"  class="form-control"   style="width:100px;" value="<?=$todate?>" >  &nbsp;     </span> 
 					   &nbsp;&nbsp;		 			   		
+					   <input type="text" id="search" name="search" class="form-control" style="width:200px;" placeholder="발주처, 배송주소, 현장명, 받는분 검색" value="<?=$search?>" >  &nbsp;		 			   		
 					  <button type="submit" class="btn btn-dark  btn-sm" > <i class="bi bi-search"></i>  검색 </button> 		  		  
 			</div>
 			</form>

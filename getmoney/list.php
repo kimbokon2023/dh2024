@@ -8,9 +8,8 @@ if (!isset($_SESSION["level"]) || $_SESSION["level"] > 5) {
 }   
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 $title_message = '거래처 수금현황'; 
-
 ?>
- 
+
 <link href="css/style.css" rel="stylesheet">   
 <title> <?=$title_message?> </title>
  
@@ -169,7 +168,6 @@ try {
 	</div>
 </div>
 
-                 
 <?php 
 if ($header !== 'header') {
     print '<div class="container-fluid">';
@@ -179,11 +177,12 @@ if ($header !== 'header') {
     print '<div class="card justify-content-center text-center mt-5">';
 }
 ?>     
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-center align-items-center">
         <span class="text-center fs-5 me-4"><?=$title_message?></span>    
 		<button type="button" class="btn btn-dark btn-sm me-1" onclick='location.href="list.php?header=header"'> 
 			<i class="bi bi-arrow-clockwise"></i>            
-		</button>		                         
+		</button>		                
+        <small class="mx-3 text-muted"> 거래처별 수금현황을 검색합니다. </small>  
         <button type="button" class="btn btn-dark btn-sm mx-1" onclick="location.href='../motor/customer.php'"> <i class="bi bi-journal-x"></i> 거래원장 </button>    
         <button type="button" class="btn btn-dark btn-sm mx-1" onclick="location.href='../motor/month_sales.php?header=header'"> <i class="bi bi-journal-x"></i> 판매일괄회계반영 </button>    
         <button type="button" class="btn btn-danger btn-sm mx-1" onclick="location.href='../motor/receivable.php?header=header'"> <i class="bi bi-journal-x"></i> 미수금 </button>    

@@ -99,28 +99,25 @@ $pdo = db_connect();
                 print "검색결과가 없습니다.<br>";
             } else {
                 $row = $stmh->fetch(PDO::FETCH_ASSOC);
-                include "_row.php";							
-				
-				if(strpos($deliverymethod, '화물') !== false )
-					 $address=$delbranch;	
+                include "_row.php";											
+                       
+            // 1) 삼항 연산자 한 줄 버전 (PHP 5.3+)
+            $finalAddress = !empty($delbranch)
+                ? $delbranch
+                : (!empty($delbranchaddress)
+                    ? $delbranchaddress
+                    : $address);
 
-			// 1) 삼항 연산자 한 줄 버전 (PHP 5.3+)
-			$finalAddress = !empty($delbranch)
-				? $delbranch
-				: (!empty($delbranchaddress)
-					? $delbranchaddress
-					: $address);
-
-			// 2) if/elseif 구문 버전
-			if (!empty($delbranch)) {
-				$finalAddress = $delbranch;
-			} elseif (!empty($delbranchaddress)) {
-				$finalAddress = $delbranchaddress;
-			} else {
-				$finalAddress = $address;
-			}	
-			// 상차지에 화물지점표기함 
-			$address = $finalAddress ;			 
+            // 2) if/elseif 구문 버전
+            if (!empty($delbranch)) {
+                $finalAddress = $delbranch;
+            } elseif (!empty($delbranchaddress)) {
+                $finalAddress = $delbranchaddress;
+            } else {
+                $finalAddress = $address;
+            }		  
+            // 상차지에 화물지점표기함 
+            $address = $finalAddress ;            
 				
 				// $deliverymethod = str_replace('경동','',$deliverymethod);
                 if ($orderdate != "0000-00-00" && $orderdate != "1970-01-01" && $orderdate != "") $orderdate = date("Y-m-d", strtotime($orderdate));

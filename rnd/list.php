@@ -8,11 +8,8 @@ if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
 }   
 
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
-
-
    // 첫 화면 표시 문구
  $title_message = '전산 개발일지';   
-
  ?>
 <title>  <?=$title_message?>  </title> 
 </head>  
@@ -25,7 +22,6 @@ $menu = isset($_REQUEST['menu']) ? $_REQUEST['menu'] : '';
 ?> 
 <?php
 $tablename = "rnd";
-
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect();
 	 
@@ -38,8 +34,7 @@ $pdo = db_connect();
    if(isset($_REQUEST["search"]))   // search 쿼리스트링 값 할당 체크
 	 $search=$_REQUEST["search"];
    else 
-	 $search="";
-   
+	 $search="";   
 	  
    if($mode=="search"){
          if(!$search) {
@@ -63,36 +58,31 @@ $pdo = db_connect();
 // var_dump($sql);
 	 
  try{  
-		$stmh = $pdo->query($sql); 
-         ?>
-
-
-
+	$stmh = $pdo->query($sql); 
+  ?>
 <form name="board_form" id="board_form"  method="post" action="list.php?mode=search&search=<?=$search?>">
 
 <div class="container justify-content-center">  
 
   <input type="hidden" id="page" name="page" value="<?=$page?>"  > 
   <input type="hidden" id="scale" name="scale" value="<?=$scale?>"  > 
-  
-  
+    
 	<div class="card mt-2 mb-4">  
-	<div class="card-body">  
-		<div class="d-flex mt-3 mb-2 justify-content-center">  
-				<h5>  <?=$title_message?> </h5> 
-		</div>	
-  
- 
- <div class="d-flex mt-3 mb-1 justify-content-center  align-items-center"> 
- 
-    <div class="input-group p-1 mb-1 justify-content-center">	  
-			<button type="button" class="btn btn-dark  btn-sm me-2" id="writeBtn"> <ion-icon name="pencil-outline"></ion-icon> 신규  </button> 			   
-		   <input type="text" name="search" id="search" value="<?=$search?>" size="25" onkeydown="JavaScript:SearchEnter();" placeholder="검색어"> 
-			<button type="button" id="searchBtn" class="btn btn-dark"  > <i class="bi bi-search"></i> 검색 </button>				
-	</div>
-</div>
-	   
-	   
+	<div class="card-header d-flex justify-content-center align-items-center">
+		<span class="text-center fs-5"> <?=$title_message?> </span>	
+		<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+		<small class="mx-3 text-muted">  대한 전산프로그램 수정 및 변경, 신규생성 사항 기재 </small>  
+	</div>	
+	<div class="card-body">    
+        <div class="d-flex mt-3 mb-1 justify-content-center  align-items-center"> 
+        
+            <div class="input-group p-1 mb-1 justify-content-center">	  
+                    <button type="button" class="btn btn-dark  btn-sm me-2" id="writeBtn"> <ion-icon name="pencil-outline"></ion-icon> 신규  </button> 			   
+                <input type="text" name="search" id="search" value="<?=$search?>" size="25" onkeydown="JavaScript:SearchEnter();" placeholder="검색어"> 
+                    <button type="button" id="searchBtn" class="btn btn-dark"  > <i class="bi bi-search"></i> 검색 </button>				
+            </div>
+        </div>
+
  <div class="row d-flex"  >
  <table class="table table-hover" id="myTable">
    <thead class="table-primary" >	    

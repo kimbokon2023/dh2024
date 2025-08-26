@@ -88,6 +88,154 @@ if (file_exists($categoryFile)) {
     font-size: 0.75rem;
     line-height: 1;
   }
+
+  /* 이미지 회전 버튼 스타일 */
+  .btn-rotate {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+    color: white !important;
+    z-index: 10;
+  }
+
+  .btn-rotate:hover {
+    background-color: #0056b3 !important;
+    border-color: #0056b3 !important;
+  }
+
+  /* 이미지 클릭 가능한 스타일 */
+  .image-container img {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .image-container img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+
+  /* 이미지 컨테이너 스타일 */
+  .image-container {
+    display: inline-block;
+    margin: 5px;
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px;
+    background: #fafafa;
+  }
+
+  /* 이미지 Dialog 스타일 */
+  .image-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    height: 90vh;
+    max-width: 1200px;
+    max-height: 800px;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    background: white;
+    padding: 0;
+    margin: 0;
+    z-index: 1050;
+  }
+
+  .image-dialog::backdrop {
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #dee2e6;
+    background: #f8f9fa;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .dialog-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .dialog-controls {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dialog-controls .btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .dialog-controls .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .dialog-body {
+    padding: 20px;
+    height: calc(100% - 80px);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .image-container-zoom {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    position: relative;
+  }
+
+  .image-container-zoom img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+    cursor: grab;
+  }
+
+  .image-container-zoom img:active {
+    cursor: grabbing;
+  }
+
+  /* 확대/축소 애니메이션 */
+  .image-container-zoom img.zoomed {
+    transition: transform 0.2s ease;
+  }
+
+  /* 반응형 디자인 */
+  @media (max-width: 768px) {
+    .image-dialog {
+      width: 95vw;
+      height: 95vh;
+    }
+    
+    .dialog-header {
+      padding: 12px 16px;
+    }
+    
+    .dialog-body {
+      padding: 16px;
+    }
+    
+    .dialog-controls .btn {
+      padding: 4px 8px;
+      font-size: 0.875rem;
+    }
+  }
 </style>	
 <body>
 <?php include $_SERVER['DOCUMENT_ROOT'] . "/common/modal.php"; ?>   
@@ -223,6 +371,8 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
 // 첨부 이미지 있는 것 불러오기 
 $realimagename_arr=array(); 
 $saveimagename_arr=array(); 
+$rotation_arr=array(); // 회전 정보 배열 추가
+$fileid_arr=array(); // 파일 ID 배열 추가
 $item = 'image';
 if(isset($id)){
 $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item ='$item' and parentid ='$id' ";	
@@ -232,6 +382,8 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
    while($row = $stmh->fetch(PDO::FETCH_ASSOC)) {
 			array_push($realimagename_arr, $row["realname"]);							   
 			array_push($saveimagename_arr, $row["savename"]);		
+			array_push($rotation_arr, $row["rotate"] ?? 0); // 회전 정보 추가
+			array_push($fileid_arr, $row["id"]); // 파일 ID 추가
         }		 
    } catch (PDOException $Exception) {
     print "오류: ".$Exception->getMessage();
@@ -418,7 +570,7 @@ if($status === 'end' and ($e_confirm !=='' && $e_confirm !== null) )
 <?php if($mode!='view') { ?>			
 	<div class="row">
 		<div class="col-sm-6">		   
-			<div class="d-flex  mb-1 justify-content-start  align-items-center"> 		   
+			<div class="d-flex mb-1 justify-content-start  align-items-center"> 		   
 				<button id="saveBtn" type="button" class="btn btn-dark  btn-sm me-2"  > <i class="bi bi-floppy"></i> 저장(결재상신)  </button> 
 				<button id="debugToggleBtn" type="button" class="btn btn-info btn-sm me-2" onclick="toggleDebug()"> <i class="bi bi-bug"></i> 디버그 </button>
 			</div> 			
@@ -1026,8 +1178,35 @@ function displayImage() {
       console.log('이미지 목록 렌더링 시작');
       for(i=0;i<recid;i++) {	
         console.log('이미지 ' + i + ' 처리:', data['file_arr'][i]);
-        $("#displayImage").append("<img id='image" + i + "' src='../uploads/" + data['file_arr'][i] + "' style='width:80%;' > &nbsp; <br> &nbsp;  " );			   
-        $("#displayImage").append("&nbsp;<button type='button' class='btn btn-outline-danger btn-sm' id='delPicimage" + i + "' style='height:25px;vertical-align:middle;' onclick=delPicimageFn('" + i + "','" + data["file_arr"][i] + "')><i class='bi bi-trash3-fill'></i> </button>&nbsp; <br>");					   
+        
+        // 회전 정보 가져오기
+        const rotation = data['rotation_arr'] && data['rotation_arr'][i] ? data['rotation_arr'][i] : 0;
+        const fileId = data['id_arr'] && data['id_arr'][i] ? data['id_arr'][i] : i;
+        
+        // 이미지와 회전/삭제 버튼을 포함한 컨테이너 생성
+        let buttonsHtml = '';
+        
+        // 조회 모드가 아닐 때만 버튼 표시
+        if ($("#mode").val() !== 'view') {
+          buttonsHtml = 
+            "<div class='position-absolute top-0 end-0 mt-1 me-1'>" +
+              "<button type='button' class='btn btn-primary btn-sm btn-rotate' onclick=\"rotateImage('" + fileId + "', 'image" + i + "')\" title='회전'>" +
+                "<i class='bi bi-arrow-clockwise'></i>" +
+              "</button>" +
+            "</div>" +
+            "<div class='position-absolute bottom-0 end-0 mb-1 me-1'>" +
+              "<button type='button' class='btn btn-outline-danger btn-sm' id='delPicimage" + i + "' onclick=delPicimageFn('" + i + "','" + data["file_arr"][i] + "')\" title='삭제'>" +
+                "<i class='bi bi-trash3-fill'></i>" +
+              "</button>" +
+            "</div>";
+        }
+        
+        $("#displayImage").append(
+          "<div class='image-container'>" +
+            "<img id='image" + i + "' src='../uploads/" + data['file_arr'][i] + "' style='width:120px; height:120px; object-fit:contain; transform: rotate(" + rotation + "deg);' data-rotation='" + rotation + "' onclick='openImageDialog(this.src, this.style.transform)'>" +
+            buttonsHtml +
+          "</div>"
+        );
       }
       console.log('이미지 목록 렌더링 완료');		   
     } else {
@@ -1048,12 +1227,41 @@ function displayImageLoad() {
 
 	$('#displayImage').show();			
 	var saveimagename_arr = <?php echo json_encode($saveimagename_arr);?> ;	
+	var realimagename_arr = <?php echo json_encode($realimagename_arr);?> ;	
+	var rotation_arr = <?php echo json_encode($rotation_arr);?> ; // PHP 변수를 JavaScript 배열로 변환
+	var fileid_arr = <?php echo json_encode($fileid_arr);?> ; // 파일 ID 배열
 
   console.log('saveimagename_arr', saveimagename_arr);
 	if(saveimagename_arr.length > 0) {
     for(i=0;i<saveimagename_arr.length;i++) {
-			   $("#displayImage").append("<img id='image" + i + "'src='../uploads/" + saveimagename_arr[i] + "' style='width:80%;' >&nbsp;  <br> &nbsp; " );			   
-         	   $("#displayImage").append("&nbsp;<button type='button' class='btn btn-outline-danger btn-sm' id='delPicimage" + i + "' style='height:25px;vertical-align:middle;' onclick=delPicimageFn('" + i + "','" +  saveimagename_arr[i] + "')> <i class='bi bi-trash3-fill'></i>  </button>&nbsp; <br>");					   
+      // DB에서 가져온 회전 정보와 파일 ID 사용
+      const rotation = rotation_arr[i] !== undefined ? rotation_arr[i] : 0;
+      const fileId = fileid_arr[i] !== undefined ? fileid_arr[i] : i; // 실제 파일 ID 사용
+      
+      // 이미지와 회전/삭제 버튼을 포함한 컨테이너 생성
+      let buttonsHtml = '';
+      
+      // 조회 모드가 아닐 때만 버튼 표시
+      if ($("#mode").val() !== 'view') {
+        buttonsHtml = 
+          "<div class='position-absolute top-0 end-0 mt-1 me-1'>" +
+            "<button type='button' class='btn btn-primary btn-sm btn-rotate' onclick=\"rotateImage('" + fileId + "', 'image" + i + "')\" title='회전'>" +
+              "<i class='bi bi-arrow-clockwise'></i>" +
+            "</button>" +
+          "</div>" +
+          "<div class='position-absolute bottom-0 end-0 mb-1 me-1'>" +
+            "<button type='button' class='btn btn-outline-danger btn-sm' id='delPicimage" + i + "' onclick=delPicimageFn('" + i + "','" +  saveimagename_arr[i] + "')\" title='삭제'>" +
+              "<i class='bi bi-trash3-fill'></i>" +
+            "</button>" +
+          "</div>";
+      }
+      
+      $("#displayImage").append(
+        "<div class='image-container'>" +
+          "<img id='image" + i + "' src='../uploads/" + saveimagename_arr[i] + "' style='width:120px; height:120px; object-fit:contain; transform: rotate(" + rotation + "deg);' data-rotation='" + rotation + "' onclick='openImageDialog(this.src, this.style.transform)'>" +
+          buttonsHtml +
+        "</div>"
+      );
 	  }		   
 	}  
 }
@@ -1113,7 +1321,7 @@ function rotateImage(fileId, imageId) {
     saveRotationAngle(fileId, newRotation);
 }
 
-// 회전 각도를 서버에 저장하는 함수
+// 회전 각도를 서버에 저장하는 함수 (dh2024용 - pic_insert.php 방식)
 function saveRotationAngle(fileId, angle) {
     // 로딩 표시
     Toastify({
@@ -1132,16 +1340,16 @@ function saveRotationAngle(fileId, angle) {
         action: 'saveRotation',        
         fileId: fileId,
         rotation: angle,
-        tablename: $("#tablename").val()
+        tablename: $("#tablename").val(),
+        parentid: $("#parentid").val() || $("#id").val() || $("#timekey").val()
     };
 
     console.log('전송 데이터:', JSON.stringify(requestData)); // 디버깅용
 
     $.ajax({
-        url: '/filedrive/fileprocess.php',
+        url: '../file/pic_insert.php',
         type: 'POST',
-        data: JSON.stringify(requestData),
-        contentType: "application/json",
+        data: requestData,
         dataType: 'json',
         success: function(response) {
             console.log('서버 응답:', response); // 디버깅용
@@ -1215,6 +1423,85 @@ function showImageLoadingModal() {
 function hideImageLoadingModal() {
     $('#loadingImageModal').modal('hide');
 }
+
+
+
+// 이미지 확대 dialog를 여는 함수
+function openImageDialog(imageSrc, imageTransform) {
+    const dialogImage = document.getElementById('dialogImage');
+    dialogImage.src = imageSrc;
+    
+    // 회전 정보 적용
+    if (imageTransform) {
+        dialogImage.style.transform = imageTransform;
+    } else {
+        dialogImage.style.transform = 'rotate(0deg)';
+    }
+    
+    // 확대/축소 초기화
+    resetZoom();
+    
+    // dialog 표시
+    const imageDialog = document.getElementById('imageDialog');
+    imageDialog.showModal();
+}
+
+// dialog 닫기
+function closeImageDialog() {
+    const imageDialog = document.getElementById('imageDialog');
+    imageDialog.close();
+}
+
+// 확대
+function zoomIn() {
+    const dialogImage = document.getElementById('dialogImage');
+    const currentTransform = dialogImage.style.transform || '';
+    const currentScale = parseFloat(currentTransform.match(/scale\(([^)]+)\)/)?.[1] || 1);
+    const newScale = Math.min(currentScale * 1.2, 5); // 최대 5배까지 확대
+    
+    // 기존 scale 제거하고 새로운 scale 추가
+    const newTransform = currentTransform.replace(/scale\([^)]*\)/g, '') + ` scale(${newScale})`;
+    dialogImage.style.transform = newTransform.trim();
+    dialogImage.classList.add('zoomed');
+}
+
+// 축소
+function zoomOut() {
+    const dialogImage = document.getElementById('dialogImage');
+    const currentTransform = dialogImage.style.transform || '';
+    const currentScale = parseFloat(currentTransform.match(/scale\(([^)]+)\)/)?.[1] || 1);
+    const newScale = Math.max(currentScale / 1.2, 0.1); // 최소 0.1배까지 축소
+    
+    // 기존 scale 제거하고 새로운 scale 추가
+    const newTransform = currentTransform.replace(/scale\([^)]*\)/g, '') + ` scale(${newScale})`;
+    dialogImage.style.transform = newTransform.trim();
+    dialogImage.classList.add('zoomed');
+}
+
+// 원본 크기로 복원
+function resetZoom() {
+    const dialogImage = document.getElementById('dialogImage');
+    const currentTransform = dialogImage.style.transform || '';
+    const rotation = currentTransform.match(/rotate\([^)]*\)/);
+    const rotationStyle = rotation ? rotation[0] : 'rotate(0deg)';
+    
+    dialogImage.style.transform = rotationStyle;
+    dialogImage.classList.remove('zoomed');
+}
+
+// 마우스 휠로 확대/축소
+document.addEventListener('DOMContentLoaded', function() {
+    const dialogImage = document.getElementById('dialogImage');
+    if (dialogImage) {
+        dialogImage.addEventListener('wheel', function(e) {
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+    }
+});
 </script>
 
 <script>
@@ -1547,6 +1834,47 @@ function popupCenter(url, title, w, h) {
     return window.open(url, title, 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left);
 }
 </script>
+
+<!-- 이미지 확대 모달 -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">이미지 보기</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="확대된 이미지" style="max-width: 100%; height: auto;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 이미지 확대/축소 dialog -->
+<dialog id="imageDialog" class="image-dialog">
+  <div class="dialog-header">
+    <h5>이미지 보기</h5>
+    <div class="dialog-controls">
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="zoomOut()" title="축소">
+        <i class="bi bi-zoom-out"></i>
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="zoomIn()" title="확대">
+        <i class="bi bi-zoom-in"></i>
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="closeImageDialog()" title="닫기">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+  <div class="dialog-body">
+    <div class="image-container-zoom">
+      <img id="dialogImage" src="" alt="확대된 이미지">
+    </div>
+  </div>
+</dialog>
 
 </body>
 </html>

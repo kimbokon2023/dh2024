@@ -1,20 +1,22 @@
-<?
+<?php
 class Image {    
-    var $file;
-    var $image_width;
-    var $image_height;
-    var $width;
-    var $height;
-    var $ext;
-    var $types = array('','gif','jpeg','png','swf');
-    var $quality = 70;
-    var $top = 0;
-    var $left = 0;
-    var $crop = false;
-    var $type;
-    var $rotation_angle;
+    public $file;
+    public $image_width;
+    public $image_height;
+    public $width;
+    public $height;
+    public $ext;
+    public $types = array('','gif','jpeg','png','swf');
+    public $quality = 70;
+    public $top = 0;
+    public $left = 0;
+    public $crop = false;
+    public $type;
+    public $rotation_angle;
+    public $dir;
+    public $name;
     
-    function __construct($name='') {
+    public function __construct($name='') {
         $this->file = $name;
         
         // 파일 존재 여부 확인
@@ -48,27 +50,27 @@ class Image {
         $this->ext = $info['extension'];
     }
     
-    function dir($dir='') {
+    public function dir($dir='') {
         if(!$dir) return $this->dir;
         $this->dir = $dir;
     }
     
-    function name($name='') {
+    public function name($name='') {
         if(!$name) return $this->name;
         $this->name = $name;
     }
     
-    function width($width='') {
+    public function width($width='') {
         $this->width = $width;
         return $this;
     }
     
-    function height($height='') {
+    public function height($height='') {
         $this->height = $height;
         return $this;
     }
     
-    function resize($percentage=50) {
+    public function resize($percentage=50) {
         if($this->crop) {
             $this->crop = false;
             $this->width = round($this->width*($percentage/100));
@@ -82,25 +84,25 @@ class Image {
         
     }
     
-    function crop($top=0, $left=0) {
+    public function crop($top=0, $left=0) {
         $this->crop = true;
         $this->top = $top;
         $this->left = $left;
     }
     
-    function quality($quality=70) {
+    public function quality($quality=70) {
         $this->quality = $quality;
     }
     
-    function rotate($angle=90) {
+    public function rotate($angle=90) {
         $this->rotation_angle = $angle;
     }
     
-    function show() {
+    public function show() {
         $this->save(true);
     }
     
-    function save($show=false) {
+    public function save($show=false) {
  
         if($show) @header('Content-Type: image/'.$this->type);
         
@@ -166,50 +168,50 @@ class Image {
 }			 
 
 // 파일 압축 메소드 
-    function compress_image($source, $destination, $quality) { 
-        // 소스 파일 존재 확인
-        if (!file_exists($source)) {
-            throw new Exception("Source file not found: " . $source);
-        }
-        
-        $info = @getimagesize($source); 
-        if ($info === false) {
-            throw new Exception("Invalid source image: " . $source);
-        }
-        
-        $image = null;
-        if ($info['mime'] == 'image/jpeg') 
-            $image = @imagecreatefromjpeg($source); 
-        elseif ($info['mime'] == 'image/gif') 
-            $image = @imagecreatefromgif($source); 
-        elseif ($info['mime'] == 'image/png') 
-            $image = @imagecreatefrompng($source); 
-        elseif ($info['mime'] == 'image/x-ms-bmp') 
-            $image = @imagecreatefrombmp($source);
-        else {
-            throw new Exception("Unsupported image type: " . $info['mime']);
-        }
-        
-        if ($image === false) {
-            throw new Exception("Failed to create image resource from: " . $source);
-        }
-
-        // 대상 디렉토리 생성
-        $destDir = dirname($destination);
-        if (!is_dir($destDir)) {
-            if (!mkdir($destDir, 0755, true)) {
-                imagedestroy($image);
-                throw new Exception("Failed to create destination directory: " . $destDir);
-            }
-        }
-
-        $result = @imagejpeg($image, $destination, $quality); 
-        imagedestroy($image);
-        
-        if ($result === false) {
-            throw new Exception("Failed to save compressed image to: " . $destination);
-        }
-        
-        return $destination;
+function compress_image($source, $destination, $quality) { 
+    // 소스 파일 존재 확인
+    if (!file_exists($source)) {
+        throw new Exception("Source file not found: " . $source);
     }
+    
+    $info = @getimagesize($source); 
+    if ($info === false) {
+        throw new Exception("Invalid source image: " . $source);
+    }
+    
+    $image = null;
+    if ($info['mime'] == 'image/jpeg') 
+        $image = @imagecreatefromjpeg($source); 
+    elseif ($info['mime'] == 'image/gif') 
+        $image = @imagecreatefromgif($source); 
+    elseif ($info['mime'] == 'image/png') 
+        $image = @imagecreatefrompng($source); 
+    elseif ($info['mime'] == 'image/x-ms-bmp') 
+        $image = @imagecreatefrombmp($source);
+    else {
+        throw new Exception("Unsupported image type: " . $info['mime']);
+    }
+    
+    if ($image === false) {
+        throw new Exception("Failed to create image resource from: " . $source);
+    }
+
+    // 대상 디렉토리 생성
+    $destDir = dirname($destination);
+    if (!is_dir($destDir)) {
+        if (!mkdir($destDir, 0755, true)) {
+            imagedestroy($image);
+            throw new Exception("Failed to create destination directory: " . $destDir);
+        }
+    }
+
+    $result = @imagejpeg($image, $destination, $quality); 
+    imagedestroy($image);
+    
+    if ($result === false) {
+        throw new Exception("Failed to save compressed image to: " . $destination);
+    }
+    
+    return $destination;
+}
 ?>

@@ -7,7 +7,7 @@ if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
 	exit;
 }   
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
-$title_message = '회원관리'
+$title_message = '직원관리'
 
 ?>
   
@@ -21,12 +21,9 @@ $title_message = '회원관리'
 	.table-hover tbody tr:hover {
 		cursor: pointer;
 	}
-</style> 
- 
- </head>
- 
-<?php
-     
+</style>  
+ </head> 
+<?php     
 $tablename = "member";
 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
@@ -46,17 +43,36 @@ $pdo = db_connect();
          $search=$_REQUEST["search"];
        else 
          $search="";
-	  
-	$sql ="select * from ". $DB . "." . $tablename . " order  by num desc";		  
-	       
-   if($mode=="search"){    
-       $sql="select * from " . $DB . "."  . $tablename . " where id like '%$search%' or name like '%$search%'   order by num desc ";
-    }
+
+      // 재직/퇴직 필터 상태 (기본: 재직자만)
+      if(isset($_REQUEST["empStatus"]))
+        $empStatus = $_REQUEST["empStatus"];
+      else
+        $empStatus = "active";
+
+      // 조건 구성: 재직/퇴직 + 검색어
+      $conditions = array();
+      if($empStatus === "retired"){
+          $conditions[] = "(quitDate IS NOT NULL AND quitDate <> '0000-00-00')";
+      } else {
+          $conditions[] = "(quitDate IS NULL OR quitDate = '0000-00-00')";
+      }
+
+      if($mode==="search" && $search !== ''){
+          $conditions[] = "(id like '%$search%' or name like '%$search%')";
+      }
+
+      $sql = "select * from " . $DB . "." . $tablename;
+      if(count($conditions) > 0){
+          $sql .= " where " . implode(" and ", $conditions);
+      }
+      $sql .= " order  by num desc";
 
 ?>
  
 
 <form name="board_form" id="board_form"  method="post" action="list.php?mode=search&search=<?=$search?>">
+<input type="hidden" name="empStatus" id="empStatus" value="<?= isset($empStatus) ? $empStatus : 'active' ?>">
 
 <div class="container-fluid justify-content-center">  
     
@@ -64,7 +80,13 @@ $pdo = db_connect();
        <span class="badge bg-primary fs-5 " > &nbsp;&nbsp; <?=$title_message?>  &nbsp;&nbsp;</span>
   </div>	 
  
- <div class="d-flex mt-2 mb-2 justify-content-center">       
+ <div class="d-flex mt-2 mb-2 justify-content-center align-items-center">       
+       <div class="form-check form-switch me-3" style="font-size: 1.3em;">
+         <input class="form-check-input" type="checkbox" id="empStatusToggle" style="transform: scale(1.2);" <?= (isset($empStatus) && $empStatus === 'retired') ? 'checked' : '' ?>>
+         <label class="form-check-label me-3" for="empStatusToggle" style="font-size: 1.2em;">
+           <span id="empStatusLabel"><?= (isset($empStatus) && $empStatus === 'retired') ? '퇴직' : '재직' ?></span>
+         </label>
+       </div>
 	   <button type="button" class="btn btn-dark btn-sm me-2" onclick="popupCenter('write_form.php', '등록', 800, 750);return false;" > <ion-icon name="pencil-outline"></ion-icon> 신규  </button>		   
 	   <button type="button" class="btn btn-dark btn-sm me-2" onclick="popupCenter('setline.php', '결재라인 등록', 600, 400);return false;" > 결재라인 </button>	
 	   <input type="text" name="search" id="search" value="<?=$search?>" class="form-control me-1" style="width:200px;" onkeydown="JavaScript:SearchEnter();" placeholder="검색어"> 
@@ -211,6 +233,14 @@ $(document).ready(function(){
 		 document.getElementById('board_form').submit();    
 	 
 	 });	
+
+    // 재직/퇴직 토글
+    $('#empStatusToggle').on('change', function(){
+        var isRetired = $(this).is(':checked');
+        $('#empStatus').val(isRetired ? 'retired' : 'active');
+        $('#empStatusLabel').text(isRetired ? '퇴직' : '재직');
+        document.getElementById('board_form').submit();
+    });
 });	
 	
 function SearchEnter(){

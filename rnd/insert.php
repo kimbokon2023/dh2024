@@ -16,6 +16,14 @@ $noticecheck = $_REQUEST["noticecheck"] ?? "";
    
 $subject=$_REQUEST["subject"];
 $content=$_REQUEST["content"];
+$content_b64 = $_REQUEST["content_b64"] ?? '';
+if ($content_b64 !== '') {
+    // base64로 온 경우 우선 디코드하여 content로 사용
+    $decoded = base64_decode($content_b64, true);
+    if ($decoded !== false) {
+        $content = $decoded;
+    }
+}
 $searchtext=$_REQUEST["searchtext"];
         
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");

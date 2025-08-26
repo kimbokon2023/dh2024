@@ -223,9 +223,11 @@ if(file_exists($filePath)) {
 				<div class="col-sm-7">	 
 					<div class="d-flex align-items-center p-2 text-left">
 					
-					<button  type="button" class="btn btn-outline-primary btn-sm" id="newBtn" > <ion-icon name="document-outline"></ion-icon></button>&nbsp;							
+					<button type="button" class="btn btn-outline-primary btn-sm" id="newBtn">
+						<i class="bi bi-file-earmark-text"></i>
+					</button>&nbsp;
 						<span class="text-center me-1"> Load  </span>
-						<select name="savedApprovalLines" id="savedApprovalLines" class="form-control" style="width:60%;">
+						<select name="savedApprovalLines" id="savedApprovalLines" class="form-select" style="width:60%; font-size:12px;">
 							<?= $selectOptions ?>
 						</select>						
 					</div>
@@ -233,7 +235,9 @@ if(file_exists($filePath)) {
 				<div class="col-sm-5" >	 
 					<div class="d-flex align-items-center p-2 text-left">			
 						<input type="text" name="workprocessval" id="workprocessval" value=''  class="form-control" style="width:100%;" >
-						<button  type="button" class="btn btn-dark btn-sm" id="SavesettingsBtn" >  <ion-icon name="save-outline"></ion-icon> </button>&nbsp;		
+						<button  type="button" class="btn btn-dark btn-sm" id="SavesettingsBtn" >  
+							<i class="bi bi-save"></i>
+						</button>&nbsp;		
 					</div>
 				</div>
 
@@ -242,10 +246,13 @@ if(file_exists($filePath)) {
 		
 		 
 		<div class="d-flex p-2  text-left" >	  
-		<button  type="button" class="btn btn-outline-dark btn-sm" onclick="self.close();" > <ion-icon name="exit-outline"></ion-icon> 창닫기 </button>&nbsp;		
-		<button  type="button" class="btn btn-primary btn-sm"  id="openModalButton"> <ion-icon name="construct-outline"></ion-icon> 관리 </button> &nbsp;
-		<!-- <button  type="button" class="btn btn-dark btn-sm" id="adaptBtn"> <ion-icon name="checkmark-outline"></ion-icon> 선택 </button> &nbsp; -->
-		
+		<button  type="button" class="btn btn-outline-dark btn-sm" onclick="self.close();" > 
+			<i class="bi bi-x-lg"></i> 창닫기 
+		</button>&nbsp;		
+		<button  type="button" class="btn btn-primary btn-sm"  id="openModalButton"> 
+			<i class="bi bi-gear"></i> 관리 
+		</button> &nbsp;
+		<!-- <button  type="button" class="btn btn-dark btn-sm" id="adaptBtn"> <i class="bi bi-check-lg"></i> 선택 </button> &nbsp; -->
 		
 		</div>
 		
@@ -304,7 +311,8 @@ $(document).ready(function() {
             success: function(response) {
                 // 화면 업데이트 로직
 				console.log(response);
-                updateApprovalOrderList(response.approvalOrder);
+                var order = (response && Array.isArray(response.approvalOrder)) ? response.approvalOrder : [];
+                updateApprovalOrderList(order);
             },
             error: function(xhr, status, error) {
                 console.error(error); // 오류 처리
@@ -313,6 +321,9 @@ $(document).ready(function() {
     }
 
 	function updateApprovalOrderList(approvalOrder) {
+		if (!Array.isArray(approvalOrder)) {
+			approvalOrder = [];
+		}
 		var approvalOrderList = $('#approvalOrder');
 		var approverList = $('#approverList');
 		approvalOrderList.empty(); // 최종 결재 순서 목록 비우기
@@ -539,7 +550,7 @@ function renderApprovalLines(data) {
         var deleteButtonCell = $('<td></td>').addClass('text-end');
         var deleteButton = $('<button></button>')
             .addClass('btn btn-danger btn-sm ')
-            .append('<ion-icon name="trash-outline"></ion-icon>')
+            .append('<i class="bi bi-trash"></i>')
             .click(function(event) {
                 event.preventDefault();
                 deleteApprovalLine(line.savedName, row);
@@ -572,8 +583,6 @@ function deleteApprovalLine(savedName, listItem) {
 
 function openModal() {
     document.getElementById("approvalModal").style.display = "block";
-	
-	e.preventDefault(); // 기본 이벤트 동작 막기
 }
 
 function closeModal() {

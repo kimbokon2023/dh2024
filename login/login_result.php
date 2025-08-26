@@ -29,16 +29,16 @@ if($count>0) {
 		exit;
     }
 
-    $_SESSION["userid"]=$row["id"];
-    $_SESSION["name"]=$row["name"];    
-    $_SESSION["user_name"]=$row["name"];    
-    $_SESSION["level"]=$row["userlevel"];
-    $_SESSION["ecountID"]=$row["ecountID"];
-    $_SESSION["part"]=$row["part"];	
-    $_SESSION["eworks_level"]=$row["eworks_level"];	
-    $_SESSION["position"]=$row["position"];	
-    $_SESSION["hp"]=$row["hp"];	
-    $_SESSION["DB"]=$DB ;
+    $_SESSION["userid"]=$row["id"] ?? '';
+    $_SESSION["name"]=$row["name"] ?? '';    
+    $_SESSION["user_name"]=$row["name"] ?? '';    
+    $_SESSION["level"]=$row["userlevel"] ?? '';
+    $_SESSION["ecountID"]=$row["ecountID"] ?? '';
+    $_SESSION["part"]=$row["part"] ?? '';	
+    $_SESSION["eworks_level"]=$row["eworks_level"] ?? '';	
+    $_SESSION["position"]=$row["position"] ?? '';	
+    $_SESSION["hp"]=$row["hp"] ?? '';	
+    $_SESSION["DB"]=$DB ?? '';
 
     // ✅ 세션 ID 저장 (단일 로그인 유지용)
     $currentSessionId = session_id();
@@ -106,6 +106,7 @@ else
 		$_SESSION["userid"]=$row["num"];
 		$_SESSION["name"]=$row["vendor_name"];    
 		$_SESSION["secondordnum"]=$row["secondordnum"];    
+		$_SESSION["part"]=$row["part"];	
 		$_SESSION["level"]= '9';						
 		$_SESSION["DB"]=$DB ;
 

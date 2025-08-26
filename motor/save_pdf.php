@@ -1,9 +1,22 @@
 <?php
-// Set very conservative limits to avoid ModSecurity
-ini_set('post_max_size', '500K');
-ini_set('upload_max_filesize', '500K');
-ini_set('max_execution_time', 300);
-ini_set('memory_limit', '16M');
+// Set more generous limits for PDF uploads
+ini_set('post_max_size', '50M');
+ini_set('upload_max_filesize', '50M');
+ini_set('max_execution_time', 600);
+ini_set('memory_limit', '256M');
+ini_set('max_input_time', 600);
+
+// Function to get server upload limits
+function getServerLimits() {
+    return [
+        'post_max_size' => ini_get('post_max_size'),
+        'upload_max_filesize' => ini_get('upload_max_filesize'),
+        'max_execution_time' => ini_get('max_execution_time'),
+        'memory_limit' => ini_get('memory_limit'),
+        'max_input_time' => ini_get('max_input_time'),
+        'max_file_uploads' => ini_get('max_file_uploads')
+    ];
+}
 
 // Function to clean filename
 function cleanFilename($filename) {
@@ -62,13 +75,29 @@ if (isset($_POST['chunk']) && isset($_POST['filename'])) {
     exit;
 }
 
+// Handle regular PDF upload (for smaller files)
 if (isset($_POST['pdf']) && isset($_POST['filename'])) {
     $pdf = $_POST['pdf'];
     $filename = $_POST['filename'];
 
-    // 1. 파일명에서 경로 문자 제거
-    $cleanFilename = preg_replace('/[\/\\\\:*?"<>|]/u', '_', $filename); // 파일명에서 위험 문자 제거
-    // 2. 디렉토리 확인 및 생성
+    // Check if PDF data is too large for single upload
+    $pdfSize = strlen($pdf);
+    $maxSize = 10 * 1024 * 1024; // 10MB limit for single upload
+    
+    // Log detailed size information for debugging
+    error_log("PDF Upload Debug - Base64 size: " . $pdfSize . " bytes (" . round($pdfSize/1024, 2) . " KB)");
+    error_log("PDF Upload Debug - Estimated actual size: " . round(($pdfSize * 3) / 4) . " bytes (" . round(($pdfSize * 3) / 4 / 1024, 2) . " KB)");
+    error_log("PDF Upload Debug - Server limits - POST: " . ini_get('post_max_size') . ", Upload: " . ini_get('upload_max_filesize'));
+    
+    if ($pdfSize > $maxSize) {
+        echo json_encode(['error' => 'PDF가 너무 큽니다. 청크 업로드를 사용하세요.', 'size' => $pdfSize]);
+        exit;
+    }
+
+    // Clean filename
+    $cleanFilename = cleanFilename($filename);
+    
+    // Create directory if it doesn't exist
     $dir = $_SERVER['DOCUMENT_ROOT'] . '/pdfs/';
     if (!file_exists($dir)) {
         mkdir($dir, 0755, true);
@@ -76,12 +105,39 @@ if (isset($_POST['pdf']) && isset($_POST['filename'])) {
 
     $filePath = $dir . $cleanFilename;
 
-    // 3. PDF 파일 저장
-    if (file_put_contents($filePath, base64_decode($pdf)) !== false) {
-        echo json_encode(['filename' => $cleanFilename]);
+    // Decode and save PDF
+    $pdfData = base64_decode($pdf);
+    if ($pdfData === false) {
+        echo json_encode(['error' => 'PDF 데이터 디코딩에 실패했습니다.']);
+        exit;
+    }
+
+    // Save PDF file
+    if (file_put_contents($filePath, $pdfData) !== false) {
+        error_log("PDF Upload Success - File saved: " . $cleanFilename . " (" . filesize($filePath) . " bytes)");
+        echo json_encode(['filename' => $cleanFilename, 'status' => 'success']);
     } else {
+        error_log("PDF Upload Error - Failed to save file: " . $cleanFilename);
         echo json_encode(['error' => '파일 저장에 실패했습니다.']);
     }
 } else {
+    // Check if this is a status request
+    if (isset($_GET['status']) && $_GET['status'] === 'check') {
+        $limits = getServerLimits();
+        echo json_encode([
+            'status' => 'server_info',
+            'limits' => $limits,
+            'current_settings' => [
+                'post_max_size_set' => ini_get('post_max_size'),
+                'upload_max_filesize_set' => ini_get('upload_max_filesize'),
+                'max_execution_time_set' => ini_get('max_execution_time'),
+                'memory_limit_set' => ini_get('memory_limit'),
+                'max_input_time_set' => ini_get('max_input_time')
+            ]
+        ]);
+        exit;
+    }
+    
     echo json_encode(['error' => 'Invalid request']);
 }
+?>

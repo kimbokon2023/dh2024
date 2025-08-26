@@ -130,17 +130,20 @@ try {
         <div class="card justify-content-center text-center mt-5">
             <div class="card-header">
                 <span class="text-center fs-5">  <?=$title_message?> 
-					<button type="button" class="btn btn-dark btn-sm me-1" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>      
+					<button type="button" class="btn btn-dark btn-sm mx-2" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>  
 				</span>
+                <small class="ms-5 text-muted"> 지난 업무 확인 시 내용을 기재하여 검색                    </small>  
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-center align-items-center mt-2">
+                <div class="d-flex justify-content-start align-items-center mt-2">
                     <span>
                         ▷ <?= $total_row ?> &nbsp;
                     </span>
                                 
-                    <!-- 기간부터 검색까지 연결 묶음 start -->                    
-                    <span id="showdate" class="btn btn-dark btn-sm">기간</span>   &nbsp; 
+                    <small class="d-block text-muted text-center mt-1 mx-4">
+                        [기간]버튼에 커서를 올리면 전체, 전년도, 전월등 세부 내용을 검색 가능합니다.
+                    </small>
+                    <span id="showdate" class="btn btn-dark btn-sm mx-2">기간</span>  
                                 
                     <div id="showframe" class="card"> 
                         <div class="card-header" style="padding:2px;">
@@ -164,7 +167,8 @@ try {
 
                     <input type="date" id="fromdate" name="fromdate" class="form-control" style="width:110px;" value="<?=$fromdate?>">  &nbsp;   ~ &nbsp;  
                     <input type="date" id="todate" name="todate" class="form-control me-1" style="width:110px;" value="<?=$todate?>">  &nbsp;
-
+                </div>  
+                <div class="d-flex justify-content-center align-items-center mt-2">
                 <div class="inputWrap30">
                     <input type="text" id="search" class="form-control" style="width:150px;" name="search" value="<?=$search?>" onKeyPress="if (event.keyCode==13){ enter(); }">
                     <button class="btnClear"></button>

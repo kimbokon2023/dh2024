@@ -98,7 +98,7 @@ try {
 									<td class="text-center fs-6 fw-bold" style="width:150px;">매월</td>
 									<td class="text-center" colspan="3">
 										<div class="d-flex align-items-center justify-content-center">
-											<select class="form-control fs-6" style="width:60px;" id="specialday" name="specialday">
+											<select class="form-select fs-6" style="width:60px;" id="specialday" name="specialday">
 												<?php for ($day = 1; $day <= 31; $day++): ?>
 													<option value="<?= $day ?>" <?= $specialday == $day ? 'selected' : '' ?>>
 														<?= $day ?>
@@ -113,13 +113,13 @@ try {
 									<td class="text-center fs-6 fw-bold" style="width:150px;">매년</td>
 									<td class="text-center" colspan="3">
 										<div class="d-flex align-items-center justify-content-center">
-											<select class="form-control fs-6" style="width:60px;" id="month" name="month">
+											<select class="form-select fs-6" style="width:60px;" id="month" name="month">
 												<?php for ($m = 1; $m <= 12; $m++): ?>
 													<option value="<?= $m ?>" <?= $m == $month ? 'selected' : '' ?>><?= $m ?></option>
 												<?php endfor; ?>
 											</select>
 											&nbsp;<span class="fs-6">월</span>
-											<select class="form-control fs-6 ms-2" style="width:60px;" id="day" name="day">
+											<select class="form-select fs-6 ms-2" style="width:60px;" id="day" name="day">
 												<?php for ($d = 1; $d <= 31; $d++): ?>
 													<option value="<?= $d ?>" <?= $d == $day ? 'selected' : '' ?>><?= $d ?></option>
 												<?php endfor; ?>

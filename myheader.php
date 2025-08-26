@@ -53,15 +53,21 @@
                     <i class="bi bi-sliders2"></i> 업무일지
                 </a>
 			<div class="dropdown-menu">
-				<a class="dropdown-item" href="<?=$root_dir?>/work/schedule.php">
-					<i class="bi bi-pencil-square"></i> 작성
+				<a class="dropdown-item" href="<?=$root_dir?>/todo_task/task_list.php">
+					<i class="bi bi-check2-square"></i> 오늘의 할일
 				</a>
+				<!-- <a class="dropdown-item" href="<?=$root_dir?>/employee_tasks/task_list.php">
+					<i class="bi bi-check2-square"></i> 오늘의 할일
+				</a> -->
+				<!-- <a class="dropdown-item" href="<?=$root_dir?>/work/schedule.php">
+					<i class="bi bi-pencil-square"></i> 작성
+				</a> -->
 				<a class="dropdown-item" href="<?=$root_dir?>/work/search.php">
-					<i class="bi bi-search"></i> 검색
+					<i class="bi bi-search"></i> 과거일지 검색
 				</a>															
-				<a class="dropdown-item" href="<?=$root_dir?>/work/schedule_all.php">
+				<!-- <a class="dropdown-item" href="<?=$root_dir?>/work/schedule_all.php">
 					<i class="bi bi-journal-bookmark-fill"></i> 전체일지
-				</a>														
+				</a>														 -->
 				<a class="dropdown-item" href="<?=$root_dir?>/workprocess/list.php">
 					<i class="bi bi-app-indicator"></i> 업무요청사항
 				</a>
@@ -83,7 +89,7 @@
             <div class="nav-item dropdown flex-fill me-3">			 			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" >
-                    DH 모터
+                    수주/출고
                 </a>
 			<div class="dropdown-menu">
 				<a class="dropdown-item" href="<?=$root_dir?>/motor/list.php">
@@ -98,6 +104,12 @@
 				<a class="dropdown-item" href="<?=$root_dir?>/phonebook/list.php?header=header">
 					<i class="bi bi-book"></i> 발주처 주소록
 				</a>
+				<a class="dropdown-item" href="<?=$root_dir?>/phonebook_buy/list.php?header=header">
+							<i class="bi bi-book"></i> 매입처 주소록
+						</a>				
+				<a class="dropdown-item" href="<?=$root_dir?>/tax/invalid_registered.php">
+							<i class="bi bi-building-check"></i> 사업자 진위여부 확인
+						</a>				
 				<a class="dropdown-item" href="<?=$root_dir?>/workbook/list.php?header=header">
 					<i class="bi bi-person-lines-fill"></i> 받는분 주소록
 				</a>
@@ -106,7 +118,10 @@
 				</a>
 				<a class="dropdown-item" href="<?=$root_dir?>/motor/outputstat.php?header=header">
 					<i class="bi bi-bar-chart"></i> 출고 통계
-				</a>										   					
+				</a>		
+				<a class="dropdown-item" href="<?=$root_dir?>/motor/statistics.php?header=header">
+							<i class="bi bi-bar-chart-fill"></i> 매출 통계
+					</a>													   					
 			</div>
 
             </div>				
@@ -132,54 +147,46 @@
 						<i class="bi bi-file-earmark-text"></i> AS 보고서 
 					</a>
 				</div>
-            </div>				
+            </div>	
+			<?php if($level =='1' or $level =='2') { ?>			
 			<div class="nav-item dropdown flex-fill me-3">			 
                 <!-- 드롭다운 메뉴-->				
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-                    구매&자재
+                    구매 관리
                 </a>								
 				<div class="dropdown-menu">
 					<a class="dropdown-item" href="<?=$root_dir?>/material/list.php?header=header">
-						<i class="bi bi-cart-check"></i> 품목코드
+						<i class="bi bi-cart-check"></i> 품목코드 조회
 					</a>    																				
 
 					<a class="dropdown-item" href="<?=$root_dir?>/material_lot/list.php?header=header">
 						<i class="bi bi-upc"></i> 로트번호
 					</a>					
-
 					<a class="dropdown-item" href="<?=$root_dir?>/m_order/list.php?header=header">
 						<i class="bi bi-list-ul"></i> 구매(중국)발주서
 					</a>					
 					<a class="dropdown-item" href="<?=$root_dir?>/m_order/list_input.php?header=header">
 						<i class="bi bi-list-ul"></i> 구매(중국) 발주서 입고
-					</a>										
-
+					</a>			
+					<a class="dropdown-item" href="<?=$root_dir?>/m_order/list_account.php?header=header">
+							<i class="bi bi-list-ul"></i> 구매(중국) 송금
+					</a>	
 					<a class="dropdown-item" href="<?=$root_dir?>/material_reg/list.php?header=header">
 						<i class="bi bi-box-arrow-in-down"></i> 자재입고
 					</a>					
 
 					<a class="dropdown-item" href="<?=$root_dir?>/motor/list_mat.php?header=header">
 						<i class="bi bi-clipboard-data"></i> 재고현황
-					</a>
+					</a>				
 				</div>
 
             </div>		
-			<?php if($level =='1') { ?>
-				<div class="nav-item dropdown flex-fill me-3">			 
-					<!-- 드롭다운 메뉴-->				
-					<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-						회계1
-					</a>								
+			<div class="nav-item dropdown flex-fill me-3">			 
+				<!-- 드롭다운 메뉴-->				
+				<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+					자재 관리
+				</a>								
 				<div class="dropdown-menu">
-					<a class="dropdown-item" href="<?=$root_dir?>/motor/statistics.php?header=header">
-						<i class="bi bi-bar-chart-fill"></i> 매출 통계
-					</a>
-					<a class="dropdown-item" href="<?=$root_dir?>/phonebook_buy/list.php?header=header">
-						<i class="bi bi-book"></i> 매입처 주소록
-					</a>
-					<a class="dropdown-item" href="<?=$root_dir?>/price_motor/list.php?header=header">
-						<i class="bi bi-gear-wide-connected"></i> DH모터 원가산출
-					</a>
 					<a class="dropdown-item" href="<?=$root_dir?>/fee/list.php?header=header">
 						<i class="bi bi-boxes"></i> 주자재 원단가
 					</a>
@@ -192,21 +199,17 @@
 					<a class="dropdown-item" href="<?=$root_dir?>/fee_sub/list.php?header=header">
 						<i class="bi bi-tools"></i> 부자재 원단가
 					</a>
-					<a class="dropdown-item" href="<?=$root_dir?>/tax/invalid_registered.php">
-						<i class="bi bi-building-check"></i> 사업자 진위여부 확인
-					</a>
-					<a class="dropdown-item" href="<?=$root_dir?>/holiday/list.php?header=header">
-						<i class="bi bi-calendar-event"></i> 일정표 휴일설정
-					</a>
+					<a class="dropdown-item" href="<?=$root_dir?>/price/list.php?header=header">
+						<i class="bi bi-currency-dollar"></i> 중국발주 원단가
+					</a>					
 				</div>
-
-				</div>					
-			<?php } ?>		
+			</div>			
+			<?php } ?>					
 			<?php if($level =='1') { ?>
 				<div class="nav-item dropdown flex-fill me-3">			 
 					<!-- 드롭다운 메뉴-->				
 					<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-						회계2
+						회계
 					</a>								
 					<div class="dropdown-menu">
 						<a class="dropdown-item" href="<?=$root_dir?>/account/schedule.php">
@@ -218,13 +221,11 @@
 						</a>
 
 						<a class="dropdown-item" href="<?=$root_dir?>/account/cardlist.php?header=header">
-							<i class="bi bi-credit-card"></i> 법인카드관리
+							<i class="bi bi-credit-card"></i> 법인카드 관리
 						</a>
-
-						<a class="dropdown-item" href="<?=$root_dir?>/m_order/list_account.php?header=header">
-							<i class="bi bi-list-ul"></i> 구매(중국) 송금
-						</a>	
-
+						<a class="dropdown-item" href="<?=$root_dir?>/account/accountlist.php">
+							<i class="bi bi-cash-coin"></i>  법인계좌 관리
+						</a>
 						<a class="dropdown-item" href="<?=$root_dir?>/account/list.php">
 							<i class="bi bi-journal-text"></i> 금전출납부
 						</a>
@@ -256,30 +257,23 @@
 						<a class="dropdown-item" href="<?=$root_dir?>/accountLoan/list.php">
 							<i class="bi bi-bank2"></i> 대출금 상환 현황
 						</a>
+						<a class="dropdown-item" href="<?=$root_dir?>/price_motor/list.php?header=header">
+							<i class="bi bi-gear-wide-connected"></i> DH모터 원가산출
+						</a>						
 					</div>
 				</div>					
 			<?php } ?>	
-	<!--
-            <div class="nav-item dropdown flex-fill me-3">			        
-                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-                    품질인정
-                </a>
-                <div class="dropdown-menu">
-					<a class="dropdown-item  " href="$root_dir/iso/list1.php"> <ion-icon name="globe-sharp"></ion-icon> ISO 9001 인증 </a>					
-                </div>
-            </div>
-    -->
             <div class="nav-item dropdown flex-fill me-3">			 			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" >
-                    차량/지게차
+                    차량 및 장비
                 </a>
 					<div class="dropdown-menu">
 						<a class="dropdown-item" href="<?=$root_dir?>/car/list.php">
 							<i class="bi bi-truck-front"></i> 차량
 						</a>                    
 						<a class="dropdown-item" href="<?=$root_dir?>/lift/list.php">
-							<i class="bi bi-box-seam"></i> 지게차
+							<i class="bi bi-box-seam"></i> 지게차/이동식에어컨
 						</a>                    
 					</div>
             </div>
@@ -294,6 +288,9 @@
 						</a>                    
 						<a class="dropdown-item" href="<?=$root_dir?>/qna/list.php">
 							<i class="bi bi-folder-symlink-fill"></i> 자료실
+						</a>                    			                    
+						<a class="dropdown-item" href="<?=$root_dir?>/CertProd/index.php">
+							<i class="bi bi-patch-check-fill"></i> 인정업체별 사용제품
 						</a>                    			                    
 						<a class="dropdown-item" href="<?=$root_dir?>/motor_rnd/list.php">
 							<i class="bi bi-journal-code"></i> 모터 개발일지
@@ -315,15 +312,15 @@
 					<a class="dropdown-item" href="<?=$root_dir?>/youtube.php">
 						<i class="bi bi-youtube"></i> (주)대한
 					</a>						
-					<a class="dropdown-item" href="<?=$root_dir?>/annualleave/index.php">
-						<i class="bi bi-person-bounding-box"></i> 연차
-					</a>					
 					<a class="dropdown-item" href="<?=$root_dir?>/roadview.php">
 						<i class="bi bi-person-lines-fill"></i> 직원 주소록
 					</a>                                                                         
 					<a class="dropdown-item" href="<?=$root_dir?>/qrcode/index.php">
 						<i class="bi bi-qr-code"></i> QR코드 생성
-					</a>                                                                         
+					</a>        
+					<a class="dropdown-item" href="<?=$root_dir?>/holiday/list.php?header=header">
+							<i class="bi bi-calendar-event"></i> 일정표 휴일설정
+						</a>					                                                                 
 				</div>
 
             </div>			

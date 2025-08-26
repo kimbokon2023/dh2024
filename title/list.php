@@ -76,19 +76,12 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 
 <div class="container">  
     <div class="card mt-1">
+        <div class="card-header d-flex justify-content-center align-items-center">
+            <span class="text-center fs-5"> <?=$title_message?> </span>	
+            <button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+            <small class="mx-3 text-muted"> 대한 전산프로그램 카테고리 아랫쪽 문구생성 </small>  
+        </div>
         <div class="card-body">
-            <div class="d-flex mb-3 mt-2 justify-content-center align-items-center">  
-                <h4><?=$title_message?></h4>  
-                <button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> 
-                    <i class="bi bi-arrow-clockwise"></i> 
-                </button>  	 			
-            </div>	
-
-            <div class="d-flex p-0 justify-content-center">
-                <div class="alert alert-info" role="alert" style="font-size: 14px;">
-                    초기화면에 들어갈 연간 계획 문구를 설정합니다.
-                </div>
-            </div>
 
             <?php if (!empty($message)): ?>
             <div class="alert alert-<?=$message_type?> message-alert alert-dismissible fade show" role="alert">
@@ -186,10 +179,13 @@ function resetForm() {
     }
 }
 
-$(document).ready(function(){
-    var title_message = '<?=$title_message?>';
-	saveLogData(title_message); 
-});
+// saveLogData 함수가 정의되지 않은 경우를 위한 안전장치
+if (typeof saveLogData === 'function') {
+    $(document).ready(function(){
+        var title_message = '<?=$title_message?>';
+        saveLogData(title_message); 
+    });
+}
 </script>
 
 </body> 

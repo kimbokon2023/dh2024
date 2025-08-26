@@ -534,9 +534,8 @@ $(document).ready(function(){
 			type: "post",		
 			data: data,			
 			dataType:"json",  
-			success : function(data){
-				
-					console.log(data);
+			success : function(data){				
+					// console.log(data);
 					setTimeout(function() {						
 							Toastify({
 								text: "파일 저장완료 ",

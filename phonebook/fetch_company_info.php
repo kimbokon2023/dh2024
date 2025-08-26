@@ -1,4 +1,5 @@
 <?php
+require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect(); // 데이터베이스 연결
 
@@ -8,7 +9,7 @@ $secondordnum = isset($_GET['secondordnum']) ? $_GET['secondordnum'] : null;
 if ($secondordnum) {
     // SQL 쿼리 작성, `secondordnum`을 조건으로 추가
     $sql = "SELECT secondord, secondordman, secondordmantel  
-            FROM motor 
+            FROM $DB.motor 
             WHERE secondordnum = :secondordnum";
 
     // 준비된 명령문 준비

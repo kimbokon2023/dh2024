@@ -193,7 +193,7 @@ try {
 							<div class="row d-flex justify-content-center align-items-center">
                             <select name="al_content" id="al_content" class="form-select form-select-sm text-center w-auto mx-1" >
                                 <?php
-                                $al_content_arr = array("개인사정", "휴가", "여행", "병원진료등", "전직원연차", "경조사", "기타");
+                                $al_content_arr = array("개인사정", "휴가", "여행", "병원진료등", "전직원연차", "경조사", "예비군훈련", "공가", "기타");
                                 for ($i = 0; $i < count($al_content_arr); $i++) {
                                     if ($al_content == $al_content_arr[$i])
                                         print "<option selected value='" . $al_content_arr[$i] . "'> " . $al_content_arr[$i] .   "</option>";

@@ -129,8 +129,9 @@ try {
 	<div class="card-body">  	 
 			 
 	<div class="d-flex  p-1 m-1 mt-1 justify-content-center align-items-center "> 		
-		   <h5> <span class="badge bg-primary">  <?=$title_message?>  </span> </h5>  &nbsp;&nbsp;&nbsp;	&nbsp;	  		  
-			
+		   <h5> <span class="badge bg-primary">  <?=$title_message?>  </span> </h5>  &nbsp;&nbsp;&nbsp;	&nbsp;	  
+		   <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		   
+           <small class="ms-5 text-muted"> 수주프로그램에서 회수 요청한 리스트가 등록됩니다. </small>  			
 		</div>	
 
 	<div class="d-flex  p-1 m-1 mt-1 mb-1 justify-content-center align-items-center"> 	  

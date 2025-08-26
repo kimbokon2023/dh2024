@@ -101,6 +101,7 @@ try {
 	<div class="d-flex  p-1 m-1 mt-1 justify-content-center align-items-center "> 		
 		<h5>  <?=$title_message?> </h5>		
 		<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+        <small class="ms-5 text-muted"> 모터 및 브라켓등 주자재 원단가를 추가하거나 수정합니다.</small>  
 	</div>	
 
 	    <div class="d-flex  p-1 m-1 mt-1 mb-1 justify-content-center align-items-center"> 	  
@@ -118,7 +119,7 @@ try {
 		  &nbsp;
 		   <button id="searchBtn" type="button" class="btn btn-dark  btn-sm" >  <i class="bi bi-search"></i> 검색 </button>
 		   &nbsp;&nbsp;&nbsp;
-		  <button type="button" class="btn btn-dark  btn-sm me-1" id="writeBtn"> <i class="bi bi-pencil-fill"></i> 신규 </button> 
+		  <!-- <button type="button" class="btn btn-dark  btn-sm me-1" id="writeBtn"> <i class="bi bi-pencil-fill"></i> 신규 </button>  -->
           <button type="button" class="btn btn-info  btn-sm me-1" id="guideBtn"> <i class="bi bi-question-circle"></i> 새로 추가할 경우 간단 설명서  </button> 
 		</div> 	 
    </div> <!--card-body-->

@@ -66,12 +66,13 @@ $title_message = 'DH모터 일정(출고예정일 기준)';
   <div class="row mt-4">
     <div class="col-sm-3"></div>
     <div class="col-sm-5">
-      <div class="d-flex justify-content-center mb-4">
+      <div class="d-flex justify-content-center align-items-center mb-4">
         <button id="prev-month" class="btn btn-primary btn-sm me-1"> <i class="bi bi-arrow-left"></i> 전월 </button>
         <button id="next-month" class="btn btn-primary btn-sm me-1">   다음 달  <i class="bi bi-arrow-right"></i>  </button>
         <button id="current-month" class="btn btn-outline-primary btn-sm me-5 ">이번 달</button>
 			<h4 id="clickableText_motor"> <?=$title_message?> </h4>
 			<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>
+			<small class="ms-5 text-muted"> 출고예정일 기준 월간 출고내역입니다.</small>  
       </div>
       <div class="d-flex justify-content-center items-center" style="vertical-align: center">
         <span id="current-period" class="text-primary fs-6 me-3"></span>

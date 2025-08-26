@@ -14,10 +14,8 @@ $APIKEY = "2ddb841648d38606331320046099cf67";
  isset($_REQUEST["HomeAddress"]) ? $HomeAddress=$_REQUEST["HomeAddress"] : $HomeAddress='';	 
  
  // 첫 화면 표시 문구
-$title_message = '직원 주소록';   
-   
- ?>
- 
+$title_message = '직원 주소록';      
+ ?> 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php' ?>
 
 <!-- 카카오맵에 필요한 3가지 API -->
@@ -27,9 +25,8 @@ $title_message = '직원 주소록';
 <!-- services와 clusterer, drawing 라이브러리 불러오기 -->
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=<?=$APIKEY?>&libraries=services,clusterer,drawing"></script>
 
-
-	<title>  </title> 
-    <style>
+<title> 직원 주소록 </title> 
+<style>
     .screen_out {display:block;overflow:hidden;position:absolute;left:-9999px;width:1px;height:1px;font-size:0;line-height:0;text-indent:-9999px}
     .wrap_content {overflow:hidden;height:330px}
     .wrap_map {width:50%;height:300px;float:left;position:relative}
@@ -44,21 +41,16 @@ $title_message = '직원 주소록';
 
 </head>
 
-
-
-<? include './myheader.php'; ?>   
-
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/myheader.php'; ?>   
 
     <div class="container mt-4 mb-1">
     <div class="card">
-    <div class="card-body">
-	
-	
-	
-	    <div class="d-flex mb-1 mt-2 justify-content-center align-items-center">  
-            <span class="fs-5">		<?= $title_message ?> </span>
-		</div>	
-		
+        <div class="card-header d-flex justify-content-center align-items-center">  
+            <span class="text-center fs-5"> <?=$title_message?> </span>	
+            <button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+            <small class="mx-3 text-muted">직원 상세 등록정보를 등록 및 수정합니다. </small>  
+        </div>
+    <div class="card-body">	
     <div class="table-responsive">
         <table class="table table-bordered">
             <thead class="table-primary">

@@ -539,7 +539,7 @@ if ($returndue == '회수예정') {
 			  <tbody>
 				<tr>
 				   <td rowspan="3" style="width:70px;" data-bs-toggle="tooltip" data-bs-placement="top" title="발주처가 등록, 추후 발주량 예측"> 
-				   현장<br> 출고수량 
+				 	  현장<br>출고수량 
 				   </td>
 				  
 					<td  data-bs-toggle="tooltip" data-bs-placement="bottom" title="전체 발주한 수량을 의미함" > 				   
@@ -554,7 +554,7 @@ if ($returndue == '회수예정') {
 						<div class="d-flex align-items-center justify-content-center"> 
 							<input type="text" id="screensu" name="screensu" value="<?=$screensu?>"   style="width:30px;"  autocomplete="off" onkeyup="inputNumberFormat(this)"  class=" form-control calculate_set">
 						</div>
-						</td>  						  
+				  </td>  						  
 				  <td> 철재M <br>  
 						<div class="d-flex align-items-center justify-content-center"> 
 							<input type="text" id="steelsu" name="steelsu" value="<?=$steelsu?>"   style="width:30px;"  autocomplete="off" onkeyup="inputNumberFormat(this)"  class=" form-control calculate_set" >
@@ -661,7 +661,23 @@ if ($returndue == '회수예정') {
 				</tr>		   
 		</tbody>
 	</table>		
-		
+		</table>	
+
+			<table class="table table-bordered">		 
+			  <tbody>
+				<tr>
+				   <td class="text-center w100px fw-bold" data-bs-toggle="tooltip" data-bs-placement="top" title="발주처 주소록에서 가져온 비고"> 
+				 	  주소록에서 <br>
+					  가져온 비고
+				   </td>				  
+					<td> 				   					  						
+					   <textarea id="custNote" name="custNote" class="form-control"  style="width:100%; height:70px;"><?=$custNote?></textarea>
+					</td>					  			
+				</tr>		   
+		</tbody>
+	</table>		
+
+	
 	</div>						
 	<div class="col-sm-8 rounded p-1" > 	
 		<table class="table table-bordered ">		 		
@@ -949,8 +965,8 @@ if ($returndue == '회수예정') {
 			</thead>			
 			
 		<tbody>
-		<!-- 자동생성 -->
-			</tbody>
+			<!-- 자동생성 -->
+		</tbody>
 		</table>	
 	</div>
 	<div class="col-sm-3" >  
@@ -961,9 +977,10 @@ if ($returndue == '회수예정') {
 <!-- 원단 -->
 <div class="d-flex row justify-content-center p-2 rounded"  style=" border: 1px solid #392f31; "> 		
 	<div class="d-flex row">	
-	<div class="d-flex mb-2">	
+	<div class="d-flex align-items-center mb-2">	
 		<span class="badge bg-info fs-6 me-3" > 원단 </span>	
 		<button type="button" class="btn btn-dark btn-sm fabric_add restrictbtn" style="margin-right: 5px;"> <i class="bi bi-plus-square"></i> </button>	
+		<span class="text-muted ms-5">기준단위 : 와이어 50m(기타원단 50m), 가스켓 100m, 버미글라스 20m(1박스)</span>
 	</div>
 	</div>
 <div class="d-flex row">
@@ -1359,7 +1376,7 @@ if ($returndue == '회수예정') {
 		}			
 		
 		echo '<div style="display:none;">';
-		echo '<input type="file" multiple accept=".gif, .jpg, .png" id="'.$type.'Input_'.$counter.'" onchange="FileProcess(\''.$type.'\', '.$counter.', this)">';
+		echo '<input type="file" multiple accept=".jpg " id="'.$type.'Input_'.$counter.'" onchange="FileProcess(\''.$type.'\', '.$counter.', this)">';
 		echo '</div>';
 			
 		if($chkMobile)
@@ -1471,7 +1488,7 @@ if ($returndue == '회수예정') {
 		}			
 		
 		echo '<div style="display:none;">';
-		echo '<input type="file" multiple accept=".gif, .jpg, .png" id="'.$type.'Input_'.$counter.'" onchange="FileProcess(\''.$type.'\', '.$counter.', this)">';
+		echo '<input type="file" multiple accept=".jpg" id="'.$type.'Input_'.$counter.'" onchange="FileProcess(\''.$type.'\', '.$counter.', this)">';
 		echo '</div>';
 			
 		if($chkMobile)
@@ -1997,7 +2014,7 @@ function saveData() {
 		contentType: false,      
 		cache: false,           
 		timeout: 600000, 			
-		url: "insert.php",
+		url: "https://dh2024.co.kr/motor/insert.php",
 		type: "post",		
 		data: datasource,			
 		dataType: "json", 
@@ -2105,13 +2122,17 @@ var level = '<?php echo $level; ?>';
 				// $('#board_form').find('input:not([type=hidden]):not(#secondordnum)').each(function(){ $(this).val(''); });
 				$('#board_form').find('textarea').each(function(){ $(this).val(''); });
 
-				$('#workplacename').val("<? echo $workplacename; ?>");
-				$('#address').val("<? echo $address; ?>");
-				$('#secondord').val("<? echo $secondord; ?>");
-				$('#secondordman').val("<? echo $secondordman; ?>");
-				$('#secondordmantel').val("<? echo $secondordmantel; ?>");
-				$('#chargedman').val("<? echo $chargedman; ?>");
-				$('#chargedmantel').val("<? echo $chargedmantel; ?>");
+				$('#workplacename').val($('#workplacename').val());
+				let addressVal = $('#address').val();
+				if (addressVal && addressVal.includes('"')) {
+					addressVal = addressVal.replace(/"/g, "'");
+				}
+				$('#address').val(addressVal);
+				$('#secondord').val($('#secondord').val());
+				$('#secondordman').val($('#secondordman').val());
+				$('#secondordmantel').val($('#secondordmantel').val());
+				$('#chargedman').val($('#chargedman').val());
+				$('#chargedmantel').val($('#chargedmantel').val());
 				$('#orderdate').val(getToday());
 				if(Number(level) < 5)
 					$('#registerdate').val(getToday());				
@@ -2127,13 +2148,18 @@ var level = '<?php echo $level; ?>';
 				// $('#board_form').find('input:not([type=hidden]):not(#secondordnum)').each(function(){ $(this).val(''); });
 				$('#board_form').find('textarea').each(function(){ $(this).val(''); });
 
-				$('#workplacename').val("<? echo $workplacename; ?>");
-				$('#address').val("<? echo $address; ?>");
-				$('#secondord').val("<? echo $secondord; ?>");
-				$('#secondordman').val("<? echo $secondordman; ?>");
-				$('#secondordmantel').val("<? echo $secondordmantel; ?>");
-				$('#chargedman').val("<? echo $chargedman; ?>");
-				$('#chargedmantel').val("<? echo $chargedmantel; ?>");				
+				$('#workplacename').val("<?php echo $workplacename; ?>");
+				$('#address').val(function(i, oldVal) {
+					if (oldVal && oldVal.includes('"')) {
+						return oldVal.replace(/"/g, "'");
+					}
+					return oldVal;
+				});
+				$('#secondord').val("<?php echo $secondord; ?>");
+				$('#secondordman').val("<?php echo $secondordman; ?>");
+				$('#secondordmantel').val("<?php echo $secondordmantel; ?>");
+				$('#chargedman').val("<?php echo $chargedman; ?>");
+				$('#chargedmantel').val("<?php echo $chargedmantel; ?>");
 
 				$('#orderdate').val(getToday());
 				if(Number(level) < 5)
@@ -3289,20 +3315,30 @@ function fetchfabricData(callback) {
 
 // 원단 단가 찾기
 function fabric_Unit(row) {    
+    // 입력값에서 모든 공백을 제거하고 대문자로 변환
     var itemValue = getSafeInputValue(row.find('[name="col1[]"]')).replace(/\s+/g, '').toUpperCase();
-    console.log('unit choice', row);
-    if (fabricData.hasOwnProperty(itemValue)) {
-        var computedPrice = fabricData[itemValue];
-        var currentPrice = row.find('.priceField').val().replace(/,/g, '');
+    console.clear();
+	console.log('itemValue', itemValue);
+	console.log('unit choice', row);
+	console.log('fabricData', fabricData);
 
-        // 현재 단가가 비어있거나 0인 경우에만 자동 단가 설정
-        if (!currentPrice || currentPrice === '0') {
+    // fabricData 객체의 각 키에서 공백을 제거하여 비교
+    for (let key in fabricData) {
+        var cleanKey = key.replace(/\s+/g, '').toUpperCase();
+        
+        // 정확히 일치하는 경우에만 단가 설정
+        if (cleanKey === itemValue) {
+            var computedPrice = fabricData[key];
+            
+            // 항상 자동 단가 설정
             row.find('.priceField').val(computedPrice.toLocaleString());			
-			row.find('[name="col2[]"]').val('1220'); // 폭 설정
-			fabricUnitPrice = computedPrice;
+            row.find('[name="col2[]"]').val('1220'); // 폭 설정
+            fabricUnitPrice = computedPrice;
+            break;
         }
-    }  
-	fabric_updateOptions(row) ;
+    }
+	
+	fabric_updateOptions(row);
 }
 
 function fabric_updateOptions(row) {	    
@@ -5054,7 +5090,7 @@ window.delPicFn = function(uniqueId, picName, itemType) {
 			ajaxRequest_write.abort();
 		}		 
 		ajaxRequest_write = $.ajax({		        
-            url: 'delpic.php?picname=' + picName,
+            url: 'https://dh2024.co.kr/motor/delpic.php?picname=' + picName,
             type: 'post',
             data: $("board_form").serialize(),
             dataType: 'json',    	
@@ -5083,12 +5119,18 @@ window.delPicFn = function(uniqueId, picName, itemType) {
 }
  
 // 1) 파일을 회전한 뒤 콜백으로 돌려주는 유틸 함수
+// 이미지 파일을 회전한 뒤 File로 다시 생성하여 콜백으로 반환
 function rotateFileBeforeUpload(file, angle, callback) {
+    if (!file.type.startsWith('image/')) {
+        console.warn('이미지가 아님. 회전 없이 그대로 전송:', file.name);
+        callback(file); // 이미지가 아닐 경우 그대로 사용
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => {
         const img = new Image();
         img.onload = () => {
-            // 캔버스 크기 설정 (90° 또는 270° 면 가로/세로 바꿔야 함)
             const canvas = document.createElement('canvas');
             if (angle % 180 !== 0) {
                 canvas.width = img.naturalHeight;
@@ -5097,167 +5139,212 @@ function rotateFileBeforeUpload(file, angle, callback) {
                 canvas.width = img.naturalWidth;
                 canvas.height = img.naturalHeight;
             }
+
             const ctx = canvas.getContext('2d');
-            ctx.translate(canvas.width/2, canvas.height/2);
-            ctx.rotate(angle * Math.PI/180);
-            ctx.drawImage(img, -img.naturalWidth/2, -img.naturalHeight/2);
-            // Blob 생성
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(angle * Math.PI / 180);
+            ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+
             canvas.toBlob(blob => {
-                // File 객체처럼 이름, 타입 유지
+                if (!blob) {
+                    console.error('canvas.toBlob failed: blob is null');
+                    return;
+                }
                 const rotatedFile = new File([blob], file.name, { type: file.type });
                 callback(rotatedFile);
             }, file.type);
         };
+        img.onerror = err => {
+            console.error('Image load failed:', file.name, err);
+        };
         img.src = e.target.result;
+    };
+    reader.onerror = err => {
+        console.error('FileReader error:', err);
     };
     reader.readAsDataURL(file);
 }
 
-// 2) FileProcess 내부 수정 예시
- window.FileProcess = function(item, idx, inputElement) {  // 전역함수 선언
-	
+
+// FileProcess pic_insert.php에 전송해서 첨부 이미지 저장하기
+window.FileProcess = function (item, idx, inputElement) {
 	$('#item').val(item);
-	
-	   //do whatever you want here
-    	num = $("#num").val();
-	
-		if(Number(num)==0) {
-			Swal.fire({                                    
-				title: '출하사진은 최초 저장된 후 등록 가능(레코드 번호필요)',
-				text: '저장 후 실행하세요.',
-				icon: 'warning',
-				// ... 기타 설정 ...
-			}).then(result => {
-				if (result.isConfirmed) { 
-					return; // 사용자가 확인 버튼을 누르면 아무것도 하지 않고 종료
-				}         
-			});
-			 
-		   }
+	const num = $("#num").val();
 
-		   let form = new FormData($('#board_form')[0]);
-			form.append('idx', idx);
-
-			const files = Array.from(inputElement.files);
-			if (files.length === 0) {
-				sendAjax(form);
-				return;
-			}
-
-			let processed = 0;
-			files.forEach(file => {
-				// 90° 회전
-				rotateFileBeforeUpload(file, 0, rotatedFile => {
-					form.append('file[]', rotatedFile);
-					processed++;
-					if (processed === files.length) {
-						// 모든 파일 회전 완료 후 AJAX 전송
-						sendAjax(form);
-					}
-				});
-			});
-
-
-			function sendAjax(formData) {				
-				alertmodal("업로드 중입니다. 잠시만 기다려주세요.");
-
-				if (ajaxRequest_write !== null) {
-					ajaxRequest_write.abort();
-				}		 
-				ajaxRequest_write = $.ajax({
-						enctype: 'multipart/form-data',  // file을 서버에 전송하려면 이렇게 해야 함 주의
-						processData: false,    
-						contentType: false,      
-						cache: false,           
-						timeout: 800000, 			
-						url: "pic_insert.php",
-						type: "post",		
-						data: formData,	
-						dataType : 'json',
-						success : function(response){
-							
-							// console.log(response);
-													
-							if(response.status == "array") {
-									// 파일 경로에서 './uploads/' 부분 제거
-									var cleanedFilePaths = response.filepaths.map(function(filepath) {
-										return filepath.replace('./uploads/', '');
-									});
-								switch (item) {
-									case 'beforeArr':
-										AdddisplayImagesArray('#beforeArrImages_' + idx, cleanedFilePaths, 'before', idx);
-										break;
-									case 'midArr':
-										AdddisplayImagesArray('#midArrImages_' + idx, cleanedFilePaths, 'mid', idx);
-										break;
-									case 'afterArr':
-										AdddisplayImagesArray('#afterArrImages_' + idx, cleanedFilePaths, 'after', idx);
-										break;
-								}                            
-							}                         
-							setTimeout(function(){
-								closealertmodal();
-							}, 400);
-							
-							setTimeout(function(){
-								// 오늘 날짜를 YYYY-MM-DD 형식으로 가져오기
-								var today = new Date();
-								var dd = String(today.getDate()).padStart(2, '0');
-								var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-								var yyyy = today.getFullYear();
-
-								today = yyyy + '-' + mm + '-' + dd;
-								
-									switch (item) {
-										case 'beforeArr':
-											// input 요소에 오늘 날짜 설정하고 change 이벤트 트리거									
-											$("#status").val("출고대기").trigger("change");
-											break;
-										case 'midArr':
-											// input 요소에 오늘 날짜 설정하고 change 이벤트 트리거
-											$("#outputdate").val(today).trigger("change");							
-											$("#status").val("출고완료").trigger("change");
-											break;
-										case 'afterArr':								
-											break;
-									} 							
-								
-								// 파일 저장처리함
-										// console.log(data);
-									if (ajaxRequest_picinsert !== null) {
-										ajaxRequest_picinsert.abort();
-									}									
-									ajaxRequest_picinsert = $.ajax({
-										url: "insert_few.php",
-										type: "post",
-										data: {
-											num: $("#num").val(),
-											status: $("#status").val(),
-											update_log: $("#update_log").val(),  										
-											outputdate : $("#outputdate").val()
-										},   
-										dataType: "json",
-										success: function(data) {
-											// console.log(data);
-											ajaxRequest_picinsert = null;
-										},
-										error: function(jqxhr, status, error) {
-											console.log(jqxhr, status, error);
-										}
-									});
-								
-							}, 300);	
-							
-							// console.log('실행결과 ', data);
-							// opener.location.reload();
-							// window.close();							
-						},
-						error : function( jqxhr , status , error ){
-							console.log( jqxhr , status , error );
-									} 			      		
-					});	
-				}
+	// 최초 저장 확인
+	if (Number(num) === 0) {
+		Swal.fire({
+			title: '출하사진은 최초 저장된 후 등록 가능(레코드 번호필요)',
+			text: '저장 후 실행하세요.',
+			icon: 'warning'
+		}).then(result => {
+			if (result.isConfirmed) return;
+		});
+		return;
 	}
+
+	const files = Array.from(inputElement.files);
+
+	if (files.length === 0) {
+		const formData = new FormData($('#board_form')[0]);
+		formData.append('idx', idx);
+		formData.append('item', item);
+		formData.append('num', num);
+		formData.append('tablename', 'motor');
+		sendAjax(formData);
+		return;
+	}
+
+	let processed = 0;
+	const formData = new FormData();
+	formData.append('idx', idx);
+	formData.append('item', item);
+	formData.append('num', num);
+	formData.append('tablename', 'motor');
+
+	const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+
+	files.forEach(file => {
+		rotateFileBeforeUpload(file, 0, rotatedFile => {
+			if (rotatedFile.size > MAX_SIZE) {
+				// 2MB 초과 시 압축
+				compressImage(rotatedFile, 1280, 0.7, compressed => {
+					formData.append('file[]', compressed);
+					checkAndSend();
+				});
+			} else {
+				// 2MB 이하면 그대로 전송
+				formData.append('file[]', rotatedFile);
+				checkAndSend();
+			}
+		});
+	});
+
+	function checkAndSend() {
+		processed++;
+		if (processed === files.length) {
+			sendAjax(formData);
+		}
+	}
+
+	function sendAjax(formData) {
+		alertmodal("업로드 중입니다. 잠시만 기다려주세요.");
+
+		if (ajaxRequest_write !== null) {
+			ajaxRequest_write.abort();
+		}
+
+		ajaxRequest_write = $.ajax({
+			enctype: 'multipart/form-data',
+			processData: false,
+			contentType: false,
+			cache: false,
+			timeout: 800000,
+			url: "https://dh2024.co.kr/motor/pic_insert.php",
+			type: "post",
+			data: formData,
+			dataType: 'json',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest'
+			},
+			success: function (response) {
+				if (response.status === "array") {
+					const cleanedFilePaths = response.filepaths.map(filepath => filepath.replace('./uploads/', ''));
+					switch (item) {
+						case 'beforeArr':
+							AdddisplayImagesArray('#beforeArrImages_' + idx, cleanedFilePaths, 'before', idx);
+							break;
+						case 'midArr':
+							AdddisplayImagesArray('#midArrImages_' + idx, cleanedFilePaths, 'mid', idx);
+							break;
+						case 'afterArr':
+							AdddisplayImagesArray('#afterArrImages_' + idx, cleanedFilePaths, 'after', idx);
+							break;
+					}
+				}
+
+				setTimeout(() => closealertmodal(), 400);
+
+				setTimeout(() => {
+					const today = new Date().toISOString().slice(0, 10);
+					switch (item) {
+						case 'beforeArr':
+							$("#status").val("출고대기").trigger("change");
+							break;
+						case 'midArr':
+							$("#outputdate").val(today).trigger("change");
+							$("#status").val("출고완료").trigger("change");
+							break;
+					}
+
+					if (ajaxRequest_picinsert !== null) {
+						ajaxRequest_picinsert.abort();
+					}
+
+					ajaxRequest_picinsert = $.ajax({
+						url: "insert_few.php",
+						type: "post",
+						data: {
+							num: $("#num").val(),
+							status: $("#status").val(),
+							update_log: $("#update_log").val(),
+							outputdate: $("#outputdate").val()
+						},
+						dataType: "json",
+						success: function () {
+							ajaxRequest_picinsert = null;
+						},
+						error: function (jqxhr, status, error) {
+							console.log(jqxhr, status, error);
+						}
+					});
+				}, 300);
+			},
+			error: function (jqxhr, status, error) {
+				console.log(jqxhr, status, error);
+			}
+		});
+	}
+
+	// 이미지 압축 함수 (2MB 초과용)
+	function compressImage(file, maxWidth = 1280, quality = 0.7, callback) {
+		const reader = new FileReader();
+		reader.onload = e => {
+			const img = new Image();
+			img.onload = () => {
+				let width = img.naturalWidth;
+				let height = img.naturalHeight;
+
+				if (width > maxWidth) {
+					const ratio = maxWidth / width;
+					width = maxWidth;
+					height = height * ratio;
+				}
+
+				const canvas = document.createElement('canvas');
+				canvas.width = width;
+				canvas.height = height;
+				const ctx = canvas.getContext('2d');
+				ctx.drawImage(img, 0, 0, width, height);
+
+				canvas.toBlob(blob => {
+					if (!blob) {
+						console.error('압축 실패');
+						callback(file);
+						return;
+					}
+					const compressedFile = new File([blob], file.name, { type: file.type });
+					callback(compressedFile);
+				}, file.type, quality);
+			};
+			img.src = e.target.result;
+		};
+		reader.readAsDataURL(file);
+	}
+};
+
+
+
 
 function displayPictureLoad() {    
     // 이미지 화면에 보여주기
@@ -5596,8 +5683,8 @@ $(document).on('click', '.fabriclotModalclose', function(e) {
 		updateBadges();
 	});
 
-	returndueCheck.addEventListener('change', function() {
-		updateBadges();            
+	returndueCheck.addEventListener('change', function() {            
+		updateBadges();
 	});
 
 	// 최초 로딩 시 배지 상태 업데이트
@@ -5607,56 +5694,6 @@ $(document).on('click', '.fabriclotModalclose', function(e) {
 
 <!-- 테스트를 위해서 강제로 값을 넣기 -->
 <script>
-// document.addEventListener("DOMContentLoaded", function() {
-    // // add 함수 정의
-    // function addRow_new() {
-        // var table = document.getElementById("dynamicTable").getElementsByTagName('tbody')[0];
-        
-        // var newRow = table.rows[table.rows.length - 1]; // 마지막에 추가된 행 선택
-        // // 데이터 배열
-        // var data = ['220', '유선', '스크린', '150k', 'SET', '380*180', '2-4″', '1', '285,000'];
-
-        // // 데이터 업데이트
-        // for (var i = 0; i < data.length; i++) {
-            // var newCell = newRow.cells[i]; // 이미 존재하는 셀 선택
-            
-            // if (i < 7) {
-                // // select 요소 생성 또는 선택
-                // var select = newCell.querySelector("select");
-                // if (!select) {
-                    // select = document.createElement("select");
-                    // select.className = "form-control"; // Bootstrap 클래스 적용
-                    // newCell.appendChild(select);
-                // }
-                
-                // // option 요소 생성 및 값 설정
-                // var option = document.createElement("option");
-                // option.value = data[i];
-                // option.text = data[i];
-                // select.appendChild(option);
-                
-                // // select 요소의 값을 새로 추가한 option으로 설정
-                // select.value = data[i];
-            // } else {
-                // // input 요소 생성 또는 선택
-                // var input = newCell.querySelector("input");
-                // if (!input) {
-                    // input = document.createElement("input");
-                    // input.type = "text";
-                    // input.className = "form-control"; // Bootstrap 클래스 적용
-                    // newCell.appendChild(input);
-                // }
-                
-                // // input 요소의 값 설정
-                // input.value = data[i];
-            // }
-        // }
-    // }
-
-    // // 2초 후에 addRow 함수 실행
-    // setTimeout(addNewRow, 500);
-    // setTimeout(addRow_new, 1000);
-// });
 
 function formatNumberWithCommas(value) {
     // 숫자 이외의 문자를 제거

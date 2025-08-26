@@ -89,8 +89,9 @@ try {
 		<div class="d-flex justify-content-center align-items-center">  
         <span class="text-center fs-5 me-4"><?=$title_message?></span>    
         <button type="button" class="btn btn-dark btn-sm me-1" onclick='location.href="list.php?header=header"'> 
-            <i class="bi bi-arrow-clockwise"></i>
-        </button>                                     
+            <i class="bi bi-arrow-clockwise"></i>            
+        </button>                                
+        <small class="ms-5 text-muted"> 대한 휴일일정을 등록하고 저장합니다. </small>  
     </div>
     </div>
     <div class="card-body">      

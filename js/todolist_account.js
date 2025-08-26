@@ -165,13 +165,8 @@ function todo_generateCalendarHtml_account(todoData, leaveData, monthlyData, hol
                 document.querySelector(".modal-body .custom-card").innerHTML = response;
                 $("#todoModal").show();
 
-                $(".todo-close").on("click", function() {
-                    $("#todoModal").hide();
-                });
-				
-                $("#closeBtn").on("click", function() {
-                    $("#todoModal").hide();
-                });
+                // Bootstrap's data-dismiss="modal" handles modal closing automatically
+                // Removed custom click handlers to prevent conflicts
 
 				// Log 파일보기
 				$("#showlogBtn").click( function() {     	

@@ -12,6 +12,72 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 ?>
 <title> <?=$title_message?> </title>
 <link href="css/style.css" rel="stylesheet" >   
+<style>
+.order-date-td {
+    cursor: pointer;
+    color: #007bff !important;
+    text-decoration: underline;
+    transition: all 0.2s ease;
+}
+
+.order-date-td:hover {
+    background-color: #f8f9fa !important;
+    color: #0056b3 !important;
+    text-decoration: none;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.modal-xl {
+    max-width: 90%;
+}
+
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 95%;
+    }
+}
+
+/* 검색 타입 선택 스타일 */
+.search-type-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.search-type-container input[type="radio"] {
+    margin-right: 5px;
+}
+
+.search-type-container label {
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* 동적 검색 컨트롤 스타일 */
+.year-select, .month-select, .period-select {
+    display: none;
+    min-width: 200px;
+}
+
+.year-select select, .month-select input, .period-select .d-flex {
+    width: 100%;
+}
+
+/* 검색 결과 개수 스타일 */
+.badge.bg-primary {
+    font-size: 1rem !important;
+    padding: 0.5rem 1rem;
+}
+</style>
 </head>
 <body>    
 <?php require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php'); ?>   
@@ -20,129 +86,45 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 $tablename = 'm_order'; 
 
 $search = $_REQUEST['search'] ?? '';  
+$search_type = $_REQUEST['search_type'] ?? 'period'; // 기본값은 기간별
+$selected_year = $_REQUEST['selected_year'] ?? date('Y');
+$selected_month = $_REQUEST['selected_month'] ?? date('Y-m');
 $fromdate = $_REQUEST['fromdate'] ?? '';  
 $todate = $_REQUEST['todate'] ?? '';  
 $mode = $_REQUEST['mode'] ?? '';  
-   
-function decodeList($jsonData) {
-    $decoded = json_decode($jsonData, true);
-    if (is_array($decoded)) {
-        $totalOrder = 0;
-        $totalInput = 0;
-        $validRows = 0;
-        $hasDifference = false;
-        
-        // 먼저 전체 발주수량과 입고수량 계산
-        foreach ($decoded as $item) {
-
-            $col3 = $item['col3'] ?? '';
-            $col20 = $item['col20'] ?? '';
-            $col21 = $item['col21'] ?? '';
-            
-            // 콤마 제거 후 숫자 변환
-            $col3_clean = str_replace(',', '', $col3);
-            $col20_clean = str_replace(',', '', $col20);
-            $col21_clean = str_replace(',', '', $col21);
-            
-            // 숫자가 아닌 값은 0으로 처리
-            $col3_numeric = is_numeric($col3_clean) ? (float)$col3_clean : 0;
-            $col20_numeric = is_numeric($col20_clean) ? (float)$col20_clean : 0;
-            
-            $totalOrder += $col3_numeric;
-            $totalInput += $col20_numeric;
-            
-            // 차이가 있는 항목이 있는지 확인 (숫자 비교)
-            $col21_numeric = is_numeric($col21_clean) ? (float)$col21_clean : 0;
-            if ($col21_numeric != 0) {
-                $hasDifference = true;
-            }
-        }
-        
-        // 전체 발주수량과 입고수량이 같으면 완료 메시지 표시
-        // 부동소수점 비교를 위해 반올림 처리
-        $totalOrder_rounded = round($totalOrder, 2);
-        $totalInput_rounded = round($totalInput, 2);
-        
-        // 디버깅용 로그 (나중에 제거)
-        if ($totalOrder > 0) {
-            error_log("Debug - totalOrder: $totalOrder, totalInput: $totalInput, rounded: $totalOrder_rounded vs $totalInput_rounded, hasDifference: " . ($hasDifference ? 'true' : 'false'));
-        }
-        
-        if ($totalOrder_rounded == $totalInput_rounded && $totalOrder > 0) {
-            return '<div class="text-success fw-bold text-center" style="font-size: 12px; padding: 5px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;">전체 발주분 입고완료</div>';
-        }
-        
-        // 차이가 있는 항목만 테이블로 표시
-        if ($hasDifference) {
-            $table = '<table class="table table-sm table-bordered mb-0" style="font-size: 11px;">';
-            $table .= '<thead class="table-light">';
-            $table .= '<tr>';
-            $table .= '<th class="text-center" style="width: 40%;">품명</th>';
-            $table .= '<th class="text-center" style="width: 30%;">발주</th>';
-            $table .= '<th class="text-center" style="width: 30%;">입고</th>';
-            $table .= '</tr>';
-            $table .= '</thead>';
-            $table .= '<tbody>';
-            
-            foreach ($decoded as $item) {
-                $col1 = isset($item['col1']) ? trim($item['col1']) : '';
-                $col3 = isset($item['col3']) ? trim($item['col3']) : '';
-                $col20 = isset($item['col20']) ? trim($item['col20']) : '';
-                $col21 = isset($item['col21']) ? trim($item['col21']) : '';
-                
-                // 콤마 제거 후 숫자 변환
-                $col3_clean = str_replace(',', '', $col3);
-                $col20_clean = str_replace(',', '', $col20);
-                $col21_clean = str_replace(',', '', $col21);
-                
-                // 차이가 0이 아닌 경우만 표시 (숫자 비교)
-                $col21_numeric = is_numeric($col21_clean) ? (float)$col21_clean : 0;
-                if ($col21_numeric != 0) {
-                    $table .= '<tr>';
-                    $table .= '<td class="text-start">' . htmlspecialchars($col1) . '</td>';
-                    $table .= '<td class="text-end">' . (is_numeric($col3_clean) ? number_format($col3_clean) : $col3) . '</td>';
-                    $table .= '<td class="text-end">' . (is_numeric($col20_clean) ? number_format($col20_clean) : $col20) . '</td>';
-                    $table .= '</tr>';
-                    $validRows++;
-                }
-            }
-            
-            // 합계 행 추가 (유효한 행이 있는 경우에만)
-            if ($validRows > 0) {
-                $table .= '<tr class="table-warning fw-bold">';
-                $table .= '<td class="text-center">합계</td>';
-                $table .= '<td class="text-end">' . number_format($totalOrder) . '</td>';
-                $table .= '<td class="text-end">' . number_format($totalInput) . '</td>';
-                $table .= '</tr>';
-            }
-            
-            $table .= '</tbody>';
-            $table .= '</table>';
-            
-            return $table;
-        }
-        
-        // 차이가 없는 경우 빈 문자열 반환
-        return '';
-    }
-    return '';
-}
-
+ 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect();
 
 // 현재 날짜
 $currentDate = date("Y-m-d");
 
-// fromdate 또는 todate가 빈 문자열이거나 null인 경우
-if ($fromdate === "" || $fromdate === null || $todate === "" || $todate === null) {
-    // $fromdate = date("Y-m-d", strtotime("-4 weeks", strtotime($currentDate))); // 4주 전 날짜
-	$fromdate = date("2025-01-01"); 
-    $todate = date("Y-m-d", strtotime("+2 months", strtotime($currentDate))); // 2개월 후 날짜
-    $Transtodate = $todate;
+// 검색 타입에 따른 날짜 설정
+if ($search_type === 'year') {
+    // 연도별 검색
+    $fromdate = $selected_year . "-01-01";
+    $todate = $selected_year . "-12-31";
+} elseif ($search_type === 'month') {
+    // 월별 검색
+    $fromdate = $selected_month . "-01";
+    $todate = date("Y-m-t", strtotime($selected_month . "-01"));
 } else {
-    // fromdate와 todate가 모두 설정된 경우 (기존 로직 유지)
-    $Transtodate = $todate;
+    // 기간별 검색 (기본값)
+    if ($fromdate === "" || $fromdate === null || $todate === "" || $todate === null) {
+        $fromdate = date("2024-01-01"); 
+        $todate = date("Y-m-d", strtotime("+2 months", strtotime($currentDate))); // 2개월 후 날짜
+    }
+}
+
+$Transtodate = $todate;
+
+// 연도 옵션 생성 (현재년도 + 과거 3년)
+$current_year = date('Y');
+$year_options = '';
+for ($i = 0; $i < 4; $i++) {
+    $year = $current_year - $i;
+    $selected = ($year == $selected_year) ? 'selected' : '';
+    $year_options .= "<option value='$year' $selected>" . $year . "년</option>";
 }
 
 $sql="SELECT * FROM {$tablename}";
@@ -183,157 +165,128 @@ try {
     echo "오류: " . $Exception->getMessage();
 }
 ?>
-<div class="container-fluid">  
 <form id="board_form" name="board_form" method="post" >         
-    <div class="d-flex justify-content-center align-items-center ">
+<div class="container">      
     <div class="card mb-2 mt-2 ">  
         <div class="card-body">       
-            <div class="d-flex mt-1 mb-4 justify-content-center align-items-center">         
-                <h5 class="mx-1">  <?=$title_message?>  <?=$titletag?> </h5>  &nbsp;&nbsp;
-				<button type="button" class="btn btn-dark btn-sm mx-2"  onclick='location.reload();' > <i class="bi bi-arrow-clockwise"></i> </button>  	 
-				<button type="button" class="btn btn-success btn-sm ms-1"  onclick='location.href="list.php";' title="발주서 이동" >  <i class="bi bi-list-ol"></i> </button>  	   		  										
+            <div class="card-header d-flex justify-content-center align-items-center">   
+                <span class="text-center fs-5">  <?=$title_message?>   </span>     
+				<button type="button" class="btn btn-dark btn-sm mx-1" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>      						 
+				<small class="ms-5 text-muted"> 중국 발주서별 송금내역과 통관내역을 등록합니다. </small>              
 				<button type="button" class="btn btn-primary btn-sm mx-3"  onclick='location.href="list_input.php";' title="발주 입고창 이동" >  <i class="bi bi-list-columns"></i> </button>  	   		  						
-            </div>    			
-			<div class="d-flex mt-1 mb-1 justify-content-center align-items-center">         
+				<?php if(intval($level) === 1) : ?>
+					<button type="button" class="btn btn-danger btn-sm "  onclick='location.href="list_account.php";' title="송금액 이동" >  <i class="bi bi-currency-dollar"></i> </button>  	   		  										
+				<?php endif; ?>					
+            </div>    
+            <div class="d-flex mt-1 mb-2 justify-content-center align-items-center">         
 				<div class="alert alert-primary mx-3 w-50 text-center p-1" role="alert">
 					단가, 금액은 (CNY) 위엔화 기준, 소수점 둘째자리까지 표시 
 				</div>	
-			</div>
+            </div>    			
 			
-			<!-- 발주일자별 요약 테이블 -->
-			<div class="d-flex flex-wrap justify-content-center align-items-start mt-2 mb-3">
-				<?php
-				try {
-					// 발주일자별 요약 테이블용 쿼리 (오래된 순서)
-					$summaryOrderby = " ORDER BY orderDate ASC, num ASC";
-					$summaryWherePhrase = " WHERE " . $common . $summaryOrderby;
-					$summarySql = "SELECT * FROM " . $tablename . " " . $summaryWherePhrase;
-					
-					$stmh = $pdo->query($summarySql);
-					$rows = $stmh->fetchAll(PDO::FETCH_ASSOC);
-					foreach ($rows as $row) {
-						include $_SERVER['DOCUMENT_ROOT'] . '/m_order/_row.php';
-						$orderDate = $orderDate ?? '';
-
-						// JSON 디코딩
-						$decoded = json_decode($row['orderlist'], true);
-
-						// 합계 초기화
-						$totalamount = 0;
-						$inputSum = 0;
-
-						if (is_array($decoded)) {
-							foreach ($decoded as $item) {
-								// 발주 금액(col6) 합계
-								$amt = str_replace(',', '', ($item['col6'] ?? '0'));
-								$amt_float = is_numeric($amt) ? (float)$amt : 0;
-								$totalamount += $amt_float;
-
-								// 입력 항목(col23,25,27,29) 합계
-								foreach (['col23','col25','col27','col29'] as $c) {
-									$v = str_replace(',', '', trim(isset($item[$c]) ? $item[$c] : '0'));
-									$v_float = is_numeric($v) ? (float)$v : 0;
-									$inputSum += $v_float;
-								}
-							}
-						}
-
-						// 원래 테이블과 동일한 로직으로 누적입고물량대금합(CNY) 계산
-						$customs_input_amount_cny1 = str_replace(',', '', ($customs_input_amount_cny1 ?? '0'));
-						$customs_input_amount_cny2 = str_replace(',', '', ($customs_input_amount_cny2 ?? '0')); 
-						$customs_input_amount_cny3 = str_replace(',', '', ($customs_input_amount_cny3 ?? '0'));
-						$customs_input_amount_cny4 = str_replace(',', '', ($customs_input_amount_cny4 ?? '0'));
-
-						// 숫자 체크 및 형변환
-						$customs_input_amount_cny1 = is_numeric($customs_input_amount_cny1) ? (float)$customs_input_amount_cny1 : 0;
-						$customs_input_amount_cny2 = is_numeric($customs_input_amount_cny2) ? (float)$customs_input_amount_cny2 : 0;
-						$customs_input_amount_cny3 = is_numeric($customs_input_amount_cny3) ? (float)$customs_input_amount_cny3 : 0;
-						$customs_input_amount_cny4 = is_numeric($customs_input_amount_cny4) ? (float)$customs_input_amount_cny4 : 0;
-
-						$customs_input_amount_cny_sum = $customs_input_amount_cny1 + $customs_input_amount_cny2 + $customs_input_amount_cny3 + $customs_input_amount_cny4;
-
-						// 차액 계산
-						$difference = round($totalamount - $customs_input_amount_cny_sum, 2);
-						?>
-						<div class="card mx-2 mb-2" style="min-width: 200px; padding: 0px;">
-							<div class="card-header p-2">
-								<h6 class="mb-0 text-center"> 발주일 : <?= htmlspecialchars($orderDate) ?></h6>
-							</div>
-							<div class="card-body p-0">
-								<table class="table table-sm table-bordered mb-0" style="font-size: 10px; padding: 0px;">
-									<thead class="table-light">
-										<tr>
-											<th class="text-center" style="width: 60%;">구분</th>
-											<th class="text-center" style="width: 40%;">금액(CNY)</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											<td class="text-start">발주금액(CNY)</td>
-											<td class="text-end"><?= number_format($totalamount, 2) ?></td>
-										</tr>
-										<tr>
-											<td class="text-start">누적입고물량대금합(CNY)</td>
-											<td class="text-end"><?= number_format($customs_input_amount_cny_sum, 2) ?></td>
-										</tr>
-										<tr class="<?= $difference > 0 ? 'table-warning' : 'table-success' ?>">
-											<td class="text-start fw-bold">차액</td>
-											<td class="text-end fw-bold"><?= number_format($difference, 2) ?></td>
-										</tr>
-									</tbody>
-								</table>
-							</div>
-						</div>
-						<?php
-					}
-				} catch (PDOException $Exception) {
-					echo "오류: " . $Exception->getMessage();
-				}
-				?>
+			<!-- 발주일자별 요약 버튼 -->
+			<div class="d-flex justify-content-center align-items-center mt-1 mb-3">
+				<button type="button" class="btn btn-info btn-sm" id="summaryBtn">
+					<i class="bi bi-calendar-check"></i> 발주일자별 요약보기
+				</button>
 			</div>	
+
+            <!-- 검색 결과 개수 -->
             <div class="d-flex mt-1 mb-1 justify-content-center align-items-center">       
-               ▷   <?= $total_row ?> &nbsp;                           
-                <input type="date" id="fromdate" name="fromdate" class="form-control" style="width:100px;" value="<?=$fromdate?>">  &nbsp;   ~ &nbsp;  
-                <input type="date" id="todate" name="todate" class="form-control me-1" style="width:100px;" value="<?=$todate?>">  &nbsp;  
-            
-                <div class="inputWrap">
-                    <input type="text" id="search" name="search" value="<?=$search?>" onkeydown="JavaScript:SearchEnter();" autocomplete="off" class="form-control" style="width:150px;"> &nbsp;            
-                    <button class="btnClear"></button>
-                </div>                
-                <div id="autocomplete-list"></div>    
-                &nbsp;
-                <button id="searchBtn" type="button" class="btn btn-dark  btn-sm"> <i class="bi bi-search"></i> 검색 </button>                          
-            </div>               
+               <span class="text-center text-primary fs-6">▷ <?= $total_row ?> 건</span>
+            </div>
+
+            <!-- 검색 타입 선택 -->
+            <div class="row justify-content-center mb-3">
+                <div class="col-auto">
+                    <div class="search-type-container">
+                        <label class="me-3">
+                            <input type="radio" name="search_type" value="year" <?= $search_type === 'year' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 연도별
+                        </label>
+                        <label class="me-3">
+                            <input type="radio" name="search_type" value="month" <?= $search_type === 'month' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 월별
+                        </label>
+                        <label>
+                            <input type="radio" name="search_type" value="period" <?= $search_type === 'period' ? 'checked' : '' ?> onchange="toggleSearchTypeAndSubmit()"> 기간별
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 동적 검색 컨트롤 -->
+            <div class="row justify-content-center mb-3">
+                <div class="col-auto">
+                    <!-- 연도별 검색 -->
+                    <div class="year-select">
+                        <select id="selected_year" name="selected_year" class="form-select form-select-sm" onchange="autoSubmit()">
+                            <?= $year_options ?>
+                        </select>
+                    </div>
+
+                    <!-- 월별 검색 -->
+                    <div class="month-select">
+                        <input type="month" id="selected_month" name="selected_month" class="form-control" value="<?=$selected_month?>" onchange="autoSubmit()">
+                    </div>
+
+                    <!-- 기간별 검색 -->
+                    <div class="period-select">
+                        <div class="d-flex align-items-center">
+                            <input type="date" id="fromdate" name="fromdate" class="form-control me-2" value="<?=$fromdate?>">
+                            <span class="me-2">~</span>
+                            <input type="date" id="todate" name="todate" class="form-control" value="<?=$todate?>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 검색어 입력 및 검색 버튼 -->
+            <div class="row justify-content-center mb-3">
+                <div class="col-auto">
+                    <div class="d-flex align-items-center">
+                        <div class="inputWrap">
+                            <input type="text" id="search" name="search" value="<?=$search?>" onkeydown="JavaScript:SearchEnter();" autocomplete="off" class="form-control" style="width:150px;" placeholder="검색어 입력">            
+                            <button class="btnClear"></button>
+                        </div>                
+                        <div id="autocomplete-list"></div>    
+                        &nbsp;
+                        <button id="searchBtn" type="button" class="btn btn-dark btn-sm"> <i class="bi bi-search"></i> 검색 </button>                          
+                    </div>
+                </div>
+            </div>
         </div> <!--end of card-body-->
     </div> <!--end of card -->   
-    </div> <!--end of d-flex-->    
-</form>    
 </div> <!-- end of container -->   
+</form>    
 
 <div class="container-fluid mt-1 mb-3 w-90">    
 <div class="table-responsive">     
 <table class="table table-bordered table-hover" >
   <thead class="table-danger">
     <tr>
-      <th class="text-center">발주일자</th>
+      <th class="text-center w110px">발주일자</th>
       <th class="text-end">발주금액(CNY)</th>
       <th class="text-end">1차송금(CNY)</th>
       <th class="text-end">2차송금(CNY)</th>
       <th class="text-end">3차송금(CNY)</th>
       <th class="text-end">4차송금(CNY)</th>
+      <th class="text-end">5차송금(CNY)</th>
+      <th class="text-end">6차송금(CNY)</th>
+      <th class="text-end">7차송금(CNY)</th>
       <th class="text-end">잔액(CNY)</th>
       <th class="text-end">1차 통관비용(원)</th>
       <th class="text-end">2차 통관비용(원)</th>
       <th class="text-end">3차 통관비용(원)</th>
       <th class="text-end">4차 통관비용(원)</th>
+      <th class="text-end">5차 통관비용(원)</th>        
+      <th class="text-end">6차 통관비용(원)</th>
+      <th class="text-end">7차 통관비용(원)</th>
       <th class="text-end">통관비용합계(원)</th>
       <th class="text-end">누적입고물량대금합(CNY)</th>
       <th class="text-center">전체보기</th>
     </tr>
   </thead>
   <tbody>
-    <?php
-   
+  <?php   
    try {
     $stmh = $pdo->query($sql);
     $rows = $stmh->fetchAll(PDO::FETCH_ASSOC);
@@ -351,45 +304,17 @@ try {
         $input2      = 0;
         $input3      = 0;
         $input4      = 0;
+        $input5      = 0;
+        $input6      = 0;
+        $input7      = 0;
 
         if (is_array($decoded)) {
-            // 디버그용 변수 초기화
-            $debug_output = '';
-            $debug_output .= '<div style="font-size:12px;margin:10px;padding:10px;border:1px solid #ccc;">';
-            $debug_output .= '<h5>디버그 정보</h5>';
-
             foreach ($decoded as $item) {
                 // 1) 발주 금액(col6) 합계
                 $amt = str_replace(',', '', ($item['col6'] ?? '0'));
                 $amt_float = is_numeric($amt) ? (float)$amt : 0;
-                $totalamount += $amt_float;
-
-                // 디버그 출력 - 발주금액
-                $debug_output .= sprintf('발주금액(col6): %s -> %s<br>', $item['col6'] ?? '0', number_format($amt_float));
-
-                // 2) 입력 항목(col23,25,27,29) 합계
-                foreach (['col23','col25','col27','col29'] as $c) {
-                    $v = str_replace(',', '', trim(isset($item[$c]) ? $item[$c] : '0'));
-                    $v_float = is_numeric($v) ? (float)$v : 0;
-                    $inputSum += $v_float;
-                    if($c == 'col23' && $item['col23'] != '') $input1 += $v_float;
-                    if($c == 'col25' && $item['col25'] != '') $input2 += $v_float;
-                    if($c == 'col27' && $item['col27'] != '') $input3 += $v_float;
-                    if($c == 'col29' && $item['col29'] != '') $input4 += $v_float;
-
-                    // 디버그 출력 - 입력항목
-                    $debug_output .= sprintf('%s: %s -> %s<br>', 
-                        $c,
-                        isset($item[$c]) ? $item[$c] : '0',
-                        number_format($v_float)
-                    );
-                }
-                $debug_output .= '<hr>';
+                $totalamount += $amt_float;                
             }
-
-            $debug_output .= sprintf('최종 발주금액 합계: %s<br>', number_format($totalamount));
-            $debug_output .= sprintf('최종 입력항목 합계: %s<br>', number_format($inputSum));
-            $debug_output .= '</div>';
 
             // 디버그 정보 출력
             // echo $debug_output;
@@ -401,7 +326,10 @@ try {
         $send2 = (float)str_replace(',', '', ($sendMoney2 ?? 0));
         $send3 = (float)str_replace(',', '', ($sendMoney3 ?? 0));
         $send4 = (float)str_replace(',', '', ($sendMoney4 ?? 0));
-        $잔액    = $totalamount - ($send1 + $send2 + $send3 + $send4);
+        $send5 = (float)str_replace(',', '', ($sendMoney5 ?? 0));
+        $send6 = (float)str_replace(',', '', ($sendMoney6 ?? 0));
+        $send7 = (float)str_replace(',', '', ($sendMoney7 ?? 0));
+        $잔액    = $totalamount - ($send1 + $send2 + $send3 + $send4 + $send5 + $send6 + $send7);
 
         // 각 차수별 통관비용 합계 
         // 부가세
@@ -409,59 +337,86 @@ try {
         $customs_detail_total2 = (int)str_replace(',', '', ($customs_vat2 ?? 0));
         $customs_detail_total3 = (int)str_replace(',', '', ($customs_vat3 ?? 0));
         $customs_detail_total4 = (int)str_replace(',', '', ($customs_vat4 ?? 0));
+        $customs_detail_total5 = (int)str_replace(',', '', ($customs_vat5 ?? 0));
+        $customs_detail_total6 = (int)str_replace(',', '', ($customs_vat6 ?? 0));
+        $customs_detail_total7 = (int)str_replace(',', '', ($customs_vat7 ?? 0));
 
         // 선임 및 부대비용
         $customs_detail_total1 += (int)str_replace(',', '', ($customs_miscellaneous_fee1 ?? 0));
         $customs_detail_total2 += (int)str_replace(',', '', ($customs_miscellaneous_fee2 ?? 0));
         $customs_detail_total3 += (int)str_replace(',', '', ($customs_miscellaneous_fee3 ?? 0));
         $customs_detail_total4 += (int)str_replace(',', '', ($customs_miscellaneous_fee4 ?? 0));
+        $customs_detail_total5 += (int)str_replace(',', '', ($customs_miscellaneous_fee5 ?? 0));
+        $customs_detail_total6 += (int)str_replace(',', '', ($customs_miscellaneous_fee6 ?? 0));
+        $customs_detail_total7 += (int)str_replace(',', '', ($customs_miscellaneous_fee7 ?? 0));
 
         // 컨테이너운송비용
         $customs_detail_total1 += (int)str_replace(',', '', ($customs_container_fee1 ?? 0));
         $customs_detail_total2 += (int)str_replace(',', '', ($customs_container_fee2 ?? 0));
         $customs_detail_total3 += (int)str_replace(',', '', ($customs_container_fee3 ?? 0));
         $customs_detail_total4 += (int)str_replace(',', '', ($customs_container_fee4 ?? 0));
+        $customs_detail_total5 += (int)str_replace(',', '', ($customs_container_fee5 ?? 0));
+        $customs_detail_total6 += (int)str_replace(',', '', ($customs_container_fee6 ?? 0));
+        $customs_detail_total7 += (int)str_replace(',', '', ($customs_container_fee7 ?? 0));
 
         // 통관수수료
         $customs_detail_total1 += (int)str_replace(',', '', ($customs_commission1 ?? 0));
         $customs_detail_total2 += (int)str_replace(',', '', ($customs_commission2 ?? 0));
         $customs_detail_total3 += (int)str_replace(',', '', ($customs_commission3 ?? 0));
         $customs_detail_total4 += (int)str_replace(',', '', ($customs_commission4 ?? 0));
+        $customs_detail_total5 += (int)str_replace(',', '', ($customs_commission5 ?? 0));
+        $customs_detail_total6 += (int)str_replace(',', '', ($customs_commission6 ?? 0));
+        $customs_detail_total7 += (int)str_replace(',', '', ($customs_commission7 ?? 0));
 
         // 테이블 행 출력
         echo '<tr style="cursor:pointer;" data-num="' . $num . '">';
-        echo '<td class="text-center">' . htmlspecialchars($orderDate) . '</td>';
+        echo '<td class="text-center order-date-td" data-num="' . $num . '" data-orderdate="' . htmlspecialchars($orderDate) . '">' . htmlspecialchars($orderDate) . '</td>';
         echo '<td class="text-end">' . number_format($totalamount,2) . '</td>';
         echo '<td class="text-end send-td" data-round="1" data-num="' . $num . '">' . (is_numeric($send1) && $send1 != 0 ? number_format($send1, 2) : '') . '</td>';
         echo '<td class="text-end send-td" data-round="2" data-num="' . $num . '">' . (is_numeric($send2) && $send2 != 0 ? number_format($send2, 2) : '') . '</td>';
         echo '<td class="text-end send-td" data-round="3" data-num="' . $num . '">' . (is_numeric($send3) && $send3 != 0 ? number_format($send3, 2) : '') . '</td>';
         echo '<td class="text-end send-td" data-round="4" data-num="' . $num . '">' . (is_numeric($send4) && $send4 != 0 ? number_format($send4, 2) : '') . '</td>';
+        echo '<td class="text-end send-td" data-round="5" data-num="' . $num . '">' . (is_numeric($send5) && $send5 != 0 ? number_format($send5, 2) : '') . '</td>';
+        echo '<td class="text-end send-td" data-round="6" data-num="' . $num . '">' . (is_numeric($send6) && $send6 != 0 ? number_format($send6, 2) : '') . '</td>';
+        echo '<td class="text-end send-td" data-round="7" data-num="' . $num . '">' . (is_numeric($send7) && $send7 != 0 ? number_format($send7, 2) : '') . '</td>';
         echo '<td class="text-end">' . (is_numeric($잔액) && $잔액 != 0 ? number_format($잔액, 2) : '') . '</td>';
         echo '<td class="text-end customs-td" data-round="1" data-num="' . $num . '">' . (is_numeric($customs_detail_total1) && $customs_detail_total1 != 0 ? number_format($customs_detail_total1) : '') . '</td>';
         echo '<td class="text-end customs-td" data-round="2" data-num="' . $num . '">' . (is_numeric($customs_detail_total2) && $customs_detail_total2 != 0 ? number_format($customs_detail_total2) : '') . '</td>';
         echo '<td class="text-end customs-td" data-round="3" data-num="' . $num . '">' . (is_numeric($customs_detail_total3) && $customs_detail_total3 != 0 ? number_format($customs_detail_total3) : '') . '</td>';
         echo '<td class="text-end customs-td" data-round="4" data-num="' . $num . '">' . (is_numeric($customs_detail_total4) && $customs_detail_total4 != 0 ? number_format($customs_detail_total4) : '') . '</td>';
+        echo '<td class="text-end customs-td" data-round="5" data-num="' . $num . '">' . (is_numeric($customs_detail_total5) && $customs_detail_total5 != 0 ? number_format($customs_detail_total5) : '') . '</td>';
+        echo '<td class="text-end customs-td" data-round="6" data-num="' . $num . '">' . (is_numeric($customs_detail_total6) && $customs_detail_total6 != 0 ? number_format($customs_detail_total6) : '') . '</td>';
+        echo '<td class="text-end customs-td" data-round="7" data-num="' . $num . '">' . (is_numeric($customs_detail_total7) && $customs_detail_total7 != 0 ? number_format($customs_detail_total7) : '') . '</td>';
         
         // 안전하게 합산 (is_numeric 체크)
         $fee1 = is_numeric($customs_detail_total1) ? $customs_detail_total1 : '';
         $fee2 = is_numeric($customs_detail_total2) ? $customs_detail_total2 : '';
         $fee3 = is_numeric($customs_detail_total3) ? $customs_detail_total3 : '';
         $fee4 = is_numeric($customs_detail_total4) ? $customs_detail_total4 : '';
-        $fee_sum = $fee1 + $fee2 + $fee3 + $fee4;
+        $fee5 = is_numeric($customs_detail_total5) ? $customs_detail_total5 : '';
+        $fee6 = is_numeric($customs_detail_total6) ? $customs_detail_total6 : '';
+        $fee7 = is_numeric($customs_detail_total7) ? $customs_detail_total7 : '';
+        $fee_sum = $fee1 + $fee2 + $fee3 + $fee4 + $fee5 + $fee6 + $fee7;
         echo '<td class="text-end">' . ($fee_sum > 0 ? number_format($fee_sum) : '') . '</td>';
         // 콤마 제거 후 숫자 변환
         $customs_input_amount_cny1 = str_replace(',', '', $customs_input_amount_cny1);
         $customs_input_amount_cny2 = str_replace(',', '', $customs_input_amount_cny2); 
         $customs_input_amount_cny3 = str_replace(',', '', $customs_input_amount_cny3);
         $customs_input_amount_cny4 = str_replace(',', '', $customs_input_amount_cny4);
+        $customs_input_amount_cny5 = str_replace(',', '', $customs_input_amount_cny5);
+        $customs_input_amount_cny6 = str_replace(',', '', $customs_input_amount_cny6);
+        $customs_input_amount_cny7 = str_replace(',', '', $customs_input_amount_cny7);
 
         // 숫자 체크 및 형변환
         $customs_input_amount_cny1 = is_numeric($customs_input_amount_cny1) ? (float)$customs_input_amount_cny1 : 0;
         $customs_input_amount_cny2 = is_numeric($customs_input_amount_cny2) ? (float)$customs_input_amount_cny2 : 0;
         $customs_input_amount_cny3 = is_numeric($customs_input_amount_cny3) ? (float)$customs_input_amount_cny3 : 0;
         $customs_input_amount_cny4 = is_numeric($customs_input_amount_cny4) ? (float)$customs_input_amount_cny4 : 0;
+        $customs_input_amount_cny5 = is_numeric($customs_input_amount_cny5) ? (float)$customs_input_amount_cny5 : 0;
+        $customs_input_amount_cny6 = is_numeric($customs_input_amount_cny6) ? (float)$customs_input_amount_cny6 : 0;
+        $customs_input_amount_cny7 = is_numeric($customs_input_amount_cny7) ? (float)$customs_input_amount_cny7 : 0;
 
-        $customs_input_amount_cny_sum = $customs_input_amount_cny1 + $customs_input_amount_cny2 + $customs_input_amount_cny3 + $customs_input_amount_cny4;
+        $customs_input_amount_cny_sum = $customs_input_amount_cny1 + $customs_input_amount_cny2 + $customs_input_amount_cny3 + $customs_input_amount_cny4 + $customs_input_amount_cny5 + $customs_input_amount_cny6 + $customs_input_amount_cny7;
         echo '<td class="text-end">' . ($customs_input_amount_cny_sum > 0 ? number_format($customs_input_amount_cny_sum, 2) : '') . '</td>';
         echo '<td class="text-center" onclick="redirectToView(' . $num . ',\'' . $tablename . '\')"> <i class="bi bi-eye"></i> </td>';
         echo '</tr>';
@@ -473,7 +428,7 @@ try {
   </tbody>
 </table>
 </div>
-</div>
+</div>+
 <!-- 송금내역 입력 모달 -->
 <div class="modal" id="sendModal" tabindex="-1" style="display:none;">
   <div class="modal-dialog">
@@ -571,6 +526,26 @@ try {
   </div>
 </div> <!-- end of customsModal -->
 
+<!-- 발주일자별 요약 모달 -->
+<div class="modal fade" id="orderSummaryModal" tabindex="-1" aria-labelledby="orderSummaryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="orderSummaryModalLabel">발주일자별 요약</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="orderSummaryContent">
+          <!-- 동적으로 내용이 로드됩니다 -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="container-fluid mt-3 mb-3">
     <? include '../footer_sub.php'; ?>
 </div>
@@ -581,6 +556,9 @@ $(document).ready(function(){
     var loader = document.getElementById('loadingOverlay');
 	if(loader)
 		loader.style.display = 'none';
+    
+    // 검색 타입에 따른 초기 컨트롤 표시
+    toggleSearchType();
 });
 
 var dataTable; // DataTables 인스턴스 전역 변수
@@ -646,7 +624,7 @@ $(document).ready(function(){
 
 function SearchEnter(){
     if(event.keyCode == 13){        
-        saveSearch();
+        $("#board_form").submit();
     }
 }
 
@@ -669,7 +647,6 @@ function saveSearch() {
         
         var orderpageNumber = 1;
         setCookie('orderpageNumber', orderpageNumber, 10);         
-        $('#dateRange').val('전체').change();
         document.getElementById('board_form').submit();
     }
 }
@@ -765,7 +742,7 @@ function getSearches() {
 $(document).ready(function(){    
 
     $("#searchBtn").click(function(){     
-        saveSearch(); 
+        $("#board_form").submit(); 
     });        
 
 });
@@ -820,7 +797,7 @@ $(document).ready(function(){
 	saveLogData('중국 구매서 (입고) 리스트 조회'); 
 });
 
-// 모달 열기
+// 송금내역 입력 모달 열기
 $(document).on('click', '.send-td', function() {
     var num = $(this).data('num');
     var round = $(this).data('round');
@@ -898,7 +875,7 @@ function calculateKRWTotal() {
     var totalKRW = 0;
     
     // 1차~4차 송금액을 순회하며 합계 계산
-    for(var i = 1; i <= 4; i++) {
+    for(var i = 1; i <= 7; i++) {
         if(i == round) {
             // 현재 입력 중인 차수는 현재 입력값 사용
             totalKRW += currentKRW;
@@ -921,12 +898,12 @@ function getExistingKRWAmount(num, round) {
     return 0;
 }
 
-// 모든 송금 정보를 한 번에 가져오기
+// 송금내역 입력 모든 송금 정보를 한 번에 가져오기
 function loadAllSendInfo(num) {
     sendInfoCache = {};
     var promises = [];
     
-    for(var i = 1; i <= 4; i++) {
+    for(var i = 1; i <= 7; i++) {
         promises.push(
             $.get('get_send_info.php', {num: num, round: i})
         );
@@ -966,7 +943,7 @@ $('#sendForm').on('submit', function(e) {
 });
 
 // 통관비용 td 클릭 이벤트
-$(document).on('click', '.customs-td', function() {
+$(document).off('click', '.customs-td').on('click', '.customs-td', function() {
     var num = $(this).data('num');
     var round = $(this).data('round');
     $('#customsNum').val(num);
@@ -1066,6 +1043,96 @@ $('#customsForm').on('submit', function(e) {
 function numberWithCommas(x) {
     if(!x) return '';
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// 발주일자별 요약 모달 관련 함수들
+$(document).ready(function(){
+    // 발주일자별 요약 버튼 클릭 이벤트
+    $('#summaryBtn').on('click', function() {
+        loadOrderSummary();
+    });
+    
+    // 발주일자 셀 클릭 이벤트
+    $(document).on('click', '.order-date-td', function(e) {
+        e.stopPropagation(); // 이벤트 버블링 방지
+        var num = $(this).data('num');
+        var orderDate = $(this).data('orderdate');
+        loadOrderSummaryByDate(orderDate, num);
+    });
+});
+
+// 발주일자별 요약 데이터 로드
+function loadOrderSummary() {
+    $('#orderSummaryModalLabel').text('발주일자별 요약');
+    $('#orderSummaryContent').html('<div class="text-center"><i class="bi bi-arrow-clockwise spin"></i> 로딩중...</div>');
+    
+    var fromdate = $('#fromdate').val();
+    var todate = $('#todate').val();
+    
+    $.get('get_order_summary.php', {
+        fromdate: fromdate,
+        todate: todate
+    }, function(res) {
+        if(res.success) {
+            $('#orderSummaryContent').html(res.html);
+        } else {
+            $('#orderSummaryContent').html('<div class="alert alert-danger">데이터를 불러오는데 실패했습니다.</div>');
+        }
+        var modal = new bootstrap.Modal(document.getElementById('orderSummaryModal'));
+        modal.show();
+    }, 'json');
+}
+
+// 특정 발주일자 요약 데이터 로드
+function loadOrderSummaryByDate(orderDate, num) {
+    $('#orderSummaryModalLabel').text('발주일자: ' + orderDate + ' 요약');
+    $('#orderSummaryContent').html('<div class="text-center"><i class="bi bi-arrow-clockwise spin"></i> 로딩중...</div>');
+    
+    $.get('get_order_summary.php', {
+        orderDate: orderDate,
+        num: num
+    }, function(res) {
+        if(res.success) {
+            $('#orderSummaryContent').html(res.html);
+        } else {
+            $('#orderSummaryContent').html('<div class="alert alert-danger">데이터를 불러오는데 실패했습니다.</div>');
+        }
+        var modal = new bootstrap.Modal(document.getElementById('orderSummaryModal'));
+        modal.show();
+    }, 'json');
+}
+
+// 검색 타입에 따른 동적 컨트롤 표시/숨김
+function toggleSearchType() {
+    var searchType = $('input[name="search_type"]:checked').val();
+    
+    // 모든 검색 컨트롤 숨기기
+    $('.year-select, .month-select, .period-select').hide();
+    
+    // 선택된 타입에 따라 해당 컨트롤만 표시
+    if (searchType === 'year') {
+        $('.year-select').show();
+    } else if (searchType === 'month') {
+        $('.month-select').show();
+    } else if (searchType === 'period') {
+        $('.period-select').show();
+    }
+}
+
+// 검색 타입 변경 시 자동 제출
+function toggleSearchTypeAndSubmit() {
+    toggleSearchType();
+    // 검색 타입 변경 시 자동으로 폼 제출
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 100);
+}
+
+// 연도/월 변경 시 자동 제출
+function autoSubmit() {
+    setTimeout(function() {
+        $("#board_form").submit();
+    }, 100);
 }
 
 </script>

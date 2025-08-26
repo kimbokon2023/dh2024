@@ -20,22 +20,29 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 </style>
 </head>
 <body>
-
 	 
 <?php require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php'); ?>   
 
 <div class="container">
-    <div class="row mt-5">
-        <div class="col-md-8 offset-md-3">
-            <div class="mb-3">
-                <label for="text" class="form-label fs-4">생성하실 주소 입력</label>
-                <input id="text" type="text" class="form-control fs-4 " placeholder="주소를 입력하세요, http:// ~ " />
+    <div class="card mt-1">
+        <div class="card-header d-flex justify-content-center align-items-center">  
+            <span class="text-center fs-5"> <?=$title_message?> </span>	
+            <button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+            <small class="mx-3 text-muted">QR 코드를 생성하고 저장합니다. </small>  
+        </div>    
+        <div class="card-body"></div>
+        <div class="row mt-5">
+            <div class="col-md-8 offset-md-3">
+                <div class="mb-3">
+                    <label for="text" class="form-label fs-4">생성하실 주소 입력</label>
+                    <input id="text" type="text" class="form-control fs-4 " placeholder="주소를 입력하세요, http:// ~ " />
+                </div>
+                <button id="generate-btn" class="btn btn-primary">생성</button>
+                <button id="save-btn" class="btn btn-success">저장</button>
+                <div id="qrcode" style="width:100px; height:100px; margin-top:15px;"></div>
             </div>
-            <button id="generate-btn" class="btn btn-primary">생성</button>
-            <button id="save-btn" class="btn btn-success">저장</button>
-            <div id="qrcode" style="width:100px; height:100px; margin-top:15px;"></div>
         </div>
-    </div>
+        </div>
 </div>
 
 <div class="container-fluid mt-3 mb-3">
@@ -84,7 +91,9 @@ document.getElementById("save-btn").addEventListener("click", function() {
 // 페이지 로딩
 $(document).ready(function(){    
     var loader = document.getElementById('loadingOverlay');
-    loader.style.display = 'none';
+    if (loader) {
+        loader.style.display = 'none';
+    }
 });
 </script>
 

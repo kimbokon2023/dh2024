@@ -42,37 +42,104 @@ $tablename = 'm_order';
     /* 예시: 남은 공간을 꽉 채우도록 처리 (필요에 따라 수정) */
     width: auto;
 }
-
-/* 1~4차 입고일 컬럼 화면에서만 숨기기 */
-#orderlistTable th:nth-child(8),
-#orderlistTable td:nth-child(8),
-#orderlistTable th:nth-child(11),
-#orderlistTable td:nth-child(11),
-#orderlistTable th:nth-child(14),
-#orderlistTable td:nth-child(14),
-#orderlistTable th:nth-child(17),
-#orderlistTable td:nth-child(17) {
+/* 1~7차 입고일 컬럼 화면에서만 숨기기 */
+#orderlistTable th:nth-child(6),  /* 단가 */
+#orderlistTable td:nth-child(6),
+#orderlistTable th:nth-child(8),  /* 금액 */
+#orderlistTable td:nth-child(8) {
   display: none;
 }
 
-/* 1~4차 입고금액, 송금액 컬럼 숨기기 (회계용 데이터) */
-#orderlistTable th:nth-child(23),
-#orderlistTable td:nth-child(23),
-#orderlistTable th:nth-child(24),
-#orderlistTable td:nth-child(24),
-#orderlistTable th:nth-child(25),
-#orderlistTable td:nth-child(25),
-#orderlistTable th:nth-child(26),
-#orderlistTable td:nth-child(26),
-#orderlistTable th:nth-child(27),
-#orderlistTable td:nth-child(27),
-#orderlistTable th:nth-child(28),
-#orderlistTable td:nth-child(28),
-#orderlistTable th:nth-child(29),
-#orderlistTable td:nth-child(29),
-#orderlistTable th:nth-child(30),
-#orderlistTable td:nth-child(30) {
+/* 1~7차 입고금액, 송금액 컬럼 숨기기 (회계용 데이터) */
+#orderlistTable th:nth-child(32),  /* 1차 입고금액 */
+#orderlistTable td:nth-child(32),
+#orderlistTable th:nth-child(33),  /* 1차 송금액 */
+#orderlistTable td:nth-child(33),
+#orderlistTable th:nth-child(34),  /* 2차 입고금액 */
+#orderlistTable td:nth-child(34),
+#orderlistTable th:nth-child(35),  /* 2차 송금액 */
+#orderlistTable td:nth-child(35),
+#orderlistTable th:nth-child(36),  /* 3차 입고금액 */
+#orderlistTable td:nth-child(36),
+#orderlistTable th:nth-child(37),  /* 3차 송금액 */
+#orderlistTable td:nth-child(37),
+#orderlistTable th:nth-child(38),  /* 4차 입고금액 */
+#orderlistTable td:nth-child(38),
+#orderlistTable th:nth-child(39),  /* 4차 송금액 */
+#orderlistTable td:nth-child(39),
+#orderlistTable th:nth-child(40),  /* 5차 입고금액 */
+#orderlistTable td:nth-child(40),
+#orderlistTable th:nth-child(41),  /* 5차 송금액 */
+#orderlistTable td:nth-child(41),
+#orderlistTable th:nth-child(42),  /* 6차 입고금액 */
+#orderlistTable td:nth-child(42),
+#orderlistTable th:nth-child(43),  /* 6차 송금액 */
+#orderlistTable td:nth-child(43),
+#orderlistTable th:nth-child(44),  /* 7차 입고금액 */
+#orderlistTable td:nth-child(44),
+#orderlistTable th:nth-child(45),  /* 7차 송금액 */
+#orderlistTable td:nth-child(45) {
   display: none;
+}
+
+/* 동적 컬럼 너비 조절을 위한 스타일 */
+.resizable-table {
+    position: relative;
+    table-layout: fixed;
+}
+
+.resizable-table th {
+    position: relative;
+    cursor: col-resize;
+    user-select: none;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.resizable-table th::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 10;
+}
+
+.resizable-table th:hover::after {
+    background: #007bff;
+    opacity: 0.5;
+}
+
+.resizable-table th.resizing::after {
+    background: #007bff;
+    opacity: 0.8;
+}
+
+/* 최소 너비 보장 */
+.resizable-table th[data-min-width] {
+    min-width: var(--min-width);
+}
+
+/* 드래그 중일 때 텍스트 선택 방지 */
+.resizable-table.resizing {
+    cursor: col-resize;
+}
+
+.resizable-table.resizing * {
+    cursor: col-resize !important;
+    user-select: none;
+}
+
+/* 숨겨진 컬럼은 리사이징 비활성화 */
+.resizable-table th[style*="display: none"] {
+    cursor: default;
+}
+
+.resizable-table th[style*="display: none"]::after {
+    display: none;
 }
 
 </style>
@@ -108,7 +175,7 @@ if ($mode !== "modify" && $mode !== "copy" && $mode !== "split" && $mode !== "vi
     $first_writer = $user_name;
     $orderDate = $todate;
 	// 초기값 빈 문자열로 설정
-    $inputDate1 = $inputDate2 = $inputDate3 = $inputDate4 = '';
+    $inputDate1 = $inputDate2 = $inputDate3 = $inputDate4 = $inputDate5 = $inputDate6 = $inputDate7 = '';
 }
 else
 	{
@@ -117,6 +184,9 @@ else
 	$inputDate2 = '';
 	$inputDate3 = '';
 	$inputDate4 = '';
+    $inputDate5 = '';
+    $inputDate6 = '';
+    $inputDate7 = '';
 
 	// JSON 디코딩
 	$orderlist = json_decode($row['orderlist'] ?? '[]', true);
@@ -127,32 +197,53 @@ else
 			&& !empty($item['col7']) 
 			&& $item['col7'] !== '0000-00-00'
 		) {
-			$inputDate1 = $item['col7'];
+			$inputDate1 = $item['col7'] ?? '';
 		}
 		// 2차 입고일 (col10)
 		if (empty($inputDate2) 
 			&& !empty($item['col10']) 
 			&& $item['col10'] !== '0000-00-00'
 		) {
-			$inputDate2 = $item['col10'];
+			$inputDate2 = $item['col10'] ?? '';
 		}
 		// 3차 입고일 (col13)
 		if (empty($inputDate3) 
 			&& !empty($item['col13']) 
 			&& $item['col13'] !== '0000-00-00'
 		) {
-			$inputDate3 = $item['col13'];
+			$inputDate3 = $item['col13'] ?? '';
 		}
 		// 4차 입고일 (col16)
 		if (empty($inputDate4) 
 			&& !empty($item['col16']) 
 			&& $item['col16'] !== '0000-00-00'
 		) {
-			$inputDate4 = $item['col16'];
+			$inputDate4 = $item['col16'] ?? '';
 		}
+        // 5차 입고일 (col19)
+        if (empty($inputDate5) 
+            && !empty($item['col19']) 
+            && $item['col19'] !== '0000-00-00'
+        ) {
+            $inputDate5 = $item['col19'] ?? '';
+        }   
+        // 6차 입고일 (col22)
+        if (empty($inputDate6) 
+            && !empty($item['col22']) 
+            && $item['col22'] !== '0000-00-00'
+        ) {
+            $inputDate6 = $item['col22'] ?? '';
+        }   
+        // 7차 입고일 (col25)
+        if (empty($inputDate7) 
+            && !empty($item['col25']) 
+            && $item['col25'] !== '0000-00-00'
+        ) {
+            $inputDate7 = $item['col25'] ?? '';
+        }   
 
 		// 네 개 모두 채워졌으면 더 이상 반복할 필요 없음
-		if ($inputDate1 && $inputDate2 && $inputDate3 && $inputDate4) {
+		if ($inputDate1 && $inputDate2 && $inputDate3 && $inputDate4 && $inputDate5 && $inputDate6 && $inputDate7) {
 			break;
 		}
 	}	
@@ -193,6 +284,10 @@ if ($mode == "copy" || $mode == 'split') {
     <input type="hidden" id="inputSum2" name="inputSum2" value="<?= $inputSum2 ?? '' ?>">
     <input type="hidden" id="inputSum3" name="inputSum3" value="<?= $inputSum3 ?? '' ?>">
     <input type="hidden" id="inputSum4" name="inputSum4" value="<?= $inputSum4 ?? '' ?>">	
+    <input type="hidden" id="inputSum5" name="inputSum5" value="<?= $inputSum5 ?? '' ?>">
+    <input type="hidden" id="inputSum6" name="inputSum6" value="<?= $inputSum6 ?? '' ?>">
+    <input type="hidden" id="inputSum7" name="inputSum7" value="<?= $inputSum7 ?? '' ?>">
+
 	
     <input type="hidden" id="orderlist" name="orderlist">	
     
@@ -260,10 +355,22 @@ if ($mode == "copy" || $mode == 'split') {
 						<input class="form-check-input phase-toggle passView" type="checkbox" id="chkPhase3" data-phase="3" checked>
 						<label class="form-check-label" for="chkPhase3">3차</label>
 					</div>
-					<div class="form-check form-check-inline">
-						<input class="form-check-input phase-toggle passView" type="checkbox" id="chkPhase4" data-phase="4" checked>
-						<label class="form-check-label" for="chkPhase4">4차</label>
-					</div>								
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input phase-toggle passView" type="checkbox" id="chkPhase4" data-phase="4" checked>
+                        <label class="form-check-label" for="chkPhase4">4차</label>
+                    </div>			
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input phase-toggle passView" type="checkbox" id="chkPhase5" data-phase="5" checked>
+                        <label class="form-check-label" for="chkPhase5">5차</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input phase-toggle passView" type="checkbox" id="chkPhase6" data-phase="6" checked>
+                        <label class="form-check-label" for="chkPhase6">6차</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input phase-toggle passView" type="checkbox" id="chkPhase7" data-phase="7" checked>
+                        <label class="form-check-label" for="chkPhase7">7차</label>
+                    </div>
 				
 				<?php if ($mode !== 'view') : ?>				
 					<select id="selectDate" name="selectDate" class="form-select d-block w-auto ms-5 me-1">
@@ -271,6 +378,9 @@ if ($mode == "copy" || $mode == 'split') {
 						<option value="2차">2차</option>
 						<option value="3차">3차</option>
 						<option value="4차">4차</option>
+                        <option value="5차">5차</option>
+                        <option value="6차">6차</option>
+                        <option value="7차">7차</option>
 					</select>
 					<h6> <span class="text-end mx-1"> 입고일 </span> </h6>
 					<input type="date" name="todayDate" id="todayDate" value="<?=$todayDate?>" class="form-control mx-1" style="width:100px;">
@@ -281,23 +391,27 @@ if ($mode == "copy" || $mode == 'split') {
         </div>
     </div>
 <div class="container-fluid">	
- <?php
- 
- 
-	function generateTableSection($id, $title, $badgeClass = 'bg-primary', $inputDate1, $inputDate2, $inputDate3, $inputDate4) {
+ <?php 
+	function generateTableSection($id, $title, $badgeClass = 'bg-primary', $inputDate1, $inputDate2, $inputDate3, $inputDate4, $inputDate5, $inputDate6, $inputDate7) {
 		echo "		
 			<div class='d-flex justify-content-center  align-items-center  mt-4 mb-2'>
-				<span class='badge $badgeClass fs-6 me-3'>$title</span>
-				<span class=' fs-6 ms-5 me-2'> 총 발주수량 </span>
-				<span id='totalsurangDisplay' class='form-control w60px text-end text-primary fw-bold ms-1 me-5 fs-6'> </span>		
-				<span class=' fs-6 ms-5 me-2'> 1차 입고 </span>
-				<span id='inputSumDisplay1' class='form-control w60px text-end text-secondary ms-1 me-5 fs-6'> </span>		
-				<span class=' fs-6 ms-5 me-2'> 2차 입고 </span>
-				<span id='inputSumDisplay2' class='form-control w60px text-end text-secondary ms-1 me-5 fs-6'> </span>		
-				<span class=' fs-6 ms-5 me-2'> 3차 입고 </span>
-				<span id='inputSumDisplay3' class='form-control w60px text-end text-secondary ms-1 me-5 fs-6'> </span>		
-				<span class=' fs-6 ms-5 me-2'> 4차 입고 </span>
-				<span id='inputSumDisplay4' class='form-control w60px text-end text-secondary ms-1 me-5 fs-6'> </span>		
+				<span class='badge $badgeClass  me-3'>$title</span>
+				<span class='  ms-2 me-1'> 총 발주수량 </span>
+				<span id='totalsurangDisplay' class='form-control w60px text-end text-primary fw-bold ms-1 me-5 '> </span>		
+				<span class='  ms-2 me-1'> 1차 </span>
+				<span id='inputSumDisplay1' class='form-control w60px text-end text-secondary ms-1 me-5 '> </span>		
+				<span class='  ms-2 me-1'> 2차 </span>
+				<span id='inputSumDisplay2' class='form-control w60px text-end text-secondary ms-1 me-5 '> </span>		
+				<span class='  ms-2 me-1'> 3차 </span>
+				<span id='inputSumDisplay3' class='form-control w60px text-end text-secondary ms-1 me-5 '> </span>		
+				<span class='  ms-2 me-1'> 4차 </span>
+				<span id='inputSumDisplay4' class='form-control w60px text-end text-secondary ms-1 me-5 '> </span>		
+                <span class='  ms-2 me-1'> 5차 </span>
+				<span id='inputSumDisplay5' class='form-control w60px text-end text-secondary ms-1 me-5 '> </span>		
+                <span class='  ms-2 me-1'> 6차 </span>
+				<span id='inputSumDisplay6' class='form-control w60px text-end text-secondary ms-1 me-5 '> </span>		
+                <span class='  ms-2 me-1'> 7차 </span>
+				<span id='inputSumDisplay7' class='form-control w60px text-end text-secondary ms-1 me-5 '> </span>		
 			</div>		";							
 
 			// … orderlist 디코딩 및 foreach로 inputDate 계산한 직후에 추가 …
@@ -313,9 +427,10 @@ if ($mode == "copy" || $mode == 'split') {
 	// 폼 출력
     // (화면에서 불러온) 레코드 고유번호   
 
+    echo "<div class='d-flex justify-content-center align-items-center mt-4 mb-2 fs-6'> 입고일 처리 </div>";
     echo "<div class='d-flex justify-content-center align-items-center mt-4 mb-2'>";
         // 1차
-        echo "<span class='fs-6 ms-5 me-2'>1차 입고일</span>";
+        echo "<span class=' ms-2 me-1'>1차</span>";
         echo "<input 
                 type='date' 
                 id='inputDate1' 
@@ -325,13 +440,13 @@ if ($mode == "copy" || $mode == 'split') {
         echo "<button 
                 type='button' 
                 id='btnComplete1'
-                class='btn btn-success btn-sm ms-2 me-5'
+                class='btn btn-success btn-sm ms-2 me-2'
                 onclick='completeInStock(1)'>
-                전산 입고처리
+                처리        
               </button>";
 
         // 2차
-        echo "<span class='fs-6 ms-5 me-2'>2차 입고일</span>";
+        echo "<span class=' ms-2 me-1'>2차</span>";
         echo "<input 
                 type='date' 
                 id='inputDate2' 
@@ -341,13 +456,13 @@ if ($mode == "copy" || $mode == 'split') {
         echo "<button 
                 type='button' 
                 id='btnComplete2'
-                class='btn btn-success btn-sm ms-2 me-5'
+                class='btn btn-success btn-sm ms-2 me-2'
                 onclick='completeInStock(2)'>
-                전산 입고처리
+                처리        
               </button>";
 
         // 3차
-        echo "<span class='fs-6 ms-5 me-2'>3차 입고일</span>";
+        echo "<span class=' ms-2 me-1'>3차</span>";
         echo "<input 
                 type='date' 
                 id='inputDate3' 
@@ -357,13 +472,13 @@ if ($mode == "copy" || $mode == 'split') {
         echo "<button 
                 type='button' 
                 id='btnComplete3'
-                class='btn btn-success btn-sm ms-2 me-5'
+                class='btn btn-success btn-sm ms-1 me-2'
                 onclick='completeInStock(3)'>
-                전산 입고처리
+                처리        
               </button>";
 
         // 4차
-        echo "<span class='fs-6 ms-5 me-2'>4차 입고일</span>";
+        echo "<span class=' ms-2 me-1'>4차</span>";
         echo "<input 
                 type='date' 
                 id='inputDate4' 
@@ -373,61 +488,128 @@ if ($mode == "copy" || $mode == 'split') {
         echo "<button 
                 type='button' 
                 id='btnComplete4'
-                class='btn btn-success btn-sm ms-2'
+                class='btn btn-success btn-sm ms-1'
                 onclick='completeInStock(4)'>
-                전산 입고처리
+                처리        
               </button>";
+
+        // 5차
+        echo "<span class=' ms-2 me-1'>5차</span>";
+        echo "<input 
+                type='date' 
+                id='inputDate5' 
+                name='inputDate5' 
+                class='form-control w-auto text-center text-secondary ms-1' 
+                value='{$inputDate5}'>";
+        echo "<button 
+                type='button' 
+                id='btnComplete5'
+                class='btn btn-success btn-sm ms-1'
+                onclick='completeInStock(5)'>
+                처리        
+              </button>";
+
+        // 6차
+        echo "<span class=' ms-2 me-1'>6차</span>";
+        echo "<input 
+                type='date' 
+                id='inputDate6' 
+                name='inputDate6' 
+                class='form-control w-auto text-center text-secondary ms-1' 
+                value='{$inputDate6}'>";
+        echo "<button 
+                type='button' 
+                id='btnComplete6'
+                class='btn btn-success btn-sm ms-1'
+                onclick='completeInStock(6)'>
+                처리        
+              </button>";
+
+        // 7차
+        echo "<span class=' ms-2 me-1'>7차</span>";
+        echo "<input 
+                type='date' 
+                id='inputDate7' 
+                name='inputDate7' 
+                class='form-control w-auto text-center text-secondary ms-1' 
+                value='{$inputDate7}'>";
+        echo "<button 
+                type='button' 
+                id='btnComplete7'
+                class='btn btn-success btn-sm ms-1'
+                onclick='completeInStock(7)'>
+                처리        
+              </button>";
+
     echo "</div>";
 		
-			echo "
-			<div class='table-responsive'>
-				<table class='table table-bordered table-hover' id='{$id}Table' style='min-width:2200px;'>
-					<thead id='thead_$id'>
+    echo "
+			<div class='table-responsive' style='max-height:400px; overflow-x:auto;'>
+				<table class='table table-bordered table-hover resizable-table' id='{$id}Table' >
+					<thead id='thead_$id' style='position: sticky; top: 0; z-index: 1; background-color: white;'>
 						<tr>
-							<th class='text-center' style='width:20px;'>NO</th>
-							<th class='text-center' style='width:60px;'>카테고리</th>
-							<th class='text-center' style='width:150px;'>품목코드</th>
-							<th class='text-center' style='width:150px;'>품목명</th>
-							<th class='text-center' style='width:60px;'>구매수량</th>
-							<th class='text-center' style='width:60px;display:none;'>단가<br>(위엔)</th>
-							<th class='text-center' style='width:200px;'>비고</th>
-							<th class='text-center' style='width:60px;display:none;'>금액<br>(위엔)</th>
+							<th class='text-center' style='width:20px;' data-min-width='20'>NO</th>
+							<th class='text-center' style='width:50px;' data-min-width='50'>카테고리</th>
+							<th class='text-center' style='width:200px;' data-min-width='120'>품목코드</th>
+							<th class='text-center' style='width:200px;' data-min-width='120'>품목명</th>
+							<th class='text-center' style='width:80px;' data-min-width='80'>구매수량</th>
+							<th class='text-center' style='width:60px;display:none;' data-min-width='60'></th>
+							<th class='text-center' style='width:150px;' data-min-width='100'>비고</th>
+							<th class='text-center' style='width:60px;display:none;' data-min-width='60'></th>
 
 							<!-- 1차 -->
-							<th class='text-center' style='width:80px;'>1차 입고일</th>
-							<th class='text-center' style='width:80px;'>1차 입고수량</th>
-							<th class='text-center' style='width:80px;'>1차 로트번호</th>
+							<th class='text-center w30px' data-min-width='80'>1차 입고일</th>
+							<th class='text-center' style='width:80px;' data-min-width='60'>1차 입고수량</th>
+							<th class='text-center' style='width:150px;' data-min-width='120'>1차 로트번호</th>
 
 							<!-- 2차 -->
-							<th class='text-center' style='width:60px;'>2차 입고일</th>
-							<th class='text-center' style='width:80px;'>2차 입고수량</th>
-							<th class='text-center' style='width:80px;'>2차 로트번호</th>
+							<th class='text-center w30px' data-min-width='80'>2차 입고일</th>
+							<th class='text-center' style='width:80px;' data-min-width='60'>2차 입고수량</th>
+							<th class='text-center' style='width:150px;' data-min-width='120'>2차 로트번호</th>
 
 							<!-- 3차 -->
-							<th class='text-center' style='width:80px;'>3차 입고일</th>
-							<th class='text-center' style='width:80px;'>3차 입고수량</th>
-							<th class='text-center' style='width:80px;'>3차 로트번호</th>
+							<th class='text-center w30px' data-min-width='80'>3차 입고일</th>
+                            <th class='text-center' style='width:80px;' data-min-width='60'>3차 입고수량</th>
+							<th class='text-center' style='width:150px;' data-min-width='120'>3차 로트번호</th>
 
 							<!-- 4차 -->
-							<th class='text-center' style='width:80px;'>4차 입고일</th>
-							<th class='text-center' style='width:80px;'>4차 입고수량</th>
-							<th class='text-center' style='width:80px;'>4차 로트번호</th>
+							<th class='text-center w30px' data-min-width='80'>4차 입고일</th>
+							<th class='text-center' style='width:80px;' data-min-width='60'>4차 입고수량</th>
+							<th class='text-center' style='width:150px;' data-min-width='120'>4차 로트번호</th>
+							<!-- 5차 -->
+							<th class='text-center w30px' data-min-width='80'>5차 입고일</th>
+							<th class='text-center' style='width:80px;' data-min-width='60'>5차 입고수량</th>
+							<th class='text-center' style='width:150px;' data-min-width='120'>5차 로트번호</th>
+							<!-- 6차 -->
+							<th class='text-center w30px' data-min-width='80'>6차 입고일</th>
+							<th class='text-center' style='width:80px;' data-min-width='60'>6차 입고수량</th>
+							<th class='text-center' style='width:150px;' data-min-width='120'>6차 로트번호</th>
+							<!-- 7차 -->
+							<th class='text-center w30px' data-min-width='80'>7차 입고일</th>
+							<th class='text-center' style='width:80px;' data-min-width='60'>7차 입고수량</th>
+							<th class='text-center' style='width:150px;' data-min-width='120'>7차 로트번호</th>
 
 							<!-- 23~30: 1~4차 입고금액 + 송금액 (숨김) -->
-							<th class='text-center' style='width:80px;display:none;'>1차 입고금액</th>
-							<th class='text-center' style='width:80px;display:none;'>1차 송금액</th>
-							<th class='text-center' style='width:80px;display:none;'>2차 입고금액</th>
-							<th class='text-center' style='width:80px;display:none;'>2차 송금액</th>
-							<th class='text-center' style='width:80px;display:none;'>3차 입고금액</th>
-							<th class='text-center' style='width:80px;display:none;'>3차 송금액</th>
-							<th class='text-center' style='width:80px;display:none;'>4차 입고금액</th>
-							<th class='text-center' style='width:80px;display:none;'>4차 송금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>1차 입고금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>1차 송금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>2차 입고금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>2차 송금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>3차 입고금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>3차 송금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>4차 입고금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>4차 송금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>5차 입고금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>5차 송금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>6차 입고금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>6차 송금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>7차 입고금액</th>
+							<th class='text-center' style='width:80px;display:none;' data-min-width='80'>7차 송금액</th>
 
 							<!-- 계산 및 상태 -->
-							<th class='text-center' style='width:80px;'>구매수량합</th>
-							<th class='text-center' style='width:80px;'>입고합</th>
-							<th class='text-center' style='width:80px;'>구매입고차이</th>
-							<th class='text-center' style='width:80px;'>상태</th>
+							<th class='text-center' style='width:80px;' data-min-width='80'>구매수량합</th>
+							<th class='text-center' style='width:80px;' data-min-width='80'>입고합</th>
+							<th class='text-center' style='width:80px;' data-min-width='80'>구매입고차이</th>
+							<th class='text-center' style='width:80px;' data-min-width='80'>상태</th>
 						</tr>
 					</thead>
 					<tbody id='{$id}Group'>
@@ -439,7 +621,7 @@ if ($mode == "copy" || $mode == 'split') {
 		";
 	}
 	
-	generateTableSection('orderlist', '차수별 입고 입력 ', 'bg-primary', $inputDate1, $inputDate2, $inputDate3, $inputDate4);
+	generateTableSection('orderlist', '차수별 입고 입력 ', 'bg-primary', $inputDate1, $inputDate2, $inputDate3, $inputDate4, $inputDate5, $inputDate6, $inputDate7);
 	?>
 </div>
 
@@ -590,8 +772,10 @@ function initializePage() {
 
 function bindEventHandlers() {
 	$(document).on("click", ".remove-row", function() {
+		var tableBody = $(this).closest('tbody');
 		$(this).closest("tr").remove();
 		updateTotalSummary(); // 삭제 후 합계 재계산
+		updateItemNameDisplay(tableBody); // 품목명 중복 처리 업데이트
 	});
 		
 	$(document).on('click', '.add-row', function() {
@@ -658,9 +842,33 @@ function addRow(tableBody, rowData = {}, typebutton = '') {
             <td class="text-center"><input type="text" name="col1[]" class="form-control item-code" readonly value="${rowData.col1 || rowData.item_code || ''}"></td>
         `);
 
-        // 3. 품목명
+        // 3. 품목명 (첫줄만 표시)
+        var itemName = rowData.col2 || rowData.item_name || '';
+        var itemNameDisplay = itemName;
+        var itemNameClass = 'form-control item-name';
+        
+        // 같은 품목명이 이미 있는지 확인
+        var existingRows = tableBody.find('tr');
+        var isDuplicate = false;
+        existingRows.each(function() {
+            var existingName = $(this).find('input[name="col2[]"]').val();
+            if (existingName === itemName && itemName !== '') {
+                isDuplicate = true;
+                return false; // break
+            }
+        });
+        
+        // 중복된 품목명이면 빈 값으로 표시하되, 실제 값은 hidden input으로 저장
+        if (isDuplicate) {
+            itemNameDisplay = '';
+            itemNameClass += ' duplicate-item-name';
+        }
+        
         newRow.append(`
-            <td class="text-center"><input type="text" name="col2[]" class="form-control item-name" readonly value="${rowData.col2 || rowData.item_name || ''}"></td>
+            <td class="text-center">
+                <input type="text" name="col2[]" class="${itemNameClass}" readonly value="${itemNameDisplay}" style="${isDuplicate ? 'background-color: transparent; border: none;' : ''}">
+                ${isDuplicate ? `<input type="hidden" name="col2_hidden[]" value="${itemName}">` : ''}
+            </td>
         `);
 
         // 4. 구매수량
@@ -678,66 +886,66 @@ function addRow(tableBody, rowData = {}, typebutton = '') {
             <td class="text-center"><input type="text" name="col5[]" class="form-control" readonly value="${rowData.col5 || rowData.remark || ''}"></td>
         `);
 
-        // 7. 금액
+        // 7. 금액 (숨김)
         newRow.append(`
             <td class="text-center" style="display:none;"><input type="text" name="col6[]" class="form-control text-end amount" readonly value="${(rowData.col6 || rowData.amount) ? Number(rowData.col6 || rowData.amount).toLocaleString() : ''}"></td>
         `);
 
-        // 8~16: 1~4차 입고일, 입고수량, 로트번호
-        for (let i = 1; i <= 4; i++) {
-            // 입고일 (col7, col10, col13, col16)
+        // 8~25: 1~7차 입고일, 입고수량, 로트번호
+        for (let i = 1; i <= 7; i++) {
+            // 입고일 (col7, col10, col13, col16, col19, col22, col25)
             var inDateKey = 'col' + (6 + i * 3 - 2);
             var inDateValue = rowData[inDateKey] || rowData[`in_date${i}`] || '';
             newRow.append(`
-                <td class="text-center"><input type="date" name="${inDateKey}[]" class="form-control" value="${inDateValue}"></td>
+                <td class="text-center"><input type="date" name="${inDateKey}[]" class="form-control w100px" value="${inDateValue}"></td>
             `);
             
-            // 입고수량 (col8, col11, col14, col17)
+            // 입고수량 (col8, col11, col14, col17, col20, col23, col26)
             var inQtyKey = 'col' + (6 + i * 3 - 1);
             var inQtyValue = rowData[inQtyKey] || rowData[`in_qty${i}`] || '';
             newRow.append(`
-                <td class="text-center"><input type="number" name="${inQtyKey}[]" class="form-control text-end inqty${i}" value="${inQtyValue}" onkeyup="updateRowCalculation(this);"></td>
+                <td class="text-center"><input type="number" name="${inQtyKey}[]" class="form-control w100px text-end inqty${i}" value="${inQtyValue}" onkeyup="updateRowCalculation(this);"></td>
             `);
             
-            // 로트번호 (col9, col12, col15, col18)
+            // 로트번호 (col9, col12, col15, col18, col21, col24, col27)
             var lotNumKey = 'col' + (6 + i * 3);
             var lotNumValue = rowData[lotNumKey] || rowData[`lot_num${i}`] || '';
             newRow.append(`
-                <td class="text-center"><input type="text" name="${lotNumKey}[]" class="form-control lotnum${i}" value="${lotNumValue}"></td>
+                <td class="text-center"><input type="text" name="${lotNumKey}[]" class="form-control lotnum${i} w100px " value="${lotNumValue}"></td>
             `);
         }
 
-        // 19. 구매수량합
+        // 28. 구매수량합
         newRow.append(`
-            <td class="text-center"><input type="text" name="col19[]" class="form-control text-end total-purchase" readonly value="${(rowData.col19 || rowData.total_purchase) ? Number(rowData.col19 || rowData.total_purchase).toLocaleString() : ''}"></td>
+            <td class="text-center"><input type="text" name="col28[]" class="form-control text-end total-purchase" readonly value="${(rowData.col28 || rowData.total_purchase) ? Number(rowData.col28 || rowData.total_purchase).toLocaleString() : ''}"></td>
         `);
 
-        // 20. 입고합
+        // 29. 입고합
         newRow.append(`
-            <td class="text-center"><input type="text" name="col20[]" class="form-control text-end total-inqty" readonly value="${(rowData.col20 || rowData.total_inqty) ? Number(rowData.col20 || rowData.total_inqty).toLocaleString() : ''}"></td>
+            <td class="text-center"><input type="text" name="col29[]" class="form-control text-end total-inqty" readonly value="${(rowData.col29 || rowData.total_inqty) ? Number(rowData.col29 || rowData.total_inqty).toLocaleString() : ''}"></td>
         `);
 
-        // 21. 구매입고차이
+        // 30. 구매입고차이
         newRow.append(`
-            <td class="text-center"><input type="text" name="col21[]" class="form-control text-end diff" readonly value="${(rowData.col21 || rowData.diff) ? Number(rowData.col21 || rowData.diff).toLocaleString() : ''}"></td>
+            <td class="text-center"><input type="text" name="col30[]" class="form-control text-end diff" readonly value="${(rowData.col30 || rowData.diff) ? Number(rowData.col30 || rowData.diff).toLocaleString() : ''}"></td>
         `);
 
-        // 22. 상태
+        // 31. 상태
         newRow.append(`
-            <td class="text-center"><input type="text" name="col22[]" class="form-control fw-bold text-center status" readonly value="${rowData.col22 || rowData.status || ''}"></td>
+            <td class="text-center"><input type="text" name="col31[]" class="form-control fw-bold text-center status" readonly value="${rowData.col31 || rowData.status || ''}"></td>
         `);
 
-        // 23~30: 1~4차 입고금액 + 송금액 (숨김) - 회계용 데이터
-        for (let i = 1; i <= 4; i++) {
-            // 입고금액 (col23, col25, col27, col29)
-            var amountInKey = 'col' + (22 + i * 2 - 1);
+        // 32~45: 1~7차 입고금액 + 송금액 (숨김) - 회계용 데이터
+        for (let i = 1; i <= 7; i++) {
+            // 입고금액 (col32, col34, col36, col38, col40, col42, col44)
+            var amountInKey = 'col' + (32 + i * 2 - 1);
             var amountInValue = rowData[amountInKey] || rowData[`amount_in${i}`] || '';
             newRow.append(`
                 <td style="display:none;"><input type="text" name="${amountInKey}[]" class="form-control text-end amountIn${i}" value="${amountInValue}"></td>
             `);
             
-            // 송금액 (col24, col26, col28, col30)
-            var sendAmountKey = 'col' + (22 + i * 2);
+            // 송금액 (col33, col35, col37, col39, col41, col43, col45)
+            var sendAmountKey = 'col' + (32 + i * 2);
             var sendAmountValue = rowData[sendAmountKey] || rowData[`send_amount${i}`] || '';
             newRow.append(`
                 <td style="display:none;"><input type="text" name="${sendAmountKey}[]" class="form-control text-end " value="${sendAmountValue}"></td>
@@ -751,6 +959,9 @@ function addRow(tableBody, rowData = {}, typebutton = '') {
 
         // 계산 실행
         updateRowCalculation(newRow.find('input.purchase-qty')[0]);
+        
+        // 품목명 중복 처리 업데이트
+        updateItemNameDisplay(tableBody);
         
         console.log('write_input Row added successfully with data:', rowData);
     } catch (error) {
@@ -777,8 +988,8 @@ function updateRowCalculation(input) {
 
     let totalInQty = 0;
 
-    // 1~4차 입고수량에 따른 입고금액 계산 및 숨겨진 컬럼에 저장
-    for (let i = 1; i <= 4; i++) {
+    // 1~7차 입고수량에 따른 입고금액 계산 및 숨겨진 컬럼에 저장
+    for (let i = 1; i <= 7; i++) {
         const inQty = parseFloat($row.find(`.inqty${i}`).val().replace(/,/g, '')) || 0;
         const inAmount = inQty * unitPrice;
         // 숨겨진 입고금액 컬럼에 저장 (col23, col25, col27, col29)
@@ -814,6 +1025,9 @@ function updateTotalSummary() {
     let sum2 = 0;
     let sum3 = 0;
     let sum4 = 0;
+    let sum5 = 0;
+    let sum6 = 0;
+    let sum7 = 0;
 
     $("input.purchase-qty").each(function () {
         const qty = parseFloat($(this).val().replace(/,/g, "")) || 0;
@@ -845,6 +1059,21 @@ function updateTotalSummary() {
         sum4 += val;
     });
 
+    $("input.inqty5").each(function () {
+        const val = parseFloat($(this).val().replace(/,/g, "")) || 0;
+        sum5 += val;
+    });
+
+    $("input.inqty6").each(function () {
+        const val = parseFloat($(this).val().replace(/,/g, "")) || 0;
+        sum6 += val;
+    });
+
+    $("input.inqty7").each(function () {
+        const val = parseFloat($(this).val().replace(/,/g, "")) || 0;
+        sum7 += val;
+    });
+
     // 총 구매 수량 표시
     $("#totalsurangDisplay").text(totalQty.toLocaleString());
 
@@ -853,12 +1082,18 @@ function updateTotalSummary() {
     $("#inputSum2").val(sum2);
     $("#inputSum3").val(sum3);
     $("#inputSum4").val(sum4);
+    $("#inputSum5").val(sum5);
+    $("#inputSum6").val(sum6);
+    $("#inputSum7").val(sum7);
 
     // 각 차수 입고 합계를 span에도 표시
     $("#inputSumDisplay1").text(sum1.toLocaleString());
     $("#inputSumDisplay2").text(sum2.toLocaleString());
     $("#inputSumDisplay3").text(sum3.toLocaleString());
     $("#inputSumDisplay4").text(sum4.toLocaleString());
+    $("#inputSumDisplay5").text(sum5.toLocaleString());
+    $("#inputSumDisplay6").text(sum6.toLocaleString());
+    $("#inputSumDisplay7").text(sum7.toLocaleString());
 }
 
 function loadTableData(tableId, dataList, typebutton) {
@@ -928,6 +1163,51 @@ function formatNumber(input) {
     input.value = input.value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+// 1~7차 컬럼 순서대로 정렬하는 함수
+function sortByPhaseOrder(data) {
+    if (!Array.isArray(data) || data.length === 0) {
+        return data;
+    }
+    console.log('정렬 전 데이터:', data.length, '행');
+    return data.map(row => {
+        let sortedRow = { ...row };
+        const phaseFields = [
+            { inputDate: 'col7', inputQuantity: 'col8', lotNumber: 'col9' },   // 1차
+            { inputDate: 'col10', inputQuantity: 'col11', lotNumber: 'col12' }, // 2차
+            { inputDate: 'col13', inputQuantity: 'col14', lotNumber: 'col15' }, // 3차
+            { inputDate: 'col16', inputQuantity: 'col17', lotNumber: 'col18' }, // 4차
+            { inputDate: 'col19', inputQuantity: 'col20', lotNumber: 'col21' }, // 5차
+            { inputDate: 'col22', inputQuantity: 'col23', lotNumber: 'col24' }, // 6차
+            { inputDate: 'col25', inputQuantity: 'col26', lotNumber: 'col27' }  // 7차
+        ];
+        let sortedPhases = [];
+        for (let i = 0; i < phaseFields.length; i++) {
+            const phase = phaseFields[i];
+            const phaseData = {
+                inputDate: row[phase.inputDate] || '',
+                inputQuantity: row[phase.inputQuantity] || '',
+                lotNumber: row[phase.lotNumber] || ''
+            };
+            if (phaseData.inputDate || phaseData.inputQuantity || phaseData.lotNumber) {
+                sortedPhases.push({
+                    phase: i + 1,
+                    data: phaseData,
+                    originalFields: phase
+                });
+            }
+        }
+        sortedPhases.sort((a, b) => a.phase - b.phase);
+        sortedPhases.forEach((phaseInfo, index) => {
+            const { data, originalFields } = phaseInfo;
+            sortedRow[originalFields.inputDate] = data.inputDate;
+            sortedRow[originalFields.inputQuantity] = data.inputQuantity;
+            sortedRow[originalFields.lotNumber] = data.lotNumber;
+        });
+        console.log('정렬된 행:', sortedRow);
+        return sortedRow;
+    });
+}
+
 function saveData() {
     const myform = document.getElementById('board_form');
     const inputs = myform.querySelectorAll('input[required]');
@@ -968,37 +1248,57 @@ function saveData() {
         $(this).find('input, select').each(function() {
             let name = $(this).attr('name').replace('[]', '');
             let value = $(this).val();
+            
+            // 중복된 품목명 처리: hidden input이 있으면 그 값을 사용
+            if (name === 'col2' && value === '') {
+                let hiddenInput = $(this).siblings('input[name="col2_hidden[]"]');
+                if (hiddenInput.length > 0) {
+                    value = hiddenInput.val();
+                }
+            }
+            
             rowData[name] = value;
         });
         formData.push(rowData);
     });
+    // 1~7차 컬럼 순서대로 정렬
+    formData = sortByPhaseOrder(formData);
     let jsonString = JSON.stringify(formData);
-    $('#orderlist').val(jsonString);
-
-    var form = $('#board_form')[0];
-    var datasource = new FormData(form);
+    
+    // FormData를 직접 생성하여 더 큰 파일 처리 가능
+    var datasource = new FormData();
+    datasource.append('orderlist', jsonString);
+    datasource.append('mode', $('#mode').val());
+    datasource.append('num', $('#num').val());
+    datasource.append('orderDate', $('#orderDate').val());
+    datasource.append('memo', $('#memo').val());
+    datasource.append('first_writer', $('#first_writer').val());
+    datasource.append('totalsurang', $('#totalsurang').val());
+    datasource.append('totalamount', $('#totalamount').val());
+    datasource.append('inputSum1', $('#inputSum1').val());
+    datasource.append('inputSum2', $('#inputSum2').val());
+    datasource.append('inputSum3', $('#inputSum3').val());
+    datasource.append('inputSum4', $('#inputSum4').val());
+    datasource.append('inputSum5', $('#inputSum5').val());
+    datasource.append('inputSum6', $('#inputSum6').val());
+    datasource.append('inputSum7', $('#inputSum7').val());
 
     if (ajaxRequest_write !== null) {
         ajaxRequest_write.abort();
     }
 	
-	showMsgModal(2); // 1 이미지 저장, 2 파일저장
-	
+	showMsgModal(2); // 1 이미지 저장, 2 파일저장	
     ajaxRequest_write = $.ajax({
-        enctype: 'multipart/form-data',
+        url: "insert_input.php",
+        type: "post", 
+        data: datasource,
         processData: false,
         contentType: false,
-        cache: false,
-        timeout: 600000,
-        url: "insert_input.php", // insert.php 분리 각 요소에 맞게 수정함
-        type: "post",
-        data: datasource,
-        dataType: "json",
         success: function(data) {
-			console.log(data);
+            console.log(data);
             setTimeout(function() {
                 if (window.opener && !window.opener.closed) {
-					hideMsgModal();
+                    hideMsgModal();
                     if (typeof window.opener.restorePageNumber === 'function') {
                         window.opener.restorePageNumber();
                     }
@@ -1011,9 +1311,20 @@ function saveData() {
             }, 1000);
         },
         error: function(jqxhr, status, error) {
-            console.log(jqxhr, status, error);
-			ajaxRequest_write = null;
-			hideMsgModal();
+            console.log('AJAX 에러:', jqxhr, status, error);
+            console.log('응답 텍스트:', jqxhr.responseText);
+            console.log('상태 코드:', jqxhr.status);
+            
+            if (jqxhr.status === 413) {
+                alert('데이터가 너무 큽니다. 서버 관리자에게 문의하세요.');
+            } else if (jqxhr.status === 0) {
+                alert('네트워크 연결을 확인해주세요.');
+            } else {
+                alert('저장 중 오류가 발생했습니다: ' + error);
+            }
+            
+            ajaxRequest_write = null;
+            hideMsgModal();
         }
     });
 }
@@ -1157,87 +1468,81 @@ function inputNumber(input) {
 </script>
 
 <script>
+
+
 function generateExcel() {
     // 엑셀로 저장할 테이블 ID 목록
-    var tableIds = [
-        'orderlistTable' 
-    ];
-    
-   var data = [];
-   
+    var tableIds = ['orderlistTable'];
+    var data = [];
+
+    // ✅ 구매발주일 값 읽기
+    var orderDate = document.getElementById('orderDate')?.value || '';
+
     tableIds.forEach(function(tableId) {
         var table = document.getElementById(tableId);
-        if (!table) return;  // 해당 테이블이 없으면 건너뜀
-        
-        // tbody 내의 모든 행을 순회
+        if (!table) return;
+
         var tbody = table.getElementsByTagName('tbody')[0];
         var rows = tbody.getElementsByTagName('tr');
         for (var i = 0; i < rows.length; i++) {
             var cells = rows[i].getElementsByTagName('td');
             var rowData = {};
-            
-            // // 첫 번째 셀: select 요소가 있다면 선택된 옵션의 텍스트만 추출
-            // if (cells[0]) {
-                // var selectElem = cells[0].querySelector('select');
-                // if (selectElem) {
-                    // rowData['model'] = selectElem.options[selectElem.selectedIndex].text.trim();
-                // } else {
-                    // rowData['model'] = cells[0].innerText.trim();
-                // }
-            // } else {
-                // rowData['model'] = '';
-            // }
-					
-		// 셀에서 값 추출: input, select, textarea가 있으면 그 값, 없으면 innerText 사용
-		function getCellValue(cell) {
-			if (!cell) return '';
-			var formElem = cell.querySelector('input, select, textarea');
-			if (formElem) {
-				return formElem.value.trim();
-			} else {
-				return cell.innerText.trim();
-			}
-		}
-		
-		// 예시: 각 셀에서 값 추출하여 rowData에 저장
-		rowData['model_code']  	 = cells[0] ? getCellValue(cells[0]) : '';
-		rowData['model']   		 = cells[1] ? getCellValue(cells[1]) : '';
-		rowData['purchaseQty']   = cells[2] ? getCellValue(cells[2]) : '';
-		rowData['unitPrice']     = cells[3] ? getCellValue(cells[3]) : '';
-		rowData['note']          = cells[4] ? getCellValue(cells[4]) : '';
-		rowData['amount']        = cells[5] ? getCellValue(cells[5]) : '';
-		
-		data.push(rowData);
+
+            function getCellValue(cell) {
+                if (!cell) return '';
+                var formElem = cell.querySelector('input, select, textarea');
+                if (formElem) {
+                    return formElem.value.trim();
+                } else {
+                    return cell.innerText.trim();
+                }
+            }
+
+            rowData['category']     = cells[1] ? getCellValue(cells[1]) : '';
+            rowData['model_code']   = cells[2] ? getCellValue(cells[2]) : '';
+            rowData['model']        = cells[3] ? getCellValue(cells[3]) : '';
+            rowData['purchaseQty']  = cells[4] ? getCellValue(cells[4]) : '';
+            rowData['unitPrice']    = cells[5] ? getCellValue(cells[5]) : '';
+            rowData['note']         = cells[6] ? getCellValue(cells[6]) : '';
+            rowData['amount']       = cells[7] ? getCellValue(cells[7]) : '';
+
+            data.push(rowData);
         }
     });
-    
+
     console.log('엑셀 data', data);
-    
-    
-    // saveExcel.php에 데이터 전송
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "order_saveExcel.php", true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.onreadystatechange = function () {
-         if (xhr.readyState === 4) {
-             if (xhr.status === 200) {
-                 try {
-                     var response = JSON.parse(xhr.responseText);
-                     if (response.success) {
-                         console.log('Excel file generated successfully.');
-                         window.location.href = 'downloadExcel.php?filename=' + encodeURIComponent(response.filename.split('/').pop());
-                     } else {
-                         console.log('Failed to generate Excel file: ' + response.message);
-                     }
-                 } catch (e) {
-                     console.log('Error parsing response: ' + e.message + '\nResponse text: ' + xhr.responseText);
-                 }
-             } else {
-                 console.log('Failed to generate Excel file: Server returned status ' + xhr.status);
-             }
-         }
+
+    // ✅ 서버에 보낼 최종 payload
+    var payload = {
+        orderDate: orderDate,
+        items: data
     };
-    xhr.send(JSON.stringify(data));
+
+    // 전송
+    $.ajax({
+        type: "POST",
+        url: "order_saveExcel.php",
+        data: { excelData: JSON.stringify(payload) },
+        dataType: "json",
+        success: function(response) {
+            try {
+                if (response.success) {
+                    console.log('Excel file generated successfully.');
+                    window.location.href = 'downloadExcel.php?filename=' + encodeURIComponent(response.filename.split('/').pop());
+                } else {
+                    console.log('Failed to generate Excel file: ' + response.message);
+                }
+            } catch (e) {
+                console.log('Error parsing response: ' + e.message + '\nResponse text: ' + response);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.log('Failed to generate Excel file: ' + error);
+            console.log('Status: ' + status);
+            console.log('Response Text: ' + xhr.responseText);
+            console.log('Status Code: ' + xhr.status);
+        }
+    });
 }
 
 $(document).ready(function() {
@@ -1297,7 +1602,7 @@ $(document).ready(function() {
 	});
 
 	$('#updateDate').click(function(){
-		// 선택된 차수 ("1차", "2차", "3차", "4차")
+		// 선택된 차수 ("1차", "2차", "3차", "4차", "5차", "6차", "7차")
 		var selectedPhase = $('#selectDate').val();
 		// 새 날짜 값
 		var newDate = $('#todayDate').val();
@@ -1319,6 +1624,15 @@ $(document).ready(function() {
 				break;			
 			case '4차':
 				colName = 'col16'; // 4차 입고일
+				break;
+			case '5차':
+				colName = 'col19'; // 5차 입고일
+				break;
+			case '6차':
+				colName = 'col22'; // 6차 입고일
+				break;
+			case '7차':
+				colName = 'col25'; // 7차 입고일
 				break;
 			default:
 				colName = 'col7'; // 1차 입고일
@@ -1356,27 +1670,28 @@ $(document).ready(function() {
 
 <script>
 function updateTableMinWidth() {
-	const checkedCount = $('.phase-toggle:checked').length;
+    // 기본 컬럼들의 너비 합계 (NO, 카테고리, 품목코드, 품목명, 구매수량, 비고, 구매수량합, 입고합, 구매입고차이, 상태)
+    const baseWidth = 1500; 
 
-	let minWidth;
-	switch (checkedCount) {
-		case 4:
-			minWidth = 2800;
-			break;
-		case 3:
-			minWidth = 2500;
-			break;
-		case 2:
-			minWidth = 2300;
-			break;
-		case 1:
-			minWidth = 1800;
-			break;
-		default:
-			minWidth = 1800;
-	}
+    // 각 차수별 컬럼 3개(입고일,입고수량,로트번호)의 너비
+    const phaseWidth = 180; 
 
-	$('#orderlistTable').css('min-width', `${minWidth}px`);
+    // 체크된 차수 개수 확인
+    const checkedCount = $('.phase-toggle:checked').length;
+
+    // 동적 계산: 기본 너비 + (차수별 너비 * 체크된 차수 수)
+    const calculatedWidth = baseWidth + (phaseWidth * checkedCount);
+
+    // 최소 너비 설정 (기본 1500px)
+    const minWidth = Math.max(1500, calculatedWidth);
+
+    // 테이블 너비 적용
+    $('#orderlistTable').css('min-width', `${minWidth}px`);
+
+    console.log('Table width updated:', minWidth, 'px', 
+                '(Base:', baseWidth, 
+                'Phase width:', phaseWidth,
+                'Checked phases:', checkedCount, ')');
 }
 
 // 차수별 열 토글 함수
@@ -1387,6 +1702,9 @@ function togglePhaseColumns(phase, show) {
         2: [11, 12, 13], // 2차 입고일, 입고수량, 로트번호
         3: [14, 15, 16], // 3차 입고일, 입고수량, 로트번호
         4: [17, 18, 19], // 4차 입고일, 입고수량, 로트번호
+        5: [20, 21, 22], // 5차 입고일, 입고수량, 로트번호
+        6: [23, 24, 25], // 6차 입고일, 입고수량, 로트번호
+        7: [26, 27, 28], // 7차 입고일, 입고수량, 로트번호
     };
 
     const indexes = columnMap[phase];
@@ -1432,7 +1750,7 @@ $('#uncheckAllPhases').on('click', function () {
 
 $(document).ready(function() {
     // 1~4차 입고일 동기화 처리
-    [1, 2, 3, 4].forEach(function(i) {
+    [1, 2, 3, 4, 5, 6, 7].forEach(function(i) {
         $('#inputDate' + i).on('change', function() {
             var date = $(this).val();
             var colName = 'col' + (6 + i * 3 - 2);
@@ -1446,7 +1764,7 @@ $(document).ready(function() {
     });
 
     // ★ 체크박스 상태에 따라 열 표시 초기화
-    [1, 2, 3, 4].forEach(function(phase) {
+    [1, 2, 3, 4, 5, 6, 7].forEach(function(phase) {
         var checked = $('#chkPhase' + phase).is(':checked');
         togglePhaseColumns(phase, checked);
     });
@@ -1456,7 +1774,7 @@ $(document).ready(function() {
     
     // 페이지 로드 시 상단 입고일 input과 테이블 내 날짜 input 동기화
     setTimeout(function() {
-        [1, 2, 3, 4].forEach(function(i) {
+        [1, 2, 3, 4, 5, 6, 7].forEach(function(i) {
             var topDate = $('#inputDate' + i).val();
             if (topDate) {
                 var colName = 'col' + (6 + i * 3 - 2);
@@ -1473,6 +1791,7 @@ $(document).ready(function() {
  * #orderlistTable tbody 각 행에서 lotnum{stage}가 비어있지 않은 로우만 골라
  * material_reg 테이블에 insert 요청을 보냅니다.
  */
+
 function completeInStock(stage) {
     const inoutDate = $('#inputDate' + stage).val();
     if (!inoutDate) {
@@ -1540,6 +1859,182 @@ function completeInStock(stage) {
         }
     });
 }
+
+// 동적 컬럼 너비 조절 기능
+function initializeResizableColumns() {
+    console.log('initializeResizableColumns 함수 시작');
+    const tables = document.querySelectorAll('.resizable-table');
+    console.log('찾은 resizable-table 개수:', tables.length);
+    
+    tables.forEach((table, tableIndex) => {
+        console.log(`테이블 ${tableIndex} 처리 중`);
+        const headers = table.querySelectorAll('th');
+        console.log(`테이블 ${tableIndex}의 th 개수:`, headers.length);
+        
+        headers.forEach((header, headerIndex) => {
+            console.log(`헤더 ${headerIndex} 처리 중:`, header.textContent.trim());
+            
+            // 숨겨진 컬럼은 건너뛰기
+            if (header.style.display === 'none' || header.getAttribute('style')?.includes('display: none')) {
+                console.log(`헤더 ${headerIndex}는 숨겨져 있어서 건너뜀`);
+                return;
+            }
+            
+            // 최소 너비 설정
+            const minWidth = header.getAttribute('data-min-width');
+            if (minWidth) {
+                header.style.setProperty('--min-width', minWidth + 'px');
+                console.log(`헤더 ${headerIndex} 최소 너비 설정:`, minWidth + 'px');
+            }
+            
+            let isResizing = false;
+            let startX, startWidth;
+            
+            const startResize = (e) => {
+                console.log('리사이즈 시작:', header.textContent.trim());
+                isResizing = true;
+                startX = e.pageX;
+                startWidth = header.offsetWidth;
+                
+                header.classList.add('resizing');
+                table.classList.add('resizing');
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+                
+                e.preventDefault();
+                e.stopPropagation();
+            };
+            
+            const resize = (e) => {
+                if (!isResizing) return;
+                
+                const width = startWidth + (e.pageX - startX);
+                const minWidth = parseInt(header.getAttribute('data-min-width') || '80');
+                
+                if (width >= minWidth) {
+                    header.style.width = width + 'px';
+                    console.log('너비 변경:', width + 'px');
+                    
+                    // 같은 인덱스의 모든 td도 같은 너비로 설정
+                    const columnIndex = Array.from(header.parentElement.children).indexOf(header);
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[columnIndex];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            };
+            
+            const stopResize = () => {
+                console.log('리사이즈 종료');
+                isResizing = false;
+                header.classList.remove('resizing');
+                table.classList.remove('resizing');
+                
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+            };
+            
+            // 마우스 이벤트 리스너 추가
+            header.addEventListener('mousedown', startResize);
+            console.log(`헤더 ${headerIndex}에 mousedown 이벤트 리스너 추가됨`);
+        });
+    });
+    
+    console.log('initializeResizableColumns 함수 완료');
+}
+
+// 컬럼 너비 저장 및 복원 기능
+function saveColumnWidths() {
+    const tables = document.querySelectorAll('.resizable-table');
+    const savedWidths = {};
+    
+    tables.forEach((table, tableIndex) => {
+        const headers = table.querySelectorAll('th');
+        savedWidths[tableIndex] = {};
+        
+        headers.forEach((header, headerIndex) => {
+            const width = header.style.width;
+            if (width) {
+                savedWidths[tableIndex][headerIndex] = width;
+            }
+        });
+    });
+    
+    localStorage.setItem('tableColumnWidths', JSON.stringify(savedWidths));
+}
+
+function restoreColumnWidths() {
+    const savedWidths = localStorage.getItem('tableColumnWidths');
+    if (!savedWidths) return;
+    
+    try {
+        const widths = JSON.parse(savedWidths);
+        const tables = document.querySelectorAll('.resizable-table');
+        
+        tables.forEach((table, tableIndex) => {
+            if (widths[tableIndex]) {
+                const headers = table.querySelectorAll('th');
+                headers.forEach((header, headerIndex) => {
+                    if (widths[tableIndex][headerIndex]) {
+                        header.style.width = widths[tableIndex][headerIndex];
+                        
+                        // 같은 인덱스의 모든 td도 같은 너비로 설정
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            const cell = row.children[headerIndex];
+                            if (cell) {
+                                cell.style.width = widths[tableIndex][headerIndex];
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } catch (e) {
+        console.error('컬럼 너비 복원 중 오류:', e);
+    }
+}
+
+// 페이지 로드 시 초기화
+$(document).ready(function() {
+    // 기존 코드...
+    
+    // 동적 컬럼 너비 조절 기능 초기화
+    initializeResizableColumns();
+    
+    // 저장된 컬럼 너비 복원
+    restoreColumnWidths();
+    
+    // 페이지 언로드 시 컬럼 너비 저장
+    $(window).on('beforeunload', saveColumnWidths);
+    
+    // 테스트용 버튼 추가 (개발 중에만 사용)
+    // if (typeof console !== 'undefined' && console.log) {
+    //     const testButton = document.createElement('button');
+    //     testButton.textContent = '리사이징 테스트';
+    //     testButton.style.position = 'fixed';
+    //     testButton.style.top = '10px';
+    //     testButton.style.right = '10px';
+    //     testButton.style.zIndex = '9999';
+    //     testButton.onclick = function() {
+    //         console.log('리사이징 테스트 시작');
+    //         const tables = document.querySelectorAll('.resizable-table');
+    //         console.log('테이블 개수:', tables.length);
+    //         tables.forEach((table, i) => {
+    //             const headers = table.querySelectorAll('th');
+    //             console.log(`테이블 ${i} 헤더 개수:`, headers.length);
+    //             headers.forEach((h, j) => {
+    //                 console.log(`헤더 ${j}:`, h.textContent.trim(), 'display:', h.style.display);
+    //             });
+    //         });
+    //     };
+    //     document.body.appendChild(testButton);
+    // }
+});
 
 </script>
 

@@ -12,7 +12,7 @@ for($i=0; $i<sizeof($mAgent); $i++){
     }
 }
 
-$version = '9';
+$version = '10';
 ?>
 
 <style>
@@ -132,7 +132,6 @@ $version = '9';
 <script src="<?$root_dir?>/js/common.js?v=<?$version?>"></script> 
 <script src="<?$root_dir?>/js/date.js?v=<?$version?>"></script> 
 <script src="<?$root_dir?>/js/index1.js?v=<?$version?>"></script> 
-<script src="<?=$root_dir?>/js/todolist.js?v=<?=time()?>"></script>
 <script src="<?$root_dir?>/js/qrcode.js?v=<?$version?>"></script> 
 <script src="<?$root_dir?>/js/log.js?v=<?$version?>"></script>  <!-- 로그인메뉴별 기록 -->
 

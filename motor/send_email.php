@@ -126,6 +126,11 @@ if ($result) {
         $sql = "UPDATE {$DB}.motor SET statement_sent_at = NOW() WHERE num = '$num'";
         $stmh = $pdo->prepare($sql);
         $stmh->execute();
+    } elseif($item == '거래처 원장') {
+        // For customer sheet, we don't have a specific num to update
+        // The email sending is recorded in the log or can be handled differently
+        // For now, we'll just log the successful email sending
+        error_log("Customer sheet email sent successfully to: $email for vendor: $vendorName");
     }
     echo json_encode(['success' => '메일이 전송되었습니다.']);
 } else {

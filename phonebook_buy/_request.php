@@ -17,5 +17,10 @@ $is_deleted = isset($_REQUEST['is_deleted']) ? $_REQUEST['is_deleted'] : 0;
 $searchtag = isset($_REQUEST['searchtag']) ? $_REQUEST['searchtag'] : '';
 $update_log = isset($_REQUEST['update_log']) ? $_REQUEST['update_log'] : '';
 $item = isset($_REQUEST['item']) ? $_REQUEST['item'] : '';
+// 새 필드: 중국발주업체 여부(체크박스), 이미지(base64 데이터URL)
+$is_china_vendor = isset($_REQUEST['is_china_vendor']) ? (int)$_REQUEST['is_china_vendor'] : 0;
+$image_base64 = isset($_REQUEST['image_base64']) ? $_REQUEST['image_base64'] : '';
+// 새 필드: 카테고리(콤마 구분 문자열)
+$category = isset($_REQUEST['category']) ? $_REQUEST['category'] : '';
 
 ?>

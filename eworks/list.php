@@ -26,7 +26,7 @@ $pdo = db_connect();
 		$stmh->execute();
 		
 		while($row = $stmh->fetch(PDO::FETCH_ASSOC)) {	
-			if($row["part"] ==='대한')
+			if($row["company"] ==='대한')
 			{
 				array_push($name_arr, $row["name"]);	
 				array_push($id_arr, $row["id"]);	

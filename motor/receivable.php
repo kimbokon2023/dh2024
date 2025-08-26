@@ -370,7 +370,8 @@ usort($allResults, function($a, $b) use ($vendorNames) {
 	<span class="text-center fs-5 me-4"><?=$title_message?></span>    
         <button type="button" class="btn btn-dark btn-sm me-1" onclick='location.reload();'> 
             <i class="bi bi-arrow-clockwise"></i>
-        </button>        
+        </button>       
+        <small class="ms-5 text-muted"> 업체별 미수금 현황 </small>  
     </div>     
 	
     <!-- <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">       

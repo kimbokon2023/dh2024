@@ -196,14 +196,14 @@ if (file_exists($bankbookFilePath)) {
                     <input type="date" id="todate" name="todate" class="form-control me-1" style="width:110px;" value="<?=$todate?>">  &nbsp;
 
                     <!-- 첫 번째 select 문: 수입/지출 구분 -->
-                    <select id="inoutsep_select" name="inoutsep_select" class="form-control me-1" style="width:50px;">
+                    <select id="inoutsep_select" name="inoutsep_select" class="form-select me-1 w-auto">
                         <option value="">전체</option>
                         <option value="수입" <?= $inoutsep_select === '수입' ? 'selected' : '' ?>>수입</option>
                         <option value="지출" <?= $inoutsep_select === '지출' ? 'selected' : '' ?>>지출</option>
                     </select>
 
                     <!-- 두 번째 select 문: 항목 선택 -->
-                    <select id="content_select" name="content_select" class="form-control me-1" style="width:100px;">
+                    <select id="content_select" name="content_select" class="form-select me-1 w-auto" >
                         <option value="">전체</option>
                         <?php
                         $incomeOptions = [

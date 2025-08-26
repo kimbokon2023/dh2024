@@ -19,8 +19,10 @@ $title_message = '계정관리(수입,지출)';
 </head>
 <body>
 <div class="container mt-4">
-    <div class="d-flex justify-content-start mb-1">		
-		<h3>수입/지출 계정 관리</h3> <button type="button" class="btn btn-dark btn-sm ms-3 me-2" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>      
+    <div class="d-flex justify-content-start align-items-center mb-1">		
+		<span class="text-center fs-6"> <?=$title_message?> </span>
+        <button type="button" class="btn btn-dark btn-sm ms-3 me-2" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>      
+        <small class="ms-2 text-muted"> 금전출납부에 생성되는 수입/지출 계정을 등록 및 수정합니다. </small>  
 	</div>
     <div class="d-flex justify-content-end mb-3">		
         <button class="btn btn-dark btn-sm me-1 ms-1 saveData">

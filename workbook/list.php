@@ -90,10 +90,11 @@ if(checkNull($search))
 	 
 <div class="container">
 				
-<div class="card justify-content-center text-center mt-1" >
-	<div class="card-header">
+<div class="card text-center mt-1" >
+	<div class="card-header d-flex justify-content-center align-items-center">
 		<span class="text-center fs-5" > <?=$title_message?>  </span>	
 		<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+		<small class="ms-5 text-muted"> 주요 거래처 주소를 등록합니다. </small>  
 	</div>
 	<div class="card-body" >								
 	<div class="d-flex  justify-content-center text-center align-items-center mb-2" >										

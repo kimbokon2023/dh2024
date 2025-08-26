@@ -106,6 +106,8 @@ table, th, td {
 $num = isset($_REQUEST['num']) ? $_REQUEST['num'] : '';  
 $fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
 $todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
+$book_issued = isset($_REQUEST['book_issued']) ? $_REQUEST['book_issued'] : '';
+$uniqueNum = isset($_REQUEST['uniqueNum']) ? $_REQUEST['uniqueNum'] : ''; // 판매일괄 회계반영 고유번호
 $secondordnum = $num;
 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
@@ -200,8 +202,13 @@ try {
         <button class="btn btn-dark btn-sm me-1" onclick="generatePDF()"> PDF 저장 </button>
         <button class="btn btn-dark btn-sm me-1" onclick="exportTableToExcel()"> Excel 저장 </button>
         <button class="btn btn-dark btn-sm me-1" onclick="sendmail();"> <i class="bi bi-envelope-arrow-up"></i> 전송 </button>
+        <button class="btn btn-info btn-sm me-1" onclick="checkUploadLimits()"> <i class="bi bi-info-circle"></i> S </button>        
         <button class="btn btn-secondary btn-sm" onclick="self.close();"> <i class="bi bi-x-lg"></i> 닫기 </button>&nbsp;
     </div>
+    <!-- 거래원장 발행 여부 'write' 일때 거래원장 발행 버튼 표시 -->    
+    <input type="hidden" id="book_issued" name="book_issued" value="<?= $book_issued ?>">    
+    <!-- 판매일괄 회계반영 고유번호 -->      
+    <input type="hidden" id="uniqueNum" name="uniqueNum" value="<?= $uniqueNum ?>">    
 </div>
  <div id="content-to-print">        
     <div class="container" >        
@@ -555,6 +562,24 @@ function redirectToView(num, tablename) {
 
 ajaxRequest = null;
 
+// Function to check server upload limits
+function checkServerLimits() {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: 'GET',
+            url: 'save_pdf.php?status=check',
+            dataType: 'json',
+            success: function(response) {
+                console.log('[Server Limits]', response);
+                resolve(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('[Server Limits Error]', xhr.responseText);
+                reject(error);
+            }
+        });
+    });
+}
 
 function generatePDF_server(callback) {
     var workplace = '<?= $customer['vendor_name'] ?>';
@@ -568,41 +593,330 @@ function generatePDF_server(callback) {
     var opt = {
         margin: [15, 8, 17, 8], // Top, right, bottom, left margins
         filename: result,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        image: { type: 'jpeg', quality: 0.98 }, // 품질을 0.70으로 낮춤
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff'
+        },
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait',
+            compress: true // PDF 압축 활성화
+        },
         pagebreak: { mode: [''] }
     };
 
+    // Show loading message and store the instance
+    var loadingDialog = Swal.fire({
+        title: '메일 전송중',
+        text: '메일을 전송중입니다...',
+        icon: 'info',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });    
+
     html2pdf().from(element).set(opt).output('datauristring').then(function (pdfDataUri) {
         var pdfBase64 = pdfDataUri.split(',')[1]; // Base64 인코딩된 PDF 데이터 추출
-        var formData = new FormData();
-        formData.append('pdf', pdfBase64);
-        formData.append('filename', result);
+        
+        // Calculate and log PDF size
+        var pdfSizeInBytes = Math.ceil((pdfBase64.length * 3) / 4);
+        var pdfSizeInMB = (pdfSizeInBytes / (1024 * 1024)).toFixed(2);
+        var pdfSizeInKB = (pdfSizeInBytes / 1024).toFixed(2);
+        console.log('PDF Size Details:');
+        console.log('- Base64 length:', pdfBase64.length, 'characters');
+        console.log('- Estimated actual size:', pdfSizeInBytes, 'bytes');
+        console.log('- Size in KB:', pdfSizeInKB, 'KB');
+        console.log('- Size in MB:', pdfSizeInMB, 'MB');
 
-        $.ajax({
-            type: 'POST',
-            url: 'save_pdf.php', // PDF 파일을 저장하는 PHP 파일
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                var res = JSON.parse(response);
-                if (callback) {
-                    callback(res.filename); // 서버에 저장된 파일 경로를 콜백으로 전달
-                }
-            },
-            error: function (xhr, status, error) {
-                Swal.fire('Error', 'PDF 저장에 실패했습니다.', 'error');
+        // Try multiple upload methods
+        uploadPDFWithFallback(pdfBase64, result, callback);
+    });
+}
+
+function uploadPDFWithFallback(pdfBase64, filename, callback) {
+    // Method 1: Try regular save_pdf.php
+    uploadPDF(pdfBase64, filename, 'save_pdf.php', function(success, response) {
+        if (success) {
+            if (callback) callback(response.filename);
+            return;
+        }
+        
+        // Method 2: Try alternative method
+        console.log('Method 1 failed, trying alternative...');
+        uploadPDF(pdfBase64, filename, 'save_pdf_alternative.php', function(success, response) {
+            if (success) {
+                if (callback) callback(response.filename);
+                return;
             }
+            
+            // Method 3: Try test upload method (more conservative)
+            console.log('Method 2 failed, trying test upload...');
+            uploadPDF(pdfBase64, filename, 'test_upload.php', function(success, response) {
+                if (success) {
+                    if (callback) callback(response.filename);
+                    return;
+                }
+                
+                // Method 4: Try chunked upload for larger files
+                console.log('Method 3 failed, trying chunked upload...');
+                uploadPDFChunked(pdfBase64, filename, function(chunkedFilename) {
+                    if (chunkedFilename) {
+                        if (callback) callback(chunkedFilename);
+                    } else {
+                        // Method 5: Create a simple PDF on server side as last resort
+                        console.log('All upload methods failed, creating server-side PDF...');
+                        createServerSidePDF(filename, callback);
+                    }
+                });
+            });
         });
     });
 }
 
+function uploadPDF(pdfBase64, filename, endpoint, callback) {
+    // Try FormData first
+    var formData = new FormData();
+    formData.append('pdf', pdfBase64);
+    formData.append('filename', filename);
+
+    $.ajax({
+        type: 'POST',
+        url: endpoint,
+        data: formData,
+        processData: false,
+        contentType: false,
+        timeout: 60000, // 1분 타임아웃
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function (response) {
+            try {
+                var res = JSON.parse(response);
+                if (res.error) {
+                    console.error('Upload error:', res.error);
+                    callback(false, res);
+                } else {
+                    console.log('Upload success:', res);
+                    callback(true, res);
+                }
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                callback(false, { error: '서버 응답을 처리할 수 없습니다.' });
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('FormData upload failed:', xhr.status, status, error);
+            
+            // If FormData fails, try JSON approach
+            if (xhr.status === 413 || xhr.status === 0) {
+                console.log('Trying JSON upload method...');
+                uploadPDFJSON(pdfBase64, filename, endpoint, callback);
+            } else {
+                var errorMsg = 'PDF 저장에 실패했습니다. (상태: ' + xhr.status + ')';
+                if (xhr.status === 413) {
+                    errorMsg = '서버에서 파일 크기 제한을 초과했습니다.';
+                }
+                callback(false, { error: errorMsg });
+            }
+        }
+    });
+}
+
+function uploadPDFJSON(pdfBase64, filename, endpoint, callback) {
+    var data = {
+        pdf: pdfBase64,
+        filename: filename
+    };
+
+    $.ajax({
+        type: 'POST',
+        url: endpoint,
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        timeout: 60000,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        success: function (response) {
+            try {
+                var res = JSON.parse(response);
+                if (res.error) {
+                    console.error('JSON upload error:', res.error);
+                    callback(false, res);
+                } else {
+                    console.log('JSON upload success:', res);
+                    callback(true, res);
+                }
+            } catch (e) {
+                console.error('JSON parse error:', e);
+                callback(false, { error: '서버 응답을 처리할 수 없습니다.' });
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('JSON upload failed:', xhr.status, status, error);
+            var errorMsg = 'PDF 저장에 실패했습니다. (상태: ' + xhr.status + ')';
+            callback(false, { error: errorMsg });
+        }
+    });
+}
+
+function uploadPDFChunked(pdfBase64, filename, callback) {
+    var chunkSize = 50000; // 50KB chunks
+    var totalChunks = Math.ceil(pdfBase64.length / chunkSize);
+    var currentChunk = 0;
+    
+    function uploadChunk() {
+        if (currentChunk >= totalChunks) {
+            console.log('All chunks uploaded successfully');
+            if (callback) callback(filename);
+            return;
+        }
+        
+        var start = currentChunk * chunkSize;
+        var end = Math.min(start + chunkSize, pdfBase64.length);
+        var chunk = pdfBase64.substring(start, end);
+        
+        var formData = new FormData();
+        formData.append('tiny_chunk', chunk);
+        formData.append('filename', filename);
+        formData.append('chunkIndex', currentChunk);
+        formData.append('totalChunks', totalChunks);
+        
+        console.log('Sending chunk:', {
+            chunkIndex: currentChunk,
+            totalChunks: totalChunks,
+            chunkLength: chunk.length,
+            filename: filename
+        });
+        
+        $.ajax({
+            type: 'POST',
+            url: 'save_pdf_tiny.php',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 30000,
+            success: function(response) {
+                console.log('Chunk upload response received:', {
+                    type: typeof response,
+                    value: response,
+                    stringified: JSON.stringify(response)
+                });
+                
+                try {
+                    // Handle both string and object responses
+                    var res;
+                    if (typeof response === 'string') {
+                        res = JSON.parse(response);
+                    } else {
+                        res = response; // Already an object
+                    }
+                    
+                    if (res.error) {
+                        console.error('Chunk upload error:', res.error);
+                        Swal.fire('Error', res.error, 'error');
+                        return;
+                    }
+                    currentChunk++;
+                    uploadChunk();
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    console.error('Response type:', typeof response);
+                    console.error('Response value:', response);
+                    Swal.fire('Error', '청크 업로드 응답을 처리할 수 없습니다.', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Chunk upload failed:', xhr.status, error);
+                Swal.fire('Error', '청크 업로드에 실패했습니다.', 'error');
+            }
+        });
+    }
+    
+    uploadChunk();
+}
+
+function createServerSidePDF(filename, callback) {
+    var workplace = '<?= $customer['vendor_name'] ?>';
+    var deadline = '<?php echo $Last_deadline; ?>';
+    
+    $.ajax({
+        type: 'POST',
+        url: 'generate_pdf_server.php',
+        data: {
+            filename: filename,
+            workplace: workplace,
+            deadline: deadline,
+            fromdate: '<?php echo $fromdate; ?>',
+            todate: '<?php echo $todate; ?>',
+            secondordnum: '<?php echo $secondordnum; ?>'
+        },
+        dataType: 'json',
+        timeout: 120000,
+        success: function(response) {
+            if (response.success && response.filename) {
+                console.log('Server-side PDF created:', response.filename);
+                if (callback) callback(response.filename);
+            } else {
+                console.error('Server-side PDF creation failed:', response.error);
+                // Try creating a simple text-based PDF as last resort
+                console.log('Trying simple text PDF creation...');
+                createSimpleTextPDF(filename, callback);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Server-side PDF creation error:', xhr.status, error);
+            // Try creating a simple text-based PDF as last resort
+            console.log('Trying simple text PDF creation...');
+            createSimpleTextPDF(filename, callback);
+        }
+    });
+}
+
+function createSimpleTextPDF(filename, callback) {
+    var workplace = '<?= $customer['vendor_name'] ?>';
+    var fromdate = '<?php echo $fromdate; ?>';
+    var todate = '<?php echo $todate; ?>';
+    var secondordnum = '<?php echo $secondordnum; ?>';
+    
+    $.ajax({
+        type: 'POST',
+        url: 'generate_pdf_tcpdf.php',
+        data: {
+            filename: filename,
+            workplace: workplace,
+            fromdate: fromdate,
+            todate: todate,
+            secondordnum: secondordnum
+        },
+        dataType: 'json',
+        timeout: 60000,
+        success: function(response) {
+            if (response.success && response.filename) {
+                console.log('Simple text PDF created:', response.filename);
+                if (callback) callback(response.filename);
+            } else {
+                console.error('Simple text PDF creation failed:', response.error);
+                Swal.fire('Error', 'PDF 생성에 실패했습니다: ' + (response.error || '알 수 없는 오류'), 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Simple text PDF creation error:', xhr.status, error);
+            Swal.fire('Error', '모든 PDF 생성 방법이 실패했습니다. 관리자에게 문의하세요.', 'error');
+        }
+    });
+}
 function sendmail() {
     var secondordnum = '<?php echo $secondordnum; ?>'; // 서버에서 가져온 값
-    var item = '<?php echo $item_title; ?>'; 
-    console.log('secondordnum', secondordnum);
+    var item = '<?php echo preg_replace('/[\/\\\\:*?"<>|]/u', '_', $item_title); ?>'; 
+    console.log('[sendmail] secondordnum:', secondordnum);
     
     if (typeof ajaxRequest !== 'undefined' && ajaxRequest !== null) {
         ajaxRequest.abort();
@@ -610,60 +924,188 @@ function sendmail() {
     
     ajaxRequest = $.ajax({
         type: 'POST',
-        url: 'get_companyCode.php', // 파일 이름 수정
+        url: 'get_companyCode.php',
         data: { secondordnum: secondordnum },
         dataType: 'json',
         success: function(response) {
-            console.log('response : ', response);
+            console.log('[get_companyCode.php 응답]', response);
             if (response.error) {
                 Swal.fire('Error', response.error, 'error');
             } else {
                 var email = response.email;
                 var vendorName = response.vendor_name;
 
+                console.log('[get_companyCode] email:', email, '| vendorName:', vendorName);
+
                 Swal.fire({
-                    title: '이메일 보내기',
-                    text: '거래처(' + vendorName + ') Email : (' + email + ') 이메일 전송 하시겠습니까?',
+                    title: 'E메일 보내기',
+                    text: vendorName + ' 전송후 거래처 원장 전송시간이 기록됩니다.',
                     icon: 'warning',
+                    input: 'text',
+                    inputLabel: 'Email 주소 수정 가능',
+                    inputValue: email,
                     showCancelButton: true,
                     confirmButtonText: '보내기',
                     cancelButtonText: '취소',
-                    reverseButtons: true
+                    reverseButtons: true,
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return '이메일 주소를 입력해주세요!';
+                        }
+                        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailPattern.test(value)) {
+                            return '올바른 이메일 형식을 입력해주세요!';
+                        }
+                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        const updatedEmail = result.value;
+                        console.log('[Swal Confirmed] updatedEmail:', updatedEmail);
+
                         generatePDF_server(function(filename) {
-                            sendEmail(email, vendorName, item, filename);
+                            console.log('[generatePDF_server 완료] filename:', filename);
+                            sendEmail(updatedEmail, vendorName, item, filename);
                         });
                     }
                 });
             }
         },
         error: function(xhr, status, error) {
+            console.error('[get_companyCode.php 에러]', xhr.responseText);
             Swal.fire('Error', '전송중 오류가 발생했습니다.', 'error');
         }
     });
 }
 
-function sendEmail(recipientEmail,vendorName, item, filename) {
-    // 이메일 전송 코드 작성 (예: PHP를 호출하여 이메일 전송)
-    if (typeof ajaxRequest !== 'undefined' && ajaxRequest !== null) {
-        ajaxRequest.abort();
-    }
+function sendEmail(recipientEmail, vendorName, item, filename) {
     var deadline = '<?php echo $Last_deadline; ?>';
     var deadlineDate = new Date(deadline);
     var formattedDate = "(" + String(deadlineDate.getFullYear()).slice(-2) + "." + ("0" + (deadlineDate.getMonth() + 1)).slice(-2) + "." + ("0" + deadlineDate.getDate()).slice(-2) + ")";
-    
+
+    console.log('[sendEmail 호출]', {
+        recipientEmail,
+        vendorName,
+        item,
+        filename,
+        formattedDate
+    });
+
+    if (typeof ajaxRequest !== 'undefined' && ajaxRequest !== null) {
+        ajaxRequest.abort();
+    }
+
     ajaxRequest = $.ajax({
         type: 'POST',
-        url: 'send_email.php', // 이메일 전송을 처리하는 PHP 파일
-        data: { email: recipientEmail, vendorName : vendorName, filename: filename, item : item, formattedDate :formattedDate },
+        url: 'send_email.php',
+        data: {
+            email: recipientEmail,
+            vendorName: vendorName,
+            filename: filename,
+            item: item,
+            formattedDate: formattedDate
+        },
+        dataType: 'json',
         success: function(response) {
-            console.log(response);
-            Swal.fire('Success', '정상적으로 전송되었습니다.', 'success'); 
+            console.log('[send_email.php 응답]', response);
+
+            if (typeof response === 'string') {
+                try {
+                    response = JSON.parse(response);
+                } catch (e) {
+                    console.error('[JSON 파싱 실패]', response);
+                    Swal.fire('Error', '서버 응답이 올바르지 않습니다.', 'error');
+                    return;
+                }
+            }
+
+            if (response.error) {
+                // Close loading dialog first
+                Swal.close();
+                Swal.fire('Error', response.error, 'error');
+            } else {
+                // Close loading dialog first
+                Swal.close();
+                Swal.fire({
+                    title: '전송 완료',
+                    text: '전송이 완료되었습니다.',
+                    icon: 'success',
+                    confirmButtonText: '확인'
+                });
+
+                // 거래원장 발행 여부 'write' 일때 거래원장 발행 버튼 표시
+                if ($('#book_issued').val() == 'write') {
+                    // AJAX를 통해 insert_monthly_sales_book.php 호출하여 전송시간 기록
+                    var book_issued = new Date().toISOString();
+                    var uniqueNum = $('#uniqueNum').val();
+                    $.ajax({
+                        url: 'insert_monthly_sales_book.php',
+                        type: 'POST',
+                        data: {
+                            uniqueNum: uniqueNum,
+                            book_issued: book_issued
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                console.log('[monthly_sales 테이블 book_issued 업데이트 성공]', response);
+                                setTimeout(function() {
+                                    window.opener.location.reload();
+                                }, 500);                                
+                            } else {
+                                console.error('[monthly_sales 테이블 book_issued 업데이트 실패]', response.message);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('[insert_monthly_sales_book.php 에러]', xhr.responseText);
+                        }
+                    });
+                }
+            } 
         },
         error: function(xhr, status, error) {
-            Swal.fire('Error', '전송에 실패했습니다. 확인바랍니다.', 'error'); 
+            console.error('[send_email.php 에러]', xhr.responseText);
+            // Close loading dialog first
+            Swal.close();
+            Swal.fire('Error', '전송에 실패했습니다. 확인바랍니다.', 'error');
         }
+    });
+}
+
+// 테스트 업로드 기능
+function testUpload() {
+    // 간단한 테스트 데이터 생성 (1KB)
+    var testData = 'A'.repeat(1024);
+    var testBase64 = btoa(testData); // Base64 인코딩
+    
+    console.log('[Test Upload] Testing with 1KB data...');
+    
+    // Test all upload methods
+    uploadPDFWithFallback(testBase64, 'test_document.pdf', function(filename) {
+        console.log('[Test Upload Success]', filename);
+        Swal.fire('Success', '테스트 업로드 성공: ' + filename, 'success');
+    });
+}
+
+// 서버 업로드 제한 상태 확인
+function checkUploadLimits() {
+    checkServerLimits().then(function(serverInfo) {
+        var limits = serverInfo.limits;
+        var message = '서버 업로드 제한 상태:\n\n';
+        message += 'POST 최대 크기: ' + limits.post_max_size + '\n';
+        message += '업로드 최대 크기: ' + limits.upload_max_filesize + '\n';
+        message += '실행 시간 제한: ' + limits.max_execution_time + '초\n';
+        message += '메모리 제한: ' + limits.memory_limit + '\n';
+        message += '입력 시간 제한: ' + limits.max_input_time + '초\n';
+        message += '최대 파일 업로드 수: ' + limits.max_file_uploads + '개';
+        
+        Swal.fire({
+            title: '서버 업로드 제한',
+            text: message,
+            icon: 'info',
+            confirmButtonText: '확인'
+        });
+    }).catch(function(error) {
+        Swal.fire('Error', '서버 상태 확인에 실패했습니다.', 'error');
     });
 }
 

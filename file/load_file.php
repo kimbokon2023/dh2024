@@ -19,6 +19,7 @@ $id_arr=array();
 $parentid_arr=array(); 
 $realfile_arr=array(); 
 $file_arr=array(); 
+$rotation_arr=array(); 
 
  try{  
 	// 레코드 전체 sql 설정
@@ -29,6 +30,7 @@ $file_arr=array();
 			$parentid_arr[]  = $row["parentid"];
 			$realfile_arr[]  = $row["realname"];
 			$file_arr[]      = $row["savename"];			
+			$rotation_arr[]  = $row["rotate"] ?? 0;			
         }		 
    } catch (PDOException $Exception) {
     print "오류: ".$Exception->getMessage();
@@ -41,6 +43,7 @@ $data = array(
 	"parentid_arr" =>   $parentid_arr,
 	"file_arr" =>       $file_arr,
 	"realfile_arr" =>    $realfile_arr,
+	"rotation_arr" =>   $rotation_arr,
 	"DB" =>             $DB,
 	"tablename" =>      $tablename,
 	"item" =>           $item,

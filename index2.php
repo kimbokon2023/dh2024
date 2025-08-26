@@ -11,20 +11,20 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// 세션의 만료 시간을 확인합니다.
-$expiryTime = ini_get('session.gc_maxlifetime');
-$remainingTime = 0;
+// // 세션의 만료 시간을 확인합니다.
+// $expiryTime = ini_get('session.gc_maxlifetime');
+// $remainingTime = 0;
 
-// 세션의 만료 시간과 현재 시간을 비교하여 남은 시간을 계산합니다.
-if (isset($_SESSION['LAST_ACTIVITY'])) {
-  $lastActivity = $_SESSION['LAST_ACTIVITY'];
-  $currentTime = time();
-  $elapsedTime = $currentTime - $lastActivity;
+// // 세션의 만료 시간과 현재 시간을 비교하여 남은 시간을 계산합니다.
+// if (isset($_SESSION['LAST_ACTIVITY'])) {
+//   $lastActivity = $_SESSION['LAST_ACTIVITY'];
+//   $currentTime = time();
+//   $elapsedTime = $currentTime - $lastActivity;
   
-  if ($elapsedTime < $expiryTime) {
-    $remainingTime = $expiryTime - $elapsedTime;
-  }
-}
+//   if ($elapsedTime < $expiryTime) {
+//     $remainingTime = $expiryTime - $elapsedTime;
+//   }
+// }
 
 // 세션의 남은 시간을 반환합니다.
 // echo $expiryTime;
@@ -34,10 +34,9 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/load_header.php");
 
 // DH모터 자료 (접수/출고 등) 가져오기
 include "load_motor_info.php";
-
-
-
 ?>
+
+<script src="<?$root_dir?>/js/todolist.js?v=<?=time()?>"></script> 
  
 <title> (주)대한 DH모터 </title> 
   
@@ -762,6 +761,169 @@ include "load_motor_info.php";
 </div>
 </div>
 
+<!-- 오늘의 할일 -->
+<?php if($chkMobile==false) { ?>
+    <div class="container">     
+<?php } else { ?>
+    <div class="container-fluid">      
+<?php } ?>     
+<div class="card mt-1">
+<div class="card-body">
+    <div class="row d-flex ">
+        <!-- Calendar Controls -->
+        <div class="col-sm-5">
+		  <div class="d-flex justify-content-start align-items-center ">
+            <button  type="button" id="employee_tasks_view" class="btn btn-info btn-sm me-2 fw-bold"> <i class="bi bi-chevron-down"></i> </button>			
+			<h5> <오늘 할일> </h5>
+		  </div>
+        </div>
+        <div class="col-sm-7">
+        </div>               		
+    </div>	
+    <div id="employee_tasks-calendar-container">	
+		<?php
+		// 오늘 날짜의 직원 할일 목록 표시
+		$pdo = db_connect();
+		
+		// 오늘 날짜
+		$today = date('Y-m-d');
+		
+		// 세션에서 사용자 정보 가져오기
+		$current_user = $_SESSION['user_name'] ?? $_SESSION['name'] ?? $_SESSION['username'] ?? '';
+		$current_department = $_SESSION['part'] ?? $_SESSION['department'] ?? $_SESSION['dept'] ?? $_SESSION['user_department'] ?? '';
+		
+		// SQL 조건 구성
+		$where_conditions = ["(is_deleted = 'N' OR is_deleted IS NULL)"];
+		$params = [];
+		
+		// 오늘 날짜 조건 추가
+		$where_conditions[] = "task_date = :today";
+		$params[':today'] = $today;
+		
+		// 현재 사용자가 특정 부서에 속해있다면 해당 부서의 할일만 표시
+		// if (!empty($current_department)) {
+		// 	$where_conditions[] = "department = :current_department";
+		// 	$params[':current_department'] = $current_department;
+		// }
+		
+		$where_clause = implode(' AND ', $where_conditions);
+		
+		// 오늘 할일 데이터 조회
+		$sql = "SELECT * FROM {$DB}.employee_tasks WHERE {$where_clause} ORDER BY created_at DESC";
+		$stmt = $pdo->prepare($sql);
+		foreach ($params as $key => $value) {
+			$stmt->bindValue($key, $value);
+		}
+		$stmt->execute();
+		$today_tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		?>
+		
+		<div class="card shadow-sm mt-2 mb-2">
+			<div class="card-header bg-info text-white">
+				<h5 class="mb-0">
+					<i class="bi bi-calendar-check"></i> 목록 (<?= date('Y-m-d') ?>)
+				</h5>
+			</div>
+			<div class="card-body">
+				<?php if (empty($today_tasks)): ?>
+					<div class="text-center py-4">
+						<i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+						<p class="text-muted mt-2">오늘 등록된 할일이 없습니다.</p>
+					</div>
+				<?php else: ?>
+					<div class="table-responsive">
+						<table class="table table-striped table-hover">
+							<thead class="table-light">
+								<tr>
+									<th>직원명</th>
+									<th>부서</th>
+									<th>할일 개수</th>
+									<th>완료율</th>
+									<th>지연 할일</th>
+									<th>메모</th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php foreach ($today_tasks as $task): 
+									// JSON 데이터 파싱
+									$task_items = json_decode($task['tasks'], true) ?? [];
+									$total_tasks = count($task_items);
+									$completed_tasks = 0;
+									$elapsed_tasks = 0;
+									
+									foreach ($task_items as $item) {
+										if ($item['is_completed'] ?? false) {
+											$completed_tasks++;
+										}
+										// 경과일이 있는 할일 카운트
+										if (!empty($item['original_date'])) {
+											$original_date = new DateTime($item['original_date']);
+											$today_date = new DateTime();
+											$elapsed = $today_date->diff($original_date)->days;
+											if ($elapsed > 0) {
+												$elapsed_tasks++;
+											}
+										}
+									}
+									
+									$completion_rate = $total_tasks > 0 ? round(($completed_tasks / $total_tasks) * 100) : 0;
+								?>
+								<tr class="task-row-clickable" data-task-num="<?= $task['num'] ?>" style="cursor: pointer;">
+									<td class="text-center"><?= htmlspecialchars($task['employee_name']) ?></td>
+									<td class="text-center">
+										<span class="badge bg-secondary"><?= htmlspecialchars($task['department'] ?? '-') ?></span>
+									</td>
+									<td class="text-center">
+										<span class="badge bg-primary"><?= $total_tasks ?>개</span>
+									</td>
+									<td class="text-center">
+										<?php if ($completion_rate == 100): ?>
+											<span class="badge bg-success"><?= $completion_rate ?>%</span>
+										<?php elseif ($completion_rate >= 50): ?>
+											<span class="badge bg-warning"><?= $completion_rate ?>%</span>
+										<?php else: ?>
+											<span class="badge bg-danger"><?= $completion_rate ?>%</span>
+										<?php endif; ?>
+									</td>
+									<td class="text-center">
+										<?php if ($elapsed_tasks > 0): ?>
+											<span class="badge bg-danger"><?= $elapsed_tasks ?>개</span>
+										<?php else: ?>
+											<span class="badge bg-success">0개</span>
+										<?php endif; ?>
+									</td>
+									<td class="text-start">
+										<?php if (!empty($task['memo'])): ?>
+											<span class="text-truncate d-inline-block" style="max-width: 150px;" title="<?= htmlspecialchars($task['memo']) ?>">
+												<?= htmlspecialchars($task['memo']) ?>
+											</span>
+										<?php else: ?>
+											<span class="text-muted">-</span>
+										<?php endif; ?>
+									</td>
+								</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					</div>
+				<?php endif; ?>
+				
+				<div class="mt-3">
+					<button type="button" class="btn btn-primary" onclick="openTaskList()">
+						<i class="bi bi-list"></i> 전체 할일 목록(이동)
+					</button>
+					<!-- <button type="button" class="btn btn-success" onclick="openNewTask()">
+						<i class="bi bi-plus-circle"></i> 새 할일 등록
+					</button> -->
+				</div>
+			</div>
+		</div>
+	</div>	
+	</div>	
+	</div>
+</div>
+ 
+
 <!-- todo Calendar -->
 <?php if($chkMobile==false) { ?>
     <div class="container">     
@@ -796,18 +958,18 @@ include "load_motor_info.php";
 						<input type="radio" name="filter" id="filter_al" class="filter-radio">
 						<span class="checkmark"></span> <span class="text-dark me-2" > 연차 </span>
 					</label>
-					<label class="radio-label">
+					<!-- <label class="radio-label">
 						<input type="radio" name="filter" id="filter_workrecord" class="filter-radio">
 						<span class="checkmark"></span> <span class="text-dark me-2" > 업무일지</span>
-					</label>
+					</label> -->
 					<label class="radio-label">
 						<input type="radio" name="filter" id="filter_as" class="filter-radio">
 					   <span class="checkmark"></span> <span class="badge bg-warning me-2" > AS </span>
 					</label>
-					<label class="radio-label">
+					<!-- <label class="radio-label">
 						<input type="radio" name="filter" id="filter_etc" class="filter-radio">
 						<span class="checkmark"></span> <span class="text-secondary me-2" > 해야 할일 </span>
-					</label>
+					</label> -->
 					<label class="radio-label">
 						<input type="radio" name="filter" id="filter_meeting" class="filter-radio">
 						<span class="checkmark"></span> <span class="text-secondary me-2" > 회의록 </span>
@@ -941,6 +1103,13 @@ $(function() {
         setInterval(alert_eworkslist, 1500);
     }
 
+    // employee_tasks_view 토글
+    $('#employee_tasks_view').on('click', function() {
+        var state = getCookie("showEmployeeTasksView") === "show" ? "hide" : "show";
+        $("#employee_tasks-calendar-container").toggle();
+        setCookie("showEmployeeTasksView", state, 10);
+    });
+
     // todo_view 토글
     $('#todo_view').on('click', function() {
         var state = getCookie("showTodoView") === "show" ? "hide" : "show";
@@ -981,6 +1150,45 @@ $(function() {
             900
         );
     };
+
+    window.openTaskList = function() {
+        popupCenter(
+            "./todo_task/task_list.php?header=no",
+            "오늘의 할일",
+            1920,
+            1080
+        );
+    };
+
+    window.openNewTask = function() {
+        popupCenter(
+            "./employee_tasks/write_form.php?mode=insert&tablename=employee_tasks",
+            "새 할일 등록",
+            1200,
+            800
+        );
+    };
+
+   $(".task-row-clickable").on("click", function() {
+		var taskNum = $(this).data("task-num");
+        popupCenter(
+            "./todo_task/task_list.php?header=no&task_num=" + taskNum,
+            "오늘의 할일",
+            1920,
+            1080
+        );
+   });
+
+//    $(".task-row-clickable").on("click", function() {
+// 		var taskNum = $(this).data("task-num");
+// 		popupCenter(
+// 			"./employee_tasks/write_form.php?mode=view&num=" + taskNum + "&tablename=employee_tasks",
+// 			"할일 상세",
+// 			1200,
+// 		800
+// 		);
+//    });
+
 });
 </script>
 </body>

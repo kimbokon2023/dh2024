@@ -1,17 +1,13 @@
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");   
-
 if (!isset($_SESSION["level"]) || $_SESSION["level"] > 5) {
     sleep(1);
     header("Location: /login/login_form.php"); 
     exit;
 }
-
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
-
 // 첫 화면 표시 문구
-$title_message = '판매일괄회계반영'; 
-
+$title_message = '당월판매 회계반영'; 
 ?>
 
 <link href="css/style.css" rel="stylesheet">   
@@ -54,9 +50,7 @@ if ($fromdate === "" || $fromdate === null || $todate === "" || $todate === null
 function checkNull($strtmp) {
     return $strtmp !== null && trim($strtmp) !== '';
 }
-
 $tablename = 'phonebook';
-
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect();
 
@@ -134,13 +128,14 @@ foreach ($previousBalances as $balanceRow) {
         'balance' => $balanceRow['balance'],
         'invoice_issued' => $balanceRow['invoice_issued'],
         'memo' => $balanceRow['memo'],
-        'num' => $balanceRow['num']
+        'num' => $balanceRow['num'],
+        'book_issued' => $balanceRow['book_issued']
     ];
 }
 
 // 현재월 잔액 조회
 $current_saleSql = "
-    SELECT secondordnum, sales, num, invoice_issued, memo
+    SELECT secondordnum, sales, num, invoice_issued, memo, book_issued 
     FROM monthly_sales
     WHERE closure_date BETWEEN :fromdate AND :todate AND is_deleted IS NULL 
 ";
@@ -158,7 +153,8 @@ foreach ($currentBalances as $balanceRow) {
         'sales' => $balanceRow['sales'],
         'invoice_issued' => $balanceRow['invoice_issued'],
         'memo' => $balanceRow['memo'],
-        'num' => $balanceRow['num']
+        'num' => $balanceRow['num'],
+        'book_issued' => $balanceRow['book_issued']
     ];
 }
 
@@ -197,7 +193,8 @@ foreach ($paymentData as $paymentRow) {
         <span class="text-center fs-5 me-4"><?=$title_message?></span>    
         <button type="button" class="btn btn-dark btn-sm me-1" onclick='location.href="month_sales.php"'> 
             <i class="bi bi-arrow-clockwise"></i>
-        </button>        
+        </button>   
+        <small class="mx-3 text-muted"> 당월 판매 내역 / 계산서 발행하면 계산서발행란에 체크를 하고 저장합니다. </small>  
     </div>                               
     <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">       
         <span class="text-center fs-6 text-danger"> * 세금계산서 발행일은 매월 말일 기준으로 입력해 주세요! 현재날짜로 입력하면 화면에 안나올수 있습니다.  </span>    
@@ -244,6 +241,8 @@ foreach ($paymentData as $paymentRow) {
                  <th class="text-center w50px">상세</th>
                  <th class="text-center w100px">발행금액</th>                 
                  <th class="text-center w100px">세금계산서</th>
+                 <th class="text-center w100px">거래원장 보기</th>
+                 <th class="text-center w100px">거래원장 발행</th>
                  <th class="text-center w200px">적요</th>
             </thead>
          <tbody>                        
@@ -297,6 +296,7 @@ foreach ($paymentData as $paymentRow) {
             $current_sale = 0;
             $current_sale_num = '';
             $invoice_issued = '';
+            $book_issued = ''; // 거래원장 발행 시간
             $memo = '';
             
             // 기존데이터가 존재할때
@@ -304,13 +304,15 @@ foreach ($paymentData as $paymentRow) {
                 $current_sales = $currentBalanceMap[$secondordnum]['sales'];
                 $current_sale_num = $currentBalanceMap[$secondordnum]['num'];
                 $invoice_issued = isset($currentBalanceMap[$secondordnum]['invoice_issued']) ? $currentBalanceMap[$secondordnum]['invoice_issued'] : ''; // 기본값을 제공                
-                $memo = isset($currentBalanceMap[$secondordnum]['memo']) ? $currentBalanceMap[$secondordnum]['memo'] : ''; // 기본값을 제공       
+                $memo = isset($currentBalanceMap[$secondordnum]['memo']) ? $currentBalanceMap[$secondordnum]['memo'] : ''; // 기본값을 제공     
+                $book_issued = isset($currentBalanceMap[$secondordnum]['book_issued']) ? $currentBalanceMap[$secondordnum]['book_issued'] : ''; // 기본값을 제공     
             }    
             else{
                 // 기존데이터가 없을때 신규
                 $current_sales =  0;
                 $current_sale_num = '';
                 $invoice_issued =  ''; 
+                $book_issued = '';
                 $memo = '';
             }
       
@@ -346,6 +348,8 @@ foreach ($paymentData as $paymentRow) {
 				&nbsp;
 			<?php endif; ?>
 		</td>
+        <td class="text-center " onclick="viewBookIssued('<?= $current_sale_num ?>', '<?= $secondordnum ?>', '<?= $fromdate ?>', '<?= $todate ?>')"> <i class="bi bi-eye"></i></td>
+        <td class="text-start" > <?= $book_issued ?></td>
 		<td class="text-start"  onclick="fetchMonthlyBalanceData('<?= $current_sale_num ?>', '<?= $secondordnum ?>', '<?= $vendor_name ?>', '<?= $total_amount ?>')"><?= $memo ?></td>
 	</tr>
 
@@ -359,6 +363,8 @@ foreach ($paymentData as $paymentRow) {
       <tfoot class="table-secondary">
             <tr>
                 <th class="text-end" colspan="2"> 합계 &nbsp; </th>
+                <th class="text-end"></th>
+                <th class="text-end"></th>
                 <th class="text-end"></th>
                 <th class="text-end"></th>
                 <th class="text-end"></th>
@@ -705,6 +711,11 @@ function toastAlert(Str){
 
 function numberWithCommas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function viewBookIssued(num, secondordnum, fromdate, todate) {
+    var url = "customer_sheet.php?num=" + secondordnum + "&fromdate=" + fromdate + "&todate=" + todate + "&book_issued=write&uniqueNum=" + num; // 거래원장 기록을 위한 옵션
+    customPopup(url, '거래원장', 1000, 850);             
 }
 
 </script>

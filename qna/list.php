@@ -86,10 +86,12 @@ $pdo = db_connect();
   
   
 	<div class="card mt-2 mb-4">  
-	<div class="card-body">  
-		<div class="d-flex mt-3 mb-2 justify-content-center">  
-				<h5>  <?=$title_message?> </h5> 
+		<div class="card-header d-flex justify-content-center align-items-center">
+			<span class="text-center fs-5"> <?=$title_message?> </span>	
+			<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+			<small class="mx-3 text-muted"> 직원들과 공유할 자료를 자유롭게 올립니다. </small>  
 		</div>	
+	<div class="card-body">  
   
  
  <div class="d-flex mt-3 mb-1 justify-content-center  align-items-center"> 

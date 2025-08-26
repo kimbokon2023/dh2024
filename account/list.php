@@ -37,6 +37,8 @@ $title_message = '금전 출납부';
 <body>
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php');
+$lastUpdateFile = $_SERVER['DOCUMENT_ROOT'] . "/account/last_update.txt";
+$lastUpdatedAt = file_exists($lastUpdateFile) ? trim(file_get_contents($lastUpdateFile)) : '';
 $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';  
 $fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
 $todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
@@ -138,20 +140,16 @@ $totalExpense = $totalExpenseStmh->fetch(PDO::FETCH_ASSOC)['totalExpense'];
 
 $finalBalance = $initialBalance + $totalIncome - $totalExpense;
 
-// Bankbook options
-$bankbookOptions = [];
-$bankbookFilePath = $_SERVER['DOCUMENT_ROOT'] . "/account/bankbook.txt";
-if (file_exists($bankbookFilePath)) {
-    $bankbookOptions = file($bankbookFilePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-}
+// 멀티 계좌정보(잔액) 가져오기
+include $_SERVER['DOCUMENT_ROOT'] . "/account/bankbook.php";
+
 ?>
 
 <form id="board_form" name="board_form" method="post" enctype="multipart/form-data">
 
     <input type="hidden" id="mode" name="mode" value="<?= isset($mode) ? $mode : '' ?>">
     <input type="hidden" id="num" name="num" value="<?= isset($num) ? $num : '' ?>">
-    <input type="hidden" id="tablename" name="tablename" value="<?= isset($tablename) ? $tablename : '' ?>">
- 
+    <input type="hidden" id="tablename" name="tablename" value="<?= isset($tablename) ? $tablename : '' ?>"> 
 
     <div class="container-fluid">
         <!-- Modal -->
@@ -170,20 +168,28 @@ if (file_exists($bankbookFilePath)) {
 
     <div class="container">
         <div class="card justify-content-center text-center mt-5">
-            <div class="card-header">
-                <span class="text-center fs-5">  <?=$title_message?> 
-					<button type="button" class="btn btn-dark btn-sm me-1" onclick='location.reload()'>  
-					<i class="bi bi-arrow-clockwise" ></i> </button>      
-				</span>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-center fs-5">  <?=$title_message?> 
+						<button type="button" class="btn btn-dark btn-sm me-1" onclick='location.reload()'>   <i class="bi bi-arrow-clockwise" ></i> </button>      
+					</span>
+                    <small class="ms-5 text-muted"> 지출과 수입을 등록합니다.(비고란에 상세하게 기입하기) </small>  
+                </div>
+                <div class="text-muted" style="font-size:0.85rem;">
+                    <?php if ($lastUpdatedAt !== '') { echo '최종 업데이트 일시: ' . htmlspecialchars($lastUpdatedAt); } ?>
+                </div>
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-center align-items-center mt-2">
+                <div class="d-flex justify-content-start align-items-center mt-2">
                     <span>
                         ▷ <?= $total_row ?> &nbsp;
                     </span>
                                 
                     <!-- 기간부터 검색까지 연결 묶음 start -->                    
-                    <span id="showdate" class="btn btn-dark btn-sm">기간</span>   &nbsp;                                 
+                    <small class="d-block text-muted text-center mt-1 mx-2">
+                       [기간]버튼에 커서를 올리면 전체, 전년도, 전월등 세부 내용을 검색 가능합니다.
+                    </small>
+                    <span id="showdate" class="btn btn-dark btn-sm mx-2">기간</span>
                     <div id="showframe" class="card"> 
                         <div class="card-header" style="padding:2px;">
                             <div class="d-flex justify-content-center align-items-center">  
@@ -206,6 +212,8 @@ if (file_exists($bankbookFilePath)) {
 
                     <input type="date" id="fromdate" name="fromdate" class="form-control" style="width:110px;" value="<?=$fromdate?>">  &nbsp;   ~ &nbsp;  
                     <input type="date" id="todate" name="todate" class="form-control me-1" style="width:110px;" value="<?=$todate?>">  &nbsp;
+                </div>
+                <div class="d-flex justify-content-center align-items-center mt-2">
                     <!-- 기간검색 끝 -->
 
                     <!-- 첫 번째 select 문: 수입/지출 구분 -->
@@ -240,22 +248,23 @@ if (file_exists($bankbookFilePath)) {
 				<button type="button" class="btn btn-primary btn-sm me-2" onclick="detail();" > <i class="bi bi-ticket-detailed"></i> 상세내역 </button>
             </div>
             </div>
-			<div class="row w400px m-1 mt-2">
-				<table class="table table-bordered">
-						<thead class="table-secondary">
-							<tr>
-						<?php
-						$tmp = '  ' . $bankbookOptions[0] . ' (계좌 잔액)  :  ';
-						if (isset($finalBalance)) {
-							$tmp_balance = number_format($finalBalance);
-						}
-						?>						
-								<th class="text-center" style="width:200px;"> <?=$tmp?> </th>
-								<th class="text-end text-primary fw-bold" style="width:100px;"> <?=$tmp_balance?> </th>
-							</tr>
-						</thead>
-				</table>
-			</div>					
+            <!-- 멀티 계좌별 잔액 표시 -->
+            <div class="d-flex flex-wrap justify-content-start align-items-center mt-2 p-2 border rounded" style="gap: 10px;">
+                <strong class="me-2">계좌 잔액:</strong>
+                    <?php foreach ($accountFinalBalances as $summary): ?>
+                        <?php if ($summary['balance'] > 0): ?>
+                            <?php 
+                            // USD가 포함된 경우 금액 앞에 $ 추가
+                            $isUSD = stripos($summary['name'], 'USD') !== false;
+                            $formattedBalance = $isUSD ? '$' . number_format($summary['balance']) : number_format($summary['balance']);
+                            ?>
+                            <div class="border rounded p-1" style="font-size: 0.8em;">
+                                <span class="text-secondary"><?= htmlspecialchars($summary['name']) ?>:</span>
+                                <span class="fw-bold ms-1"><?= $formattedBalance ?></span>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+            </div>            				 
             <div class="table-responsive">
                 <table class="table table-hover" id="myTable">
                     <thead class="table-secondary">
@@ -267,7 +276,8 @@ if (file_exists($bankbookFilePath)) {
                             <th class="text-center" style="width:150px;">상세내용</th>
                             <th class="text-center" style="width:100px;">수입</th>
                             <th class="text-center" style="width:100px;">지출</th>
-                            <th class="text-center" style="width:100px;">잔액</th>                            
+                            <th class="text-center" style="width:100px;">잔액</th>       
+                            <th class="text-center" style="width:160px;">계좌</th>                     
                             <th class="text-center" style="width:200px;">적요</th>
                         </tr>
 						<tr style="background-color: #808080!important;">
@@ -276,24 +286,54 @@ if (file_exists($bankbookFilePath)) {
 							<th class="text-end" id="totalExpenseAmount"></th>
 							<th class="text-end" id="totalBalanceAmount"></th>
 							<th class="text-end"></th>							
+							<th class="text-end"></th>							
 						</tr>						
                     </thead>
                     <tbody>
                         <?php
+                        // 1) 계좌별 기초 잔액(기간 시작 이전)을 계산하여 러닝 잔액 테이블 생성
+                        $runningBalances = [];
+                        if (is_array($accounts)) {
+                            foreach ($accounts as $account) {
+                                // dh2024는 bankbook 저장 시 memo 미포함 케이스가 있어 memo는 제외
+                                $accountDisplay = $account['company'] . ' ' . $account['number'];
+
+                                $initialBalanceSqlByAccount = "SELECT 
+                                    (SUM(CASE WHEN inoutsep = '수입' OR inoutsep = '최초전월이월' THEN REPLACE(amount, ',', '') ELSE 0 END) -
+                                     SUM(CASE WHEN inoutsep = '지출' THEN REPLACE(amount, ',', '') ELSE 0 END)) AS balance
+                                    FROM $tablename 
+                                    WHERE (is_deleted IS NULL or is_deleted = 0 or is_deleted = '')
+                                      AND registDate < :fromdate AND bankbook = :bankbook";
+                                $stmtInit = $pdo->prepare($initialBalanceSqlByAccount);
+                                $stmtInit->bindParam(':fromdate', $fromdate);
+                                $stmtInit->bindParam(':bankbook', $accountDisplay);
+                                $stmtInit->execute();
+                                $resInit = $stmtInit->fetch(PDO::FETCH_ASSOC);
+                                $runningBalances[$accountDisplay] = $resInit['balance'] ?? 0;
+                            }
+                        }
+
                         $start_num = $total_row;
 						$counter = 1;
-                        $balance = $initialBalance; // 초기 잔액 설정
+                        $balance = $initialBalance; // 전체 기준 잔액(표시는 계좌별 러닝 잔액 사용)
 						while($row = $stmh->fetch(PDO::FETCH_ASSOC)) {
-							
+                            
 							include '_row.php';
 							
 							// 콤마 제거 후 숫자로 변환
 							$amount = floatval(str_replace(',', '', $row['amount']));
-							if ($row['inoutsep'] === '수입') {
-								$balance += $amount;
-							} else {
-								$balance -= $amount;
-							}
+
+                            // JSON에 없는 계좌가 등장하는 경우 0으로 초기화
+                            if (!isset($runningBalances[$bankbook])) {
+                                $runningBalances[$bankbook] = 0;
+                            }
+
+                            // 계좌별 러닝 잔액 가감 (수입/최초전월이월 +, 지출 -)
+                            if ($inoutsep === '수입' || $inoutsep === '최초전월이월') {
+                                $runningBalances[$bankbook] += $amount;
+                            } else {
+                                $runningBalances[$bankbook] -= $amount;
+                            }
 
                         ?>
                         <tr onclick="loadForm('update', '<?=$num?>');">
@@ -314,7 +354,8 @@ if (file_exists($bankbookFilePath)) {
                                     <?= is_numeric($amount) ? number_format($amount) : htmlspecialchars($amount) ?>
                                 </td>
                             <?php endif; ?>
-                            <td class="text-end fw-bold"><?= number_format($balance) ?></td>                            
+                            <td class="text-end fw-bold"><?= number_format($runningBalances[$bankbook]) ?></td>     
+                            <td class="text-start"><?= $bankbook ?></td>                       
                             <td class="text-start"><?= $memo ?></td>
                         </tr>
                         <?php
@@ -337,7 +378,9 @@ if (file_exists($bankbookFilePath)) {
 // 페이지 로딩
 $(document).ready(function(){    
     var loader = document.getElementById('loadingOverlay');
-    loader.style.display = 'none';
+    if (loader) {   
+        loader.style.display = 'none';
+    }
 });
 
 function numberWithCommas(x) {
@@ -369,7 +412,7 @@ $(document).ready(function() {
 			},
 			{
 				"orderable": false, // 정렬 비활성화
-				"targets": [7, 8] // 나머지 열 (적요 열) 비활성화
+				"targets": [7, 8, 9] // 나머지 열 (적요 열) 비활성화
 			}
 		],
 		"footerCallback": function (row, data, start, end, display) {
@@ -685,30 +728,31 @@ function generateExcel() {
     }
 
     // saveExcel.php에 데이터 전송
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "order_saveExcel.php", true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4) {
-            if (xhr.status == 200) {
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success) {
-                        console.log('Excel file generated successfully.');
-                        // 다운로드 스크립트로 리디렉션
-                        window.location.href = 'downloadExcel.php?filename=' + encodeURIComponent(response.filename.split('/').pop());
-                    } else {
-                        console.log('Failed to generate Excel file: ' + response.message);
-                    }
-                } catch (e) {
-                    console.log('Error parsing response: ' + e.message + '\nResponse text: ' + xhr.responseText);
+    console.log('Sending data:', data);
+    $.ajax({
+        type: "POST",
+        url: "order_saveExcel.php",
+        data: { excelData: JSON.stringify(data) },
+        dataType: "json",
+        success: function(response) {
+            try {
+                if (response.success) {
+                    console.log('Excel file generated successfully.');
+                    window.location.href = 'downloadExcel.php?filename=' + encodeURIComponent(response.filename.split('/').pop());
+                } else {
+                    console.log('Failed to generate Excel file: ' + response.message);
                 }
-            } else {
-                console.log('Failed to generate Excel file: Server returned status ' + xhr.status);
+            } catch (e) {
+                console.log('Error parsing response: ' + e.message + '\nResponse text: ' + response);
             }
+        },
+        error: function(xhr, status, error) {
+            console.log('Failed to generate Excel file: ' + error);
+            console.log('Status: ' + status);
+            console.log('Response Text: ' + xhr.responseText);
+            console.log('Status Code: ' + xhr.status);
         }
-    };
-    xhr.send(JSON.stringify(data));
+    });
 }
 
 function settings() {    

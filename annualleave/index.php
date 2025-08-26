@@ -77,8 +77,9 @@ try {
 
             <div class="card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-center mt-3 mb-3">
+                    <div class="d-flex justify-content-center align-items-center mt-3 mb-3">
                         <span class=" fs-5"> <?=$title_message?> </span>
+                        <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  	 			
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <? if ($admin == 1) { ?>
                             <button type="button" id="openAlmemberBtn" class="btn btn-success btn-sm me-2">
@@ -89,6 +90,7 @@ try {
                                     관리자모드
                                 </button>
                             <? } ?>
+                            <small class="ms-5 text-muted"> 연차 기간을 넣고 결재요청 버튼을 누르시면 등록됩니다. </small>    
                     </div>
 					<div class="d-flex justify-content-center align-items-center mt-3 mb-4">
 						<h6>
@@ -146,15 +148,19 @@ try {
                                     switch ($status) {
                                         case 'send':
                                             $statusstr = '결재요청';
+                                            $statusClass = 'text-primary fw-bold';
                                             break;
                                         case 'ing':
                                             $statusstr = '결재중';
+                                            $statusClass = '';
                                             break;
                                         case 'end':
                                             $statusstr = '결재완료';
+                                            $statusClass = '';
                                             break;
                                         default:
                                             $statusstr = '';
+                                            $statusClass = '';
                                             break;
                                     }
                                 ?>
@@ -166,11 +172,14 @@ try {
                                         <td class="text-center"><?=$al_usedday?></td>
                                         <td class="text-center"><?=$author?></td>
                                         <td class="text-center"><?=$al_content?></td>
-                                        <td class="text-center"><?=$statusstr?></td>
+                                        <td class="text-center <?=$statusClass?>"><?=$statusstr?></td>
                                     </tr>
                                 <?php
                                     $start_num--;
                                 }
+                                ?>
+                                <?php
+                                    $start_num--;                           
                             } catch (PDOException $Exception) {
                                 print "오류: " . $Exception->getMessage();
                             }
@@ -450,6 +459,12 @@ function loadForm(mode, num = null) {
 				  case '경조사' :	 	   
 					 $('#al_usedday').val(0);
 					 break;		 
+				  case '예비군훈련' :	 	   
+					 $('#al_usedday').val(0);
+					 break;		 
+				  case '공가' :	 	   
+					 $('#al_usedday').val(0);
+					 break;		 
 			   }
 					 
 			});	
@@ -477,6 +492,12 @@ function loadForm(mode, num = null) {
 				  case '경조사' :	 	   
 					 $('#al_usedday').val(0);
 					 break;
+                     case '예비군훈련' :	 	   
+					 $('#al_usedday').val(0);
+					 break;		 
+				  case '공가' :	 	   
+					 $('#al_usedday').val(0);
+					 break;	                     
 			   }
 			});	
 
@@ -504,6 +525,12 @@ function loadForm(mode, num = null) {
 				  case '경조사' :	 	   
 					 $('#al_usedday').val(0);
 					 break;		 
+                     case '예비군훈련' :	 	   
+					 $('#al_usedday').val(0);
+					 break;		 
+				  case '공가' :	 	   
+					 $('#al_usedday').val(0);
+					 break;	                     
 			   }
 			});			  
 		  

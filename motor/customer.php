@@ -130,7 +130,7 @@ foreach ($salesBeforeData as $row) {
 }
 
 // echo '<pre>';
-// print_r($initialBalances);
+// print_r($salesBeforeData);
 // echo '</pre>';
 
 // 수금 데이터를 이용해 이월 잔액에서 수금을 차감
@@ -183,8 +183,8 @@ foreach ($salesData as $row) {
 // echo '</pre>';
 
 // echo '<pre>';
-// echo '이월잔액배열 케이디에스 추적 initialBalances: ';
-// print_r(number_format(round($initialBalances['65'])));
+// echo '이월잔액배열 주일기업 추적 initialBalances: ';
+// print_r(number_format(round($initialBalances['34'])));  // 주일기업 34번 
 // echo '</pre>';
 
 
@@ -326,35 +326,44 @@ $allResults = array_values($allResults);
             <i class="bi bi-arrow-clockwise"></i> 
         </button>        
 		   <!-- <span class="badge bg-primary"> (한빛에스티) 매월25일 마감 </span> -->
+        <small class="ms-5 text-muted"> 기간별 설정해서 거래처별 원장을 검색합니다. </small>  
     </div>     
 	
     <div class="card-body">                               
-    <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">       
-            <i class="bi bi-arrow-right"></i> <span id="total"> </span> &nbsp;
+        <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-start align-items-center">       
+        <!-- 우측을 가리키는 삼각형 아이콘 -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-caret-right-fill me-2" viewBox="0 0 16 16" style="vertical-align:middle;">
+            <path d="M12.14 8.753l-6.482 4.796A.5.5 0 0 1 5 13.5V2.5a.5.5 0 0 1 .658-.478l6.482 4.796a.5.5 0 0 1 0 .935z"/>
+        </svg>
+        <span id="total"> </span> &nbsp;
 
-            <!-- 기간부터 검색까지 연결 묶음 start -->
-                <button type="button" class="btn btn-outline-dark btn-sm me-1 change_dateRange" onclick='alldatesearch()'>전체</button>  
-                <span id="showdate" class="btn btn-dark btn-sm">기간</span>   &nbsp; 
-                
-                <div id="showframe" class="card" style="width:300px;"> 
-                    <div class="card-header" style="padding:2px;">
-                        <div class="d-flex justify-content-center align-items-center">  
-                            기간 설정
-                        </div>
-                    </div> 
-                    <div class="card-body">										
-                        <div class="d-flex justify-content-center align-items-center">                                                              
-                            <button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='prepre_month()'>전전월</button>                            
-                            <button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='pre_month()'>전월</button>                            
-							<button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='this_month()'>당월</button>
-                            <button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='this_year()'>당해년도</button> 
-                        </div>
-                    </div>
-                </div>      
-
-       <input type="date" id="fromdate" name="fromdate" class="form-control" style="width:100px;" value="<?=$fromdate?>">  &nbsp;   ~ &nbsp;  
-       <input type="date" id="todate" name="todate" class="form-control me-1" style="width:100px;" value="<?=$todate?>">  &nbsp;     </span> 
+            <!-- 기간부터 검색까지 연결 묶음 start -->                    
+            <small class="d-block text-muted text-center mt-1 mx-2">
+                [기간]버튼에 커서를 올리면 전체, 전년도, 전월등 세부 내용을 검색 가능합니다.
+            </small>
+            <span id="showdate" class="btn btn-dark btn-sm mx-2">기간</span>            
             
+            <div id="showframe" class="card" style="width:300px;"> 
+                <div class="card-header" style="padding:2px;">
+                    <div class="d-flex justify-content-center align-items-center">  
+                        기간 설정
+                    </div>
+                </div> 
+                <div class="card-body">										
+                    <div class="d-flex justify-content-center align-items-center">                                                              
+                        <button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='prepre_month()'>전전월</button>                            
+                        <button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='pre_month()'>전월</button>                            
+                        <button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='this_month()'>당월</button>
+                        <button type="button" class="btn btn-dark btn-sm me-1 change_dateRange" onclick='this_year()'>당해년도</button> 
+                    </div>
+                </div>
+            </div>      
+
+        <input type="date" id="fromdate" name="fromdate" class="form-control" style="width:100px;" value="<?=$fromdate?>">  &nbsp;   ~ &nbsp;  
+        <input type="date" id="todate" name="todate" class="form-control me-1" style="width:100px;" value="<?=$todate?>">  &nbsp;     </span> 
+        </div>
+        <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">       
+        
         <div class="inputWrap">
                 <input type="text" id="search" name="search" value="<?=$search?>" onkeydown="if(event.key === 'Enter') submitForm();" autocomplete="off" class="form-control" style="width:150px;"> &nbsp;           
                 <button class="btnClear"></button>

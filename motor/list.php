@@ -144,7 +144,8 @@ try {
 	<div class="d-flex  p-1 m-1 mt-1 justify-content-center align-items-center "> 		
 		   <h5>  <?=$title_message?>  <?=$titletag?> </h5>  
 		<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		   
-	   <span id="showalign" class="btn btn-dark btn-sm me-2" > <i class="bi bi-card-list"></i> 정렬 </span>	
+	    <span id="showalign" class="btn btn-dark btn-sm me-2" > <i class="bi bi-card-list"></i> 정렬 </span>	
+		<small class="ms-5 text-muted"> 거래처별 발주내용 확인 후 등록 (현장명, 출고일 필히 확인 후 등록일자 클릭)</small>  
 		<div id="showalignframe" class="card">
 			<div class="card-header text-center " style="padding:2px;">
 				화면정렬
@@ -166,11 +167,15 @@ try {
 				
 		</div>	
 
-	<div class="d-flex  p-1 m-1 mt-1 mb-1 justify-content-center align-items-center"> 	  
-			▷   <?= $total_row ?> &nbsp; 		
-
+	<div class="d-flex mt-1 mb-1 justify-content-start align-items-center"> 	  
+		<span>	
+			▷ <?= $total_row ?> &nbsp;
+		</span>                                
 			<!-- 기간부터 검색까지 연결 묶음 start -->
-				<span id="showdate" class="btn btn-dark btn-sm " > 기간 </span>	&nbsp; 
+				<small class="d-block text-muted text-center  mx-4">
+                        [기간]버튼에 커서를 올리면 전체, 전년도, 전월등 세부 내용을 검색 가능합니다.
+                    </small>
+                    <span id="showdate" class="btn btn-dark btn-sm mx-2">기간</span>  					
 				
 				<div id="showframe" class="card">
 					<div class="card-header " style="padding:2px;">
@@ -192,12 +197,11 @@ try {
 					</div>
 				</div>		
 
-	   <input type="date" id="fromdate" name="fromdate"   class="form-control"   style="width:100px;" value="<?=$fromdate?>" >  &nbsp;   ~ &nbsp;  
-	   <input type="date" id="todate" name="todate"  class="form-control me-1"   style="width:100px;" value="<?=$todate?>" >  &nbsp;     </span> 
-			
+			<input type="date" id="fromdate" name="fromdate"   class="form-control"   style="width:100px;" value="<?=$fromdate?>" >  &nbsp;   ~ &nbsp;  
+			<input type="date" id="todate" name="todate"  class="form-control me-1"   style="width:100px;" value="<?=$todate?>" >  &nbsp;     </span> 		
 		<div class="inputWrap">
-				<input type="text" id="search" name="search" value="<?=$search?>" onkeydown="JavaScript:SearchEnter();" autocomplete="off"  class="form-control" style="width:150px;" > &nbsp;			
-				<button class="btnClear"></button>
+			<input type="text" id="search" name="search" value="<?=$search?>" onkeydown="JavaScript:SearchEnter();" autocomplete="off"  class="form-control" style="width:150px;" > &nbsp;			
+			<button class="btnClear"></button>
 		</div>				
 		
 		<div id="autocomplete-list">						
@@ -214,15 +218,7 @@ try {
 				 <button type="button" class="btn btn-dark btn-sm me-1" onclick="popupCenter('delivery.php','화물택배',1500,900);">  <i class="bi bi-truck"></i> 화물택배 </button>    							 
 				<button type="button" class="btn btn-dark btn-sm me-1" onclick="popupCenter('print_group.php','출고증 묵음',1500,900);">  <i class="bi bi-printer"></i> 출고증 묶음 </button>    							 				 
 				 <!-- <button  type="button" id="rawmaterialBtn"  class="btn btn-dark btn-sm" > <i class="bi bi-list"></i> 재고 </button> &nbsp;	 -->
-         </div> 	 		 
-		<!-- <div class="d-flex  p-1 m-1 mt-1 mb-1 justify-content-center align-items-center"> 		 
-			<div id="showstatusframe" class="card">			
-				<div class="card-body">				
-					 <button type="button" class="btn btn-dark btn-sm " onclick="popupCenter('call_csv.php','CSV 파일추출',1600,500);"> 엑셀CSV</button>  	
-				</div>				
-			</div>			 
-		</div>			 
-		-->		 
+         </div> 	 		 	 
    </div> <!--card-body-->
    </div> <!--card -->   
 </div> <!--container-fluid -->   

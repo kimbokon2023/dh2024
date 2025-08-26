@@ -1,45 +1,52 @@
-<?php   
-require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
-
-$mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';  
-$num = isset($_REQUEST['num']) ? $_REQUEST['num'] : '';
-$status = isset($_REQUEST['status']) ? $_REQUEST['status'] : '';
-$update_log = isset($_REQUEST['update_log']) ? $_REQUEST['update_log'] : '';
-$outputdate = isset($_REQUEST['outputdate']) ? $_REQUEST['outputdate'] : '';
-
-header("Content-Type: application/json");  // JSON 타입 헤더 설정
-
+<?php
+require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
-$pdo = db_connect();	
 
-// Update log with current time and user session name
-$update_log = date("Y-m-d H:i:s") . " - " . $_SESSION["name"] . " " . $update_log . "&#10";
+header("Content-Type: application/json");
 
-try {
-	$pdo->beginTransaction();
-	$sql = "UPDATE " . $DB . ".motor SET 
-			status=?, update_log=?, outputdate=? 
-			WHERE num=? LIMIT 1";  // Only update status, update_log, and searchtag columns
+$num = $_REQUEST['num'] ?? '';
+$status = $_REQUEST['status'] ?? '';
+$update_log_input = $_REQUEST['update_log'] ?? '';
+$outputdate = $_REQUEST['outputdate'] ?? '';
 
-	$stmh = $pdo->prepare($sql);
-
-	// Bind the parameters
-	$params = [$status, $update_log, $outputdate, $num];
-
-	$stmh->execute($params);
-	$pdo->commit();
-} catch (PDOException $Exception) {
-	$pdo->rollBack();
-	print "오류: " . $Exception->getMessage();
+// 필수 값 누락 시
+if (empty($num)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'num 값이 없습니다.']);
+    exit;
 }
 
-$data = [   
-    'num' => $num,
-    'status' => $status,
-    'outputdate' => $outputdate,
-    'update_log' => $update_log
-]; 
- 
-echo json_encode($data, JSON_UNESCAPED_UNICODE);
+// 로그 문자열 조합
+$update_log = date("Y-m-d H:i:s") . " - " . ($_SESSION["name"] ?? 'unknown') . " " . $update_log_input . "&#10";
 
+$pdo = db_connect();
+
+try {
+    $pdo->beginTransaction();
+
+    $sql = "UPDATE {$DB}.motor SET 
+                status = ?, 
+                update_log = ?, 
+                outputdate = ?
+            WHERE num = ?";
+
+    $stmh = $pdo->prepare($sql);
+    $stmh->execute([$status, $update_log, $outputdate, $num]);
+
+    $pdo->commit();
+
+    echo json_encode([
+        'num' => $num,
+        'status' => $status,
+        'outputdate' => $outputdate,
+        'update_log' => $update_log
+    ], JSON_UNESCAPED_UNICODE);
+} catch (PDOException $e) {
+    $pdo->rollBack();
+    http_response_code(500);
+    echo json_encode([
+        'error' => '데이터베이스 오류',
+        'message' => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
+}
 ?>

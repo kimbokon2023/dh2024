@@ -122,4 +122,7 @@ $Deliverymanager = $row['Deliverymanager'] ??  '';
 
 // 거래명세표 전송시간 추가
 $statement_sent_at = $row['statement_sent_at'] ??  null;
+
+// 발주처주소록 비고 가져오기
+$custNote = isset($row['custNote']) ? $row['custNote'] : '';
 ?>

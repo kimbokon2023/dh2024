@@ -317,8 +317,8 @@ try{
 				<div class="d-flex mb-3 mt-2 justify-content-center align-items-center">  
 					<h4> <?=$title_message?> </h4>  
 					<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  	 			
-				</div>	
-
+                    <small class="ms-5 text-muted">  카드사용 내역, 금액 기재하고 영수증 사진 첨부하여 저장 (사용카드번호 확인) </small>  
+				</div>	                                
                 <!-- ======================================= -->
                 <!--  (2) 법인카드별 사용 합계 통계 테이블 -->
                 <!-- ======================================= -->
@@ -404,10 +404,16 @@ try{
                         </tbody>
                     </table>
                 </div>
-                <?php endif; ?>                
-			<div class="d-flex mb-1 mt-1 justify-content-center align-items-center">  													   
-			<!-- 기간부터 검색까지 연결 묶음 start -->
-			<span id="showdate" class="btn btn-dark btn-sm " > 기간 </span>	&nbsp; 		
+                <?php endif; ?>                			
+            <div class="d-flex justify-content-start align-items-center mt-2">
+                    <span>
+                        ▷ <?= $total_row ?> &nbsp;
+                    </span>
+                                
+                    <small class="d-block text-muted text-center mt-1 mx-4">
+                        [기간]버튼에 커서를 올리면 전체, 전년도, 전월등 세부 내용을 검색 가능합니다.
+                    </small>
+                    <span id="showdate" class="btn btn-dark btn-sm mx-2">기간</span>  	
 			<div id="showframe" class="card showextractframe" style="width:500px;">
 				<div class="card-header " style="padding:2px;">
 					<div class="d-flex justify-content-center align-items-center">  
@@ -430,6 +436,7 @@ try{
 			   <input type="date" id="fromdate" name="fromdate" size="12"  class="form-control"   style="width:100px;" value="<?=$fromdate?>" placeholder="기간 시작일">  &nbsp;   ~ &nbsp;  
 			   <input type="date" id="todate" name="todate" size="12"   class="form-control"   style="width:100px;" value="<?=$todate?>" placeholder="기간 끝">  &nbsp;     </span> 
 			   &nbsp;&nbsp;
+            <div class="d-flex mb-1 mt-1 justify-content-center align-items-center">  													                  
 			   
 			   <!-- 분류 카테고리 선택 -->
 			   <select id="category_filter" name="category_filter" class="form-select " style="width:120px; font-size: 0.8rem; height:30px; padding: 4px;">

@@ -19,14 +19,16 @@ error_reporting(E_ALL);
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title> <?= $title_message ?> </title>
+    <title> <?= $title_message ?> </title>    
 </head>
 <body>
     <?php require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php'); ?>   
 
     <div class="container">
         <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">       
-            <h3 class="my-4"><?= $title_message ?></h3>
+            <span class="text-center fs-5"> <?= $title_message ?> </span>
+            <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+            <small class="ms-5 text-muted"> 사업자 등록번호를 입력하고 정상 사업자번호인지 검색합니다. </small>  
         </div>
         <form name="frm1" method="post">
             <div class="form-group row">                
@@ -53,7 +55,7 @@ error_reporting(E_ALL);
                     <h5 class="modal-title" id="resultModalLabel">사업자등록번호 진위여부 확인 결과</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
-                    </button>
+                    </button>                    
                 </div>
                 <div class="modal-body" id="resultContent">
                     <!-- 결과 내용이 여기에 표시됩니다 -->

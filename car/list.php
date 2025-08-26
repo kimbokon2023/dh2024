@@ -10,11 +10,10 @@ if (!isset($_SESSION["level"]) || $_SESSION["level"] > 5) {
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 
 // 첫 화면 표시 문구
-$title_message = '차량 관리 목록'; 
+$title_message = '차량 관리';
 ?>
-
 <link href="css/style.css" rel="stylesheet">   
-<title> <?=$title_message?> </title>
+<title><?=$title_message?></title>
 
 </head>
 <body>		 
@@ -32,7 +31,7 @@ function checkNull($strtmp) {
 $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';  
 $mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';
 
-$tablename = 'car'; // 'car' 테이블 사용
+$tablename = 'car'; // 차량 테이블
 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect();
@@ -61,8 +60,9 @@ try {
 
 	<div class="card-header">
 		<div class="d-flex justify-content-center text-center align-items-center">										 
-			<span class="text-center fs-5"> <?=$title_message?> </span>		
-			<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+			<span class="text-center fs-5"><?=$title_message?></span>		
+			<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+			<small class="mx-3 text-muted"> 차량을 신규 등록하거나 보유중인 차량을 클릭하여 수정 (정비내역 및 특이사항 기재) </small>  
 		</div>
 	</div>
 	<div class="card-body">								
@@ -85,7 +85,7 @@ try {
 			<th class="text-center w180px">차종/차량번호</th>				
 			<th class="text-center w50px">담당자</th>					
 			<th class="text-start w120px">보험사</th>
-			<th class="text-start w100px">보험사 연락처</th> <!-- 추가: 보험사 연락처 -->
+			<th class="text-start w100px">보험사 연락처</th>
 			<th class="text-start w70px">최초등록일</th>
 			<th class="text-start w150px">정기 적성검사 기간</th>
 			<th class="text-start w80px">검사 수검일</th>			
@@ -100,7 +100,7 @@ try {
 			$engine_oil_data = json_decode($row['engine_oil_change_data'], true);
 			$maintenance_data = json_decode($row['maintenance_data'], true);
 
-			// “정기” 점검이 들어간 레코드만 골라서 날짜 추출
+			// "정기" 점검이 들어간 레코드만 골라서 날짜 추출
 			$last_inspection_date = '';    // 기본값: 빈 문자열
 			if (!empty($maintenance_data) && is_array($maintenance_data)) {
 				$dates = [];
@@ -155,7 +155,7 @@ try {
 			</td>
 			<td class="text-center fw-bold"><?= htmlspecialchars($row['responsible_person'], ENT_QUOTES, 'UTF-8') ?></td>
 			<td class="text-start"><?= htmlspecialchars($row['insurance'], ENT_QUOTES, 'UTF-8') ?></td>
-			<td class="text-start"><?= htmlspecialchars($row['insurance_contact'], ENT_QUOTES, 'UTF-8') ?></td> <!-- 추가: 보험사 연락처 -->
+			<td class="text-start"><?= htmlspecialchars($row['insurance_contact'], ENT_QUOTES, 'UTF-8') ?></td>
 			<td class="text-start"><?= $row['manufacturing_date'] ?></td>									
 			<td class="text-start"><?= $row['inspectionDate'] ?> ~ <?= $row['inspectionDateTo'] ?> </td>									
 			<td class="text-start fw-bold text-danger"><?= $last_inspection_date ?> </td>									

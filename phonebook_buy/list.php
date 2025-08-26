@@ -81,12 +81,14 @@ else
 		}
 		else
 		{
-			print '<div class="container" >	';
+			print '<div class="container-fluid" >	';
 			print '<div class="card justify-content-center text-center mt-5" >';
 		}
 ?>	 
-	<div class="card-header">
+	<div class="card-header d-flex justify-content-center align-items-center">
 		<span class="text-center fs-5" >  <?=$title_message?>   </span>								
+		<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+		<small class="ms-5 text-muted"> 대한에서 매입하는 거래처 등록 </small>  
 	</div>
 	<div class="card-body" >								
 	<div class="d-flex  justify-content-center text-center align-items-center mb-2" >										
@@ -109,6 +111,9 @@ else
 			<thead class="table-primary">
 				 <th class="text-center" >번호</th>
 				 <th class="text-center" >회사</th>
+				 <th class="text-center" >카테고리</th>
+				 <th class="text-center" >중국발주업체 체크</th>
+				 <th class="text-center" >이미지</th>
 				 <th class="text-center" >대상품목</th>
 				 <th class="text-center" >대표자</th>
 				 <th class="text-center" >담당자</th>
@@ -126,6 +131,14 @@ else
 			<tr onclick="maketext('<?=$vendor_name?>','<?=$num?>');">
 				<td class="text-center" ><?= $start_num ?></td>
 				<td title="<?=$vendor_name?>"><?= $vendor_name ?></td>
+				<td class="text-center" title="<?=$category?>"><?= $category ?></td>
+				<td class="text-center"><?= ((int)$is_china_vendor===1)?'해당':'' ?></td>
+				<td class="text-center">
+					<?php if(!empty($image_base64)) { 
+						$src = (strpos($image_base64,'data:')===0)? $image_base64 : 'data:image/png;base64,'.$image_base64; ?>
+						<img src="<?=$src?>" style="max-height:22px;width:auto;height:auto;object-fit:contain;border:1px solid #ddd;" />
+					<?php } ?>
+				</td>
 				<td  class="text-center" title="<?=$item?>"><?= $item ?></td>
 				<td  class="text-center" title="<?=$representative_name?>"><?= $representative_name ?></td>
 				<td class="text-center" title="<?=$manager_name?>"><?= $manager_name ?></td>
@@ -263,7 +276,7 @@ $(document).ready(function() {
 		});	
 		// 신규 버튼
 		$("#newBtn").on("click", function() {	
-			  popupCenter('./write.php' , '매입처 신규등록', 800, 600);	
+			  popupCenter('./write.php' , '매입처 신규등록', 800, 800);	
 		});	
 		// 창닫기 버튼
 		$("#closeBtn").on("click", function() {
@@ -274,7 +287,7 @@ $(document).ready(function() {
 	function  updateFn(num) {	
 		var header = $("#header").val();
 		
-		popupCenter('./write.php?num=' + num + '&header=' + header , '수정', 800, 600);	
+		popupCenter('./write.php?num=' + num + '&header=' + header , '수정', 800, 800);	
 	}
 			
 			

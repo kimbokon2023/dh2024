@@ -15,13 +15,15 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");
 <!-- viewport
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />	
  -->
- 
-
- <title> (주)대한 DH모터 유튜브 </title>
+  <title> (주)대한 DH모터 유튜브 </title>
  </head>
 <body>
 
-<? include $_SERVER['DOCUMENT_ROOT'] . '/myheader.php'; ?>   
+<?php 
+
+$title_message = '(주)대한 DH모터 유튜브';
+
+include $_SERVER['DOCUMENT_ROOT'] . '/myheader.php'; ?>   
 
 
 <!-- background: -webkit-linear-gradient(left, #33156d 0%,#f282bc 100%); /* Chrome10-25,Safari5.1-6 */  -->
@@ -32,8 +34,6 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");
 	.progress-bar2 {
 	background: -webkit-linear-gradient(left, #CCCCFF 0%,#aaaaaa 100%); /* Chrome10-25,Safari5.1-6 */
 	}
-
-	@charset "utf-8";
 
 	.typing-txt{display: none;}
 	.typeing-txt ul{list-style:none;}
@@ -51,6 +51,14 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");
 </style>
 
 <div class="container" >  
+	<div class="card mt-1">
+		<div class="card-header d-flex justify-content-center align-items-center">
+			<span class="text-center fs-5"> <?=$title_message?> </span>	
+			<button type="button" class="btn btn-dark btn-sm mx-3" onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  		
+			<small class="mx-3 text-muted"> 대한 프로그램 동영상 사용법 </small>  
+		</div>
+	</div>
+
 	<input type="hidden" id="voc_alert" name="voc_alert" value="<?=$voc_alert?>" size="5" > 	
 	<input type="hidden" id="ma_alert" name="ma_alert" value="<?=$ma_alert?>" size="5" > 	
 	<input type="hidden" id="order_alert" name="order_alert" value="<?=$order_alert?>" size="5" > 					

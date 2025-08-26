@@ -82,9 +82,8 @@ try {
                 <div class="col-sm-12">             
                     <div class="d-flex p-1 m-1 mt-1 justify-content-center align-items-center ">             
                         <h5>  <?=$title_message?>  </h5>  &nbsp;&nbsp;&nbsp;&nbsp;    
-                        <button type="button" class="btn btn-dark btn-sm" onclick='location.href="list.php"'> 
-                            <i class="bi bi-arrow-clockwise"></i> 
-                        </button>                  
+                        <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
+                        <small class="ms-5 text-muted"> 원가 산출 내역을 확인하고 검색합니다. </small>  
                     </div>    
                 </div>    
             </div>                 

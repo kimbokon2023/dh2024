@@ -420,15 +420,16 @@ try {
 					$realamount = intval(str_replace(',', '', $cols['col9']));
 				}
 				$unitprice = ($fabricsu != 0) ? $realamount / $fabricsu : 0;
+				$displayunit = intval(str_replace(',', '', $cols['col6']));
 				$unitamount = $fabricsu * $unitprice;
 				$vat = $unitamount / 10;
 				
 				
 				print '<tr>';
 				print ' <td colspan="6" class="text-center"> ' .  $cols['col1'] .  ' </td>';							
-				print ' <td  class="text-center"> ' . 'EA' . ' </td>';						
+				print ' <td  class="text-center"> ' . $cols['col3'] .  'M </td>';						
 				print ' <td  class="text-center"> ' . number_format($fabricsu) . ' </td>';	// 수량		
-				print ' <td class="text-end"> ' . ($unitprice != 0 ? number_format($unitprice) : '') . ' </td>';			
+				print ' <td class="text-end"> ' . ($unitprice != 0 ? number_format($displayunit) : '') . ' </td>';			
 				print ' <td class="text-end"> ' . ($unitamount != 0 ? number_format($unitamount) : '') . ' </td>';						
 				print ' <td class="text-end"> ' . ($vat != 0 ? number_format($vat) : '') . ' </td>';						
 				print ' <td  class="text-center lotview" data-original-content="' . $cols['col10'] . '"> ' . $cols['col10'] . ' </td>';						
@@ -602,6 +603,20 @@ function generatePDF_server(callback) {
 		return;
 	}
 
+	// Show loading message and store the instance
+	var loadingDialog = Swal.fire({
+        title: '메일 전송중',
+        text: '메일을 전송중입니다...',
+        icon: 'info',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });    
+
+
 	// Try server-side generation first (much smaller data transfer)
 	generatePDFOnServer(element, result, callback);
 }
@@ -627,7 +642,7 @@ function generatePDFOnServer(element, filename, callback) {
 			try {
 				var res = JSON.parse(response);
 				
-							if (res.filename && res.pdf_created !== false) {
+				if (res.filename && res.pdf_created !== false) {
 				console.log('[generatePDFOnServer] 성공 - PDF 생성됨');
 				if (callback) {
 					callback(res.filename);
@@ -1068,8 +1083,12 @@ function sendEmail(recipientEmail, vendorName, item, filename, num) {
             }
 
             if (response.error) {
+				// Close loading dialog first
+				Swal.close();
                 Swal.fire('Error', response.error, 'error');
             } else {
+				// Close loading dialog first
+				Swal.close();
                 Swal.fire('Success', '정상적으로 전송되었습니다.', 'success');
                 setTimeout(function() {
                     window.opener.location.reload();

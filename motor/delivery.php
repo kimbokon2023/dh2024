@@ -50,7 +50,6 @@ td {
     padding-left: 1px; /* 좌측 여백 */
     padding-right: 1px; /* 우측 여백 */
 }
-
   
 input[type="checkbox"] {
     transform: scale(1.2); /* 크기를 1.5배로 확대 */    
@@ -68,8 +67,6 @@ input[type="checkbox"] {
 <html lang="ko">
 
 <?php 
-
-
 $fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
 $todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
 

@@ -17,6 +17,7 @@ $searchtag = $vendor_name . ' ' .
               $address . ' ' .
               $business_type . ' ' .
               $item_type . ' ' .
+              $category . ' ' .
               $phone . ' ' .
               $mobile . ' ' .
               $email . ' ' .
@@ -26,6 +27,7 @@ $searchtag = $vendor_name . ' ' .
               $note . ' ' .
               $is_deleted . ' ' .
               $item . ' ' .
+              $is_china_vendor . ' ' .
               $update_log;
 
 if ($mode == "update")  {
@@ -36,7 +38,8 @@ if ($mode == "update")  {
         $sql = "UPDATE " . $DB . "." . $tablename . " SET ";
         $sql .= "vendor_code = ?, vendor_name = ?, representative_name = ?, address = ?, ";
         $sql .= "business_type = ?, item_type = ?, phone = ?, mobile = ?, email = ?, ";
-        $sql .= "fax = ?, manager_name = ?, contact_info = ?, note = ?, searchtag = ?, update_log = ?, item=? ";
+        $sql .= "fax = ?, manager_name = ?, contact_info = ?, note = ?, category = ?, searchtag = ?, update_log = ?, item = ?, ";
+        $sql .= "is_china_vendor = ?, image_base64 = ? ";
         $sql .= " WHERE num = ? LIMIT 1"; // Update only one record matching the 'num'
 
         $stmh = $pdo->prepare($sql);
@@ -55,10 +58,13 @@ if ($mode == "update")  {
         $stmh->bindValue(11, $manager_name, PDO::PARAM_STR);
         $stmh->bindValue(12, $contact_info, PDO::PARAM_STR);
         $stmh->bindValue(13, $note, PDO::PARAM_STR);        
-        $stmh->bindValue(14, $searchtag, PDO::PARAM_STR);
-        $stmh->bindValue(15, $update_log, PDO::PARAM_STR);
-        $stmh->bindValue(16, $item, PDO::PARAM_STR);
-        $stmh->bindValue(17, $num, PDO::PARAM_INT);
+        $stmh->bindValue(14, $category, PDO::PARAM_STR);
+        $stmh->bindValue(15, $searchtag, PDO::PARAM_STR);
+        $stmh->bindValue(16, $update_log, PDO::PARAM_STR);
+        $stmh->bindValue(17, $item, PDO::PARAM_STR);
+        $stmh->bindValue(18, $is_china_vendor, PDO::PARAM_INT);
+        $stmh->bindValue(19, $image_base64, PDO::PARAM_STR);
+        $stmh->bindValue(20, $num, PDO::PARAM_INT);
 
         // Execute the statement
         $stmh->execute();
@@ -77,8 +83,8 @@ if ($mode == "update")  {
         $sql = "INSERT INTO " . $DB . "." . $tablename . " (";
         $sql .= "vendor_code, vendor_name, representative_name, address, ";
         $sql .= "business_type, item_type, phone, mobile, email, ";
-        $sql .= "fax, manager_name, contact_info, note, searchtag, update_log, item ";
-        $sql .= ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql .= "fax, manager_name, contact_info, note, category, searchtag, update_log, item, is_china_vendor, image_base64 ";
+        $sql .= ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmh = $pdo->prepare($sql);
 
@@ -96,11 +102,55 @@ if ($mode == "update")  {
         $stmh->bindValue(11, $manager_name, PDO::PARAM_STR);
         $stmh->bindValue(12, $contact_info, PDO::PARAM_STR);
         $stmh->bindValue(13, $note, PDO::PARAM_STR);
-        $stmh->bindValue(14, $searchtag, PDO::PARAM_STR);
-        $stmh->bindValue(15, $update_log, PDO::PARAM_STR);
-        $stmh->bindValue(16, $item, PDO::PARAM_STR);
+        $stmh->bindValue(14, $category, PDO::PARAM_STR);
+        $stmh->bindValue(15, $searchtag, PDO::PARAM_STR);
+        $stmh->bindValue(16, $update_log, PDO::PARAM_STR);
+        $stmh->bindValue(17, $item, PDO::PARAM_STR);
+        $stmh->bindValue(18, $is_china_vendor, PDO::PARAM_INT);
+        $stmh->bindValue(19, $image_base64, PDO::PARAM_STR);
 
         // Execute the statement
+        $stmh->execute();
+        $pdo->commit();
+    } catch (PDOException $Exception) {
+        $pdo->rollBack();
+        print "오류: " . $Exception->getMessage();
+    }
+} elseif ($mode == "copy")  {
+    // copy는 현재 입력된 값으로 신규 레코드 생성
+    $update_log = date("Y-m-d H:i:s") . " - " . $_SESSION["name"] . " 복사 생성\n" . $update_log . "&#10";
+
+    try {
+        $pdo->beginTransaction();
+
+        $sql = "INSERT INTO " . $DB . "." . $tablename . " (";
+        $sql .= "vendor_code, vendor_name, representative_name, address, ";
+        $sql .= "business_type, item_type, phone, mobile, email, ";
+        $sql .= "fax, manager_name, contact_info, note, category, searchtag, update_log, item, is_china_vendor, image_base64 ";
+        $sql .= ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $stmh = $pdo->prepare($sql);
+
+        $stmh->bindValue(1, $vendor_code, PDO::PARAM_STR);
+        $stmh->bindValue(2, $vendor_name, PDO::PARAM_STR);
+        $stmh->bindValue(3, $representative_name, PDO::PARAM_STR);
+        $stmh->bindValue(4, $address, PDO::PARAM_STR);
+        $stmh->bindValue(5, $business_type, PDO::PARAM_STR);
+        $stmh->bindValue(6, $item_type, PDO::PARAM_STR);
+        $stmh->bindValue(7, $phone, PDO::PARAM_STR);
+        $stmh->bindValue(8, $mobile, PDO::PARAM_STR);
+        $stmh->bindValue(9, $email, PDO::PARAM_STR);
+        $stmh->bindValue(10, $fax, PDO::PARAM_STR);
+        $stmh->bindValue(11, $manager_name, PDO::PARAM_STR);
+        $stmh->bindValue(12, $contact_info, PDO::PARAM_STR);
+        $stmh->bindValue(13, $note, PDO::PARAM_STR);
+        $stmh->bindValue(14, $category, PDO::PARAM_STR);
+        $stmh->bindValue(15, $searchtag, PDO::PARAM_STR);
+        $stmh->bindValue(16, $update_log, PDO::PARAM_STR);
+        $stmh->bindValue(17, $item, PDO::PARAM_STR);
+        $stmh->bindValue(18, $is_china_vendor, PDO::PARAM_INT);
+        $stmh->bindValue(19, $image_base64, PDO::PARAM_STR);
+
         $stmh->execute();
         $pdo->commit();
     } catch (PDOException $Exception) {

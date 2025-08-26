@@ -36,6 +36,7 @@ try {
             $_SESSION["userid"] = $row["num"];
             $_SESSION["name"] = $row["vendor_name"];
 			$_SESSION["secondordnum"]=$row["secondordnum"];   
+            $_SESSION["part"] = $row["part"];
             $_SESSION["level"] = '9';  // 예를 들어, 협력사의 경우 userlevel을 9로 설정
             $_SESSION["DB"] = $DB;
             $error = '';  // 오류 없음

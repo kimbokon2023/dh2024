@@ -123,4 +123,7 @@ $Deliverymanager = $_REQUEST['Deliverymanager'] ??  '';
 
 // 거래명세표 전송시간 추가
 $statement_sent_at = $_REQUEST['statement_sent_at'] ??  null;
+
+// 발주처주소록 비고 가져오기
+$custNote = isset($_REQUEST['custNote']) ? $_REQUEST['custNote'] : '';
 ?>

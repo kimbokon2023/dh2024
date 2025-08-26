@@ -69,7 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container mt-3">
   <div class="card">
     <div class="card-header d-flex justify-content-center align-items-center text-center">
-      <h3 class="mb-0"><?= $title_message ?></h3> <br>
+      <span class="text-center fs-5"> <?=$title_message?> </span>
+      <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  
       <small class="ms-5 text-muted">카드회사, 카드번호, 사용자 정보를 넣고 등록 버튼을 누르시면 등록됩니다.</small>            
     </div>
     <div class="card-body">

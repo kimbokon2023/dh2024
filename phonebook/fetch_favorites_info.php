@@ -1,4 +1,5 @@
 <?php
+require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect(); // 데이터베이스 연결
 
@@ -14,7 +15,7 @@ header('Content-Type: application/json'); // JSON 형식으로 응답
 if ($secondordnum) {
     try {
         // 즐겨찾기 정보를 가져옴
-        $sql = "SELECT favorites_list FROM delivery_favorites WHERE secondordnum = :secondordnum";
+        $sql = "SELECT favorites_list FROM $DB.delivery_favorites WHERE secondordnum = :secondordnum";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':secondordnum', $secondordnum, PDO::PARAM_INT);
         $stmt->execute();

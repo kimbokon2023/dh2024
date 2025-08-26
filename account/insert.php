@@ -10,6 +10,15 @@ $pdo = db_connect();
 
 include "_request.php";
 
+// 최종 업데이트 일시를 파일로 기록
+$lastUpdateFile = $_SERVER['DOCUMENT_ROOT'] . "/account/last_update.txt";
+if (!function_exists('account_write_last_update')) {
+    function account_write_last_update($path) {
+        // 서버 시간 기록 (예: 2025-01-31 14:22:10)
+        @file_put_contents($path, date("Y-m-d H:i:s"), LOCK_EX);
+    }
+}
+
 // Construct the searchtag value
 $searchtag = $registDate . ' ' . $inoutsep . ' ' . $content . ' ' . $contentSub . ' ' . $amount . $content_detail ;
 
@@ -42,6 +51,7 @@ if ($mode == "update") {
         // Execute the statement
         $stmh->execute();
         $pdo->commit();
+        account_write_last_update($lastUpdateFile);
     } catch (PDOException $Exception) {
         $pdo->rollBack();
         print "오류: " . $Exception->getMessage();
@@ -78,6 +88,7 @@ if ($mode == "insert" || $mode == '' || $mode == null) {
         // Execute the statement
         $stmh->execute();
         $pdo->commit();
+        account_write_last_update($lastUpdateFile);
     } catch (PDOException $Exception) {
         $pdo->rollBack();
         print "오류: " . $Exception->getMessage();
@@ -92,6 +103,7 @@ if ($mode == "delete") { // Data deletion
         $stmh->bindValue(1, $num, PDO::PARAM_INT);
         $stmh->execute();
         $pdo->commit();
+        account_write_last_update($lastUpdateFile);
     } catch (PDOException $ex) {
         $pdo->rollBack();
         print "오류: " . $ex->getMessage();

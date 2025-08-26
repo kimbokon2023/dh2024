@@ -125,7 +125,7 @@ if ($mode !== "modify" and $mode !== "copy"  and $mode !== "view"  ) {
 				   <?php if($mode!=='view') { ?>
 						<button id="saveBtn" class="btn  btn-dark btn-sm me-1 " type="button">
 						<? if((int)$num>0) print ' <i class="bi bi-hdd-fill"></i> 저장';  else print ' <i class="bi bi-hdd-fill"></i> 저장'; ?></button>
-				   <? } if($level=='1') {  ?>		
+				   <? } if($level=='1' or $level=='2') {  ?>		
 					<?php if($mode!=='copy' && $mode!=='modify') { ?>				   
 						<button id="copyBtn" class="btn btn-primary  btn-sm me-1" type="button"><i class="bi bi-copy"></i> 복사</button>					
 						<button id="deleteBtn" class="btn btn-danger  btn-sm me-1" type="button"><i class="bi bi-trash2"></i> 삭제</button>					
