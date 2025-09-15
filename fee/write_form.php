@@ -168,15 +168,13 @@ if ($mode !== "modify" and $mode !== "copy"  and $mode !== "view"  ) {
 				  <th class="text-center ">단위</th>      
 				  <th class="text-center " style="width:100px;">원가</th>      
 				  <th class="text-center " style="width:100px;">단가</th>      
-				  <th class="text-center " style="width:100px;">품목코드</th>      
-				  <th class="text-center " style="width:100px;">구매시 위엔화 </th>      
+				  <th class="text-center " style="width:120px;">품목코드</th>      
+				  <th class="text-center " style="width:100px;">구매 위엔화 </th>      
 				</tr>        
 			  </thead>	  
 			<tbody>
 				<?php
-				
-
-				 $sql = "SELECT * FROM $DB.fee where num = $num ";
+				 $sql = "SELECT * FROM $DB.fee where num = $num and is_deleted is NULL ";
 				try {
 					$stmh = $pdo->query($sql);
 					$rows = $stmh->fetchAll(PDO::FETCH_ASSOC); // Fetch all data at once
@@ -195,11 +193,13 @@ if ($mode !== "modify" and $mode !== "copy"  and $mode !== "view"  ) {
 						$upweight = json_decode($row['upweight'], true) ?? [];
 						$unit = json_decode($row['unit'], true) ?? [];
 						$originalcost = json_decode($row['originalcost'], true) ?? [];
-						$price = json_decode($row['price'], true) ?? [];
-						$ecountcode = json_decode($row['ecountcode'], true) ?? [];
+						$price = json_decode($row['price'], true) ?? [];						
+						$ecountcode = array_filter(json_decode($row['ecountcode'], true) ?? [], function($value) {
+							return trim($value) !== '';
+						});						
 						$yuan = json_decode($row['yuan'], true) ?? [];
 						
-						$minSize = count($item); // Recalculate minimum size based on filtered $item
+						$minSize = count($ecountcode); // Recalculate minimum size based on filtered $item
 
 						for ($i = 0; $i < $minSize; $i++) {
 							?>
@@ -217,7 +217,7 @@ if ($mode !== "modify" and $mode !== "copy"  and $mode !== "view"  ) {
 
 							</tr>
 							<?php
-						}								
+						}
 					}
 				} catch (PDOException $Exception) {
 					echo "오류: " . $Exception->getMessage();
@@ -312,7 +312,7 @@ $(document).ready(function(){
 			if (ecountcode.endsWith('-')) {
 				ecountcode = ecountcode.slice(0, -1);
 			}
-			if (item[i] == '방범') {  // 방범은 -방범 넣어줌  (추가됨)
+			if (item[i] && item[i].includes('방범')) {  // '방범'이란 단어가 들어가 있으면 -방범 추가
 				ecountcode += '-' + item[i] ;
 			}				
 						
