@@ -150,7 +150,11 @@ $timekey = date("Y_m_d_H_i_s");
 							<tr>
 							<td class="table-light text-center" style="width: 8%;">작성자</td>
 							<td colspan="1">
-								<input id="first_writer" name="first_writer" type="text" autocomplete="off" value="<?= $first_writer ?>" class="form-control w100px" >
+								<input id="first_writer" name="first_writer" type="text" autocomplete="off" value="<?= $first_writer ?>" class="form-control w60px" >
+							</td>	
+							<td class="table-light text-center" style="width: 8%;">작성일</td>
+							<td colspan="1">
+								<input id="regist_day" name="regist_day" type="date" autocomplete="off" value="<?= $regist_day ?>" class="form-control w120px" >
 							</td>	
 							<td class="table-light text-center" style="width: 8%;">업무담당자</td>
 							<td colspan="1">
@@ -163,7 +167,7 @@ $timekey = date("Y_m_d_H_i_s");
 							</tr>
 							<tr>
 							<td class="table-light text-center">제목</td>
-							<td colspan="3">
+							<td colspan="5">
 								<input id="subject" name="subject" type="text" autocomplete="off" required class="form-control"
 								style="width: 100%;" <?php if ($mode == "modify") { ?> value="<?= $subject ?>" <?php } ?>>
 							</td>

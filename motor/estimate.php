@@ -152,6 +152,9 @@ try {
 
 <div class="container mt-2">
     <div class="d-flex align-items-center justify-content-end mt-1 m-2">
+        <select id="accountSelect" class="form-select me-3 w-auto" style="font-size: 0.8rem; height: 32px;">
+            <option value="">계좌번호 선택</option>
+        </select>
         <input type="checkbox" id="lotNumberCheckbox" checked>
         <label for="lotNumberCheckbox" class="me-3">로트번호 보이기</label>
         <button class="btn btn-dark btn-sm me-1" onclick="generatePDF();"> PDF 저장 </button>
@@ -433,7 +436,7 @@ try {
 		
 		print '<tr>';
 		print ' <td  colspan="1" class="text-center  align-middle fw-bold" style="height:80px;" > 비고 </td>';	
-		print ' <td  colspan="12" class="text-start  align-middle fw-bold"  > 계좌번호 : 국민은행 253401-04-381605 주식회사 대한 <br><br> 위와 같이 견적합니다.  </td>';
+		print ' <td  colspan="12" class="text-start  align-middle fw-bold"  > 계좌번호 : <span id="accountDisplay">국민은행 253401-04-381605 주식회사 대한</span> <br><br> 위와 같이 견적합니다.  </td>';
 		print '</tr>';	
 		?>		
         </tbody>
@@ -589,7 +592,6 @@ function sendEmail(recipientEmail,vendorName, item, filename) {
     });
 }
 
-
 document.getElementById('lotNumberCheckbox').addEventListener('change', function() {
     var lotviewThs = document.querySelectorAll('.lotview');
     var lotviewTds = document.querySelectorAll('td.lotview');
@@ -613,4 +615,47 @@ document.getElementById('lotNumberCheckbox').addEventListener('change', function
         });
     }
 });
+
+// 계좌번호 로드 및 선택 기능 통합 스크립트
+document.addEventListener('DOMContentLoaded', function() {
+    // 계좌 셀렉트 박스와 표시 영역
+    var select = document.getElementById('accountSelect');
+    var accountDisplay = document.getElementById('accountDisplay');
+
+    // 계좌 목록 불러오기 및 셀렉트 옵션 생성
+    fetch('/account/accountlist.json')
+        .then(response => response.json())
+        .then(function(accounts) {
+            select.innerHTML = '<option value="">계좌번호 선택</option>';
+            let defaultIndex = 0;
+            accounts.forEach(function(account, idx) {
+                var accountText = account.company + ' ' + account.number + ' 주식회사 대한';
+                var option = document.createElement('option');
+                option.value = accountText;
+                option.textContent = accountText;
+                select.appendChild(option);
+                if(account.company.indexOf('우리은행') !== -1) {
+                    defaultIndex = idx + 1; // "계좌번호 선택" 옵션이 0번
+                }
+            });
+            // 기본값을 우리은행으로 설정
+            select.selectedIndex = defaultIndex;
+            // 표시 영역에도 기본값 반영
+            if (accountDisplay) {
+                accountDisplay.textContent = select.value || '우리은행 1005-204-801516 주식회사 대한';
+            }
+        });
+
+    // 계좌 선택 시 계좌번호 표시 업데이트
+    select.addEventListener('change', function() {
+        if (accountDisplay) {
+            if (this.value) {
+                accountDisplay.textContent = this.value;
+            } else {
+                accountDisplay.textContent = '우리은행 1005-204-801516 주식회사 대한'; // 기본값
+            }
+        }
+    });
+});
+
 </script>

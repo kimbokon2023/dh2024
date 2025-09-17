@@ -27,15 +27,16 @@ $admin = ($level === '1') ? 1 : 0;
 $tablename = "almember";
 $mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';
 $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';
+$selectedYear = isset($_REQUEST['year']) ? intval($_REQUEST['year']) : intval(date("Y"));
 
 $AndisDeleted = " AND is_deleted IS NULL ";
 $WhereisDeleted = " WHERE is_deleted IS NULL ";
 
 if($search == "") {		
-	$sql = "SELECT * FROM $DB.$tablename $WhereisDeleted ORDER BY dateofentry DESC";		
+	$sql = "SELECT * FROM $DB.$tablename $WhereisDeleted AND referencedate = '".$selectedYear."' ORDER BY dateofentry DESC";		
 }
 else
-	$sql = "SELECT * FROM $DB.$tablename WHERE name LIKE '%$search%' $AndisDeleted ORDER BY dateofentry DESC";		
+	$sql = "SELECT * FROM $DB.$tablename WHERE name LIKE '%$search%' $AndisDeleted AND referencedate = '".$selectedYear."' ORDER BY dateofentry DESC";		
 try {  
 	$stmh = $pdo->query($sql);
     $total_row = $stmh->rowCount();	 									 
@@ -46,6 +47,7 @@ try {
 	<input type="hidden" id="mode" name="mode" value="<?=$mode?>"  > 					
 	<input type="hidden" id="level" name="level" value="<?=$level?>"  > 					
 	<input type="hidden" id="num" name="num" value="<?=$num?>"  > 					
+	<input type="hidden" id="year" name="year" value="<?=$selectedYear?>"  > 					
 
 	<?php if($chkMobile == false) { ?>
 		<div class="container-fluid">     
@@ -61,12 +63,20 @@ try {
 
 
 <div class="d-flex justify-content-center align-items-center mt-2 mb-2">   
-	&nbsp;&nbsp;&nbsp; ▷ <?= $total_row ?>  &nbsp;&nbsp;&nbsp; 		    
+	<select id="yearSelect" class="form-select form-select-sm d-inline w-auto me-2" style="width: 90px; min-width: 70px;">
+		<?php
+		$currentYear = date("Y");
+		for ($year = $currentYear; $year >= $currentYear - 3; $year--) {
+			echo "<option value='{$year}'" . ($year == $selectedYear ? " selected" : "") . ">{$year}</option>";
+		}
+		?>
+	</select>
+	&nbsp;&nbsp;&nbsp; ▷ <?= $total_row ?>  &nbsp;&nbsp;&nbsp; 	    
 	 
-	<input type="text" name="search" id="search" class="form-control me-1" style="width:150px;" value="<?=$search?>" onkeydown="JavaScript:SearchEnter();" placeholder="검색어"> 	   
-	<button type="button" id="searchBtn" class="btn btn-dark btn-sm me-1"> <ion-icon name="search-outline"></ion-icon> </button>	
+	<input type="text" name="search" id="search" class="form-control me-1" style="width:150px;" value="<?=$search?>" autocomplete="off" onkeydown="JavaScript:SearchEnter();" placeholder="검색어"> 	   
+	<button type="button" id="searchBtn" class="btn btn-dark btn-sm me-1"> <i class="bi bi-search"></i> </button>	
 	<button type="button" id="writeBtn" class="btn btn-dark btn-sm mx-2"> <i class="bi bi-pencil-square"></i> 등록 </button> 	
-	<button  type="button"  class="btn btn-dark btn-sm me-1" onclick="window.close();"> <ion-icon name="close-outline"></ion-icon> 창닫기 </button>
+	<button  type="button"  class="btn btn-dark btn-sm me-1" onclick="window.close();"> <i class="bi bi-x-lg"></i> 창닫기 </button>
 </div>
    	
 <div class="d-flex justify-content-center">  	
@@ -193,6 +203,14 @@ $(document).ready(function() {
 		if (savedPageNumber) {
 			dataTable.page(parseInt(savedPageNumber) - 1).draw(false);
 		}
+	});
+
+	$('#yearSelect').change(function () {
+		const selectedYear = $(this).val();
+		const params = new URLSearchParams(window.location.search);
+		params.set('year', selectedYear);
+		const baseUrl = window.location.pathname;
+		window.location.href = baseUrl + '?' + params.toString();
 	});
 });
 

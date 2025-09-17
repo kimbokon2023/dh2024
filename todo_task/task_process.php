@@ -3,7 +3,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 
 $pdo = db_connect();
-
+ 
 $mode = $_POST['mode'] ?? '';
 $response = ['result' => 'error', 'message' => ''];
 
@@ -18,6 +18,10 @@ try {
         
         // JSON 데이터 파싱
         $tasks = json_decode($tasks_json, true) ?? [];
+        
+        // 디버그: 받은 데이터 확인
+        error_log("Received tasks_json: " . $tasks_json);
+        error_log("Parsed tasks count: " . count($tasks));
 
         // date_key 생성 유틸리티 (원본 날짜 + 안정적 난수)
         $generateDateKey = function($originalDate, $content, $index) use ($task_date) {
@@ -28,6 +32,11 @@ try {
         // 추적된 할일의 완료 상태를 원본 데이터에 반영
         $tracked_completions = [];
         $debug_info = []; // 디버그 정보 저장용
+        
+        // 업무요청사항 완료 처리를 위한 배열
+        $completed_workprocess_tasks = [];
+        // 업무요청사항 완료 해제 처리를 위한 배열
+        $uncompleted_workprocess_tasks = [];
         
         foreach ($tasks as $index => $task) {
             // date_key 보강 (없으면 생성)
@@ -40,7 +49,9 @@ try {
                 'is_pending' => $task['is_pending'] ?? false,
                 'original_date' => $task['original_date'] ?? '',
                 'completion_date' => $task['completion_date'] ?? '',
-                'date_key' => $tasks[$index]['date_key']
+                'date_key' => $tasks[$index]['date_key'],
+                'is_workprocess' => $task['is_workprocess'] ?? false,
+                'workprocess_num' => $task['workprocess_num'] ?? ''
             ];
             
             if (!empty($task['is_completed'])) {
@@ -51,6 +62,21 @@ try {
                     'completion_date' => $task['completion_date'] ?? date('Y-m-d'),
                     'current_task_date' => $task_date
                 ];
+                
+                // 업무요청사항 완료 처리
+                if (!empty($task['is_workprocess']) && !empty($task['workprocess_num'])) {
+                    $completed_workprocess_tasks[] = [
+                        'workprocess_num' => $task['workprocess_num'],
+                        'completion_date' => $task['completion_date'] ?? date('Y-m-d')
+                    ];
+                }
+            } else {
+                // 완료되지 않은 업무요청사항 처리 (완료 해제)
+                if (!empty($task['is_workprocess']) && !empty($task['workprocess_num'])) {
+                    $uncompleted_workprocess_tasks[] = [
+                        'workprocess_num' => $task['workprocess_num']
+                    ];
+                }
             }
         }
         
@@ -99,47 +125,121 @@ try {
             }
         }
         
+        // 업무요청사항 완료 처리
+        foreach ($completed_workprocess_tasks as $workprocess_completion) {
+            $workprocess_num = $workprocess_completion['workprocess_num'];
+            $completion_date = $workprocess_completion['completion_date'];
+            
+            // workprocess 테이블의 doneDate 업데이트 (DATE 타입에 맞게)
+            $update_workprocess_sql = "UPDATE {$DB}.workprocess SET doneDate = ? WHERE num = ?";
+            $update_workprocess_stmt = $pdo->prepare($update_workprocess_sql);
+            $update_workprocess_stmt->bindValue(1, $completion_date, PDO::PARAM_STR);
+            $update_workprocess_stmt->bindValue(2, $workprocess_num, PDO::PARAM_INT);
+            
+            if ($update_workprocess_stmt->execute()) {
+                $affected_rows = $update_workprocess_stmt->rowCount();
+                $debug_info[] = ['workprocess_updated' => "업무요청사항 #{$workprocess_num} 완료일 업데이트: {$completion_date} (영향받은 행: {$affected_rows})"];
+            } else {
+                $error_info = $update_workprocess_stmt->errorInfo();
+                $debug_info[] = ['workprocess_update_failed' => "업무요청사항 #{$workprocess_num} 업데이트 실패: " . implode(' - ', $error_info)];
+            }
+        }
+         
+        // 업무요청사항 완료 해제 처리 (doneDate 초기화)
+        foreach ($uncompleted_workprocess_tasks as $workprocess_uncompletion) {
+            $workprocess_num = $workprocess_uncompletion['workprocess_num'];
+            
+            // workprocess 테이블의 doneDate를 NULL로 초기화 (DATE 타입에 맞게)
+            $reset_workprocess_sql = "UPDATE {$DB}.workprocess SET doneDate = NULL WHERE num = ?";
+            $reset_workprocess_stmt = $pdo->prepare($reset_workprocess_sql);
+            $reset_workprocess_stmt->bindValue(1, $workprocess_num, PDO::PARAM_INT);
+            
+            if ($reset_workprocess_stmt->execute()) {
+                $affected_rows = $reset_workprocess_stmt->rowCount();
+                $debug_info[] = ['workprocess_reset' => "업무요청사항 #{$workprocess_num} 완료일 초기화 (NULL) (영향받은 행: {$affected_rows})"];
+            } else {
+                $error_info = $reset_workprocess_stmt->errorInfo();
+                $debug_info[] = ['workprocess_reset_failed' => "업무요청사항 #{$workprocess_num} 초기화 실패: " . implode(' - ', $error_info)];
+            }
+        }
+        
+        // 현재 할일에서 업무요청사항 번호들 수집
+        $workprocess_nums = [];
+        foreach ($tasks as $index => $task) {
+            error_log("Task {$index} - workprocess_num: " . ($task['workprocess_num'] ?? 'null') . ", is_workprocess: " . ($task['is_workprocess'] ?? 'null'));
+            
+            if (!empty($task['workprocess_num'])) {
+                $wp_num = intval($task['workprocess_num']);
+                if ($wp_num > 0) { // 0이 아닌 유효한 번호만
+                    $workprocess_nums[] = $wp_num;
+                    $debug_info[] = ['workprocess_found' => "업무요청사항 번호 발견: {$wp_num}"];
+                }
+            }
+        } 
+         
+        // 중복 제거 및 정렬
+        $workprocess_nums = array_unique($workprocess_nums);
+        sort($workprocess_nums);
+        
+        $debug_info[] = ['workprocess_nums_collected' => "수집된 업무요청사항 번호들: " . json_encode($workprocess_nums)];
+        
         // 현재 할일 데이터 구성: 완료된 추적 항목도 오늘 레코드에 남긴다(증빙 목적)
         $current_tasks = [];
-        foreach ($tasks as $task) {
+        foreach ($tasks as $task) {  
             // 추적 관련 임시 필드는 저장 시 제거 (elapsed_days는 유지)
             unset($task['unique_id']);
             unset($task['is_pending']);
-            unset($task['original_task_date']);
+            unset($task['original_task_date']); 
             unset($task['original_task_num']);
             unset($task['original_index']);
+            // 업무요청사항 관련 필드 중 일부만 제거 (workprocess_num은 유지)
+            unset($task['is_workprocess']);
+            unset($task['workprocess_data']);
+            // workprocess_num은 유지하여 저장된 tasks에서도 참조 가능하도록 함
             
             $current_tasks[] = $task;
         }
         
+        // JSON 인코딩 및 검증
+        $tasks_json = json_encode($current_tasks);
+        $workprocess_nums_json = json_encode($workprocess_nums);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception("JSON 인코딩 오류: " . json_last_error_msg());
+        }
+        
         if ($mode === 'insert') {
-            $sql = "INSERT INTO {$DB}.{$tablename} (task_date, employee_name, department, memo, tasks, created_by) VALUES (?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO {$DB}.{$tablename} (task_date, employee_name, department, memo, tasks, workprocess_nums, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
             $stmt->bindValue(1, $task_date, PDO::PARAM_STR);
             $stmt->bindValue(2, $employee_name, PDO::PARAM_STR);
             $stmt->bindValue(3, $department, PDO::PARAM_STR);
             $stmt->bindValue(4, $memo, PDO::PARAM_STR);
-            $stmt->bindValue(5, json_encode($current_tasks), PDO::PARAM_STR);
-            $stmt->bindValue(6, $employee_name, PDO::PARAM_STR);
+            $stmt->bindValue(5, $tasks_json, PDO::PARAM_STR);
+            $stmt->bindValue(6, $workprocess_nums_json, PDO::PARAM_STR);
+            $stmt->bindValue(7, $employee_name, PDO::PARAM_STR);
             
             if ($stmt->execute()) {
+                $debug_info[] = ['workprocess_nums_saved' => "업무요청사항 번호들 저장: " . implode(', ', $workprocess_nums)];
                 $response = ['result' => 'success', 'message' => '할일이 성공적으로 등록되었습니다.', 'debug_info' => $debug_info];
             } else {
                 $response = ['result' => 'error', 'message' => '할일 등록에 실패했습니다.', 'debug_info' => $debug_info];
             }
-        } else {
+        } else {  
             $num = $_POST['num'] ?? '';
-            $sql = "UPDATE {$DB}.{$tablename} SET task_date = ?, employee_name = ?, department = ?, memo = ?, tasks = ?, updated_at = NOW(), updated_by = ? WHERE num = ?";
+            $sql = "UPDATE {$DB}.{$tablename} SET task_date = ?, employee_name = ?, department = ?, memo = ?, tasks = ?, workprocess_nums = ?, updated_at = NOW(), updated_by = ? WHERE num = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->bindValue(1, $task_date, PDO::PARAM_STR);
             $stmt->bindValue(2, $employee_name, PDO::PARAM_STR);
-            $stmt->bindValue(3, $department, PDO::PARAM_STR);
+            $stmt->bindValue(3, $department, PDO::PARAM_STR); 
             $stmt->bindValue(4, $memo, PDO::PARAM_STR);
-            $stmt->bindValue(5, json_encode($current_tasks), PDO::PARAM_STR);
-            $stmt->bindValue(6, $employee_name, PDO::PARAM_STR);
-            $stmt->bindValue(7, $num, PDO::PARAM_INT);
+            $stmt->bindValue(5, $tasks_json, PDO::PARAM_STR);
+            $stmt->bindValue(6, $workprocess_nums_json, PDO::PARAM_STR);
+            $stmt->bindValue(7, $employee_name, PDO::PARAM_STR);
+            $stmt->bindValue(8, $num, PDO::PARAM_INT);
             
             if ($stmt->execute()) {
+                $debug_info[] = ['workprocess_nums_updated' => "업무요청사항 번호들 수정: " . implode(', ', $workprocess_nums)];
                 $response = ['result' => 'success', 'message' => '할일이 성공적으로 수정되었습니다.', 'debug_info' => $debug_info];
             } else {
                 $response = ['result' => 'error', 'message' => '할일 수정에 실패했습니다.', 'debug_info' => $debug_info];
@@ -170,4 +270,4 @@ try {
 
 header('Content-Type: application/json');
 echo json_encode($response);
-?> 
+?>  

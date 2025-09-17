@@ -402,12 +402,10 @@ nav {
   <li class="nav-item dropdown me-1">
     <a href="#" class="nav-link dropdown-toggle normal-bold-text" data-bs-toggle="dropdown" style="color: white;">DH 방범모터</a>
     <div class="dropdown-menu shadow-sm m-0">
-      <a href="#dhfeatures"  class="dropdown-item small-bold-text">DH무선형 모터 특징</a>
-      <a href="#dh_warranty"  class="dropdown-item small-bold-text"> DH모터 성적서(KC인증)</a>
-      <a href="#dhdetails"  class="dropdown-item small-bold-text">모터상세 제원표</a>      
-      <a href="#wire_controller_detail" class="dropdown-item small-bold-text">유선형 모터 설정방법</a>
-      <a href="#wireless_controller_detail" class="dropdown-item small-bold-text">무선형 모터 설정방법</a>
-      <a href="#fall_prevention_brake_bracket" class="dropdown-item small-bold-text">낙하제동방지 브라켓트</a>      
+      <a href="#dhprevent_detail"  class="dropdown-item small-bold-text">DH 방범모터 제원표</a>    
+      <a href="#dhprevent_settings" class="dropdown-item small-bold-text">DH방범모터 설정방법</a>
+      <a href="#dhprevent_spec" class="dropdown-item small-bold-text">DH방범모터 스펙</a>
+      <a href="#dhprevent_parts" class="dropdown-item small-bold-text">DH방범모터 브라켓트 구성품 </a>      
     </div>
   </li>    
   <li class="nav-item dropdown me-1">
@@ -453,70 +451,65 @@ nav {
 	if($chkMobile == false) 
 	{
 	?>	
-			</div>
-            <div class="h-100 d-lg-inline-flex align-items-center d-none">
-               
-				<!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-				<path d="M96 128V70.2c0-13.3 8.3-25.3 20.8-30l96-36c7.2-2.7 15.2-2.7 22.5 0l96 36c12.5 4.7 20.8 16.6 20.8 30V128h-.3c.2 2.6 .3 5.3 .3 8v40c0 70.7-57.3 128-128 128s-128-57.3-128-128V136c0-2.7 .1-5.4 .3-8H96zm48 48c0 44.2 35.8 80 80 80s80-35.8 80-80V160H144v16zM111.9 327.7c10.5-3.4 21.8 .4 29.4 8.5l71 75.5c6.3 6.7 17 6.7 23.3 0l71-75.5c7.6-8.1 18.9-11.9 29.4-8.5C401 348.6 448 409.4 448 481.3c0 17-13.8 30.7-30.7 30.7H30.7C13.8 512 0 498.2 0 481.3c0-71.9 47-132.7 111.9-153.6zM208 48V64H192c-4.4 0-8 3.6-8 8V88c0 4.4 3.6 8 8 8h16v16c0 4.4 3.6 8 8 8h16c4.4 0 8-3.6 8-8V96h16c4.4 0 8-3.6 8-8V72c0-4.4-3.6-8-8-8H240V48c0-4.4-3.6-8-8-8H216c-4.4 0-8 3.6-8 8z"/></svg>
-				</a>
-
-				
-			<?php
-                if(!isset($_SESSION["name"]))
-					
-					{ ?>
-				
-				<form id="login_form" name="login_form" method="post" >
-				<input type="text"  id="uidInput" name="uid" class="form-control" style="width: 80px; font-size: 10px; display: inline-block;" placeholder="Your ID" required autofocus>
-				<label for="inputPassword" class="sr-only"></label>
-				<input type="password"  id="inputPassword"   name="upw" class="form-control" style="width: 60px; font-size: 10px;display: inline-block;" placeholder="Password" required>
-				<button id="loginBtn" class="login-button" type="button" data-home="<?php echo $home; ?>" style="font-size: 10px;">Login</button>
-				</form>		
-
-			<?php
-					}
-               if(isset($_SESSION["name"]))
-					
-					{ ?>
-
-					<form id="login_form" name="login_form" method="post">
-						<span style="color: white;" ><?php echo $_SESSION["name"]; ?>  님 환영</span>
-						<button id="logoutBtn" class="login-button" type="button">Log Out</button>
-					</form>
-
-				
+	</div>
+	<div class="h-100 d-lg-inline-flex align-items-center d-none">               
+	<!--! Font Awesome Pro 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+	<path d="M96 128V70.2c0-13.3 8.3-25.3 20.8-30l96-36c7.2-2.7 15.2-2.7 22.5 0l96 36c12.5 4.7 20.8 16.6 20.8 30V128h-.3c.2 2.6 .3 5.3 .3 8v40c0 70.7-57.3 128-128 128s-128-57.3-128-128V136c0-2.7 .1-5.4 .3-8H96zm48 48c0 44.2 35.8 80 80 80s80-35.8 80-80V160H144v16zM111.9 327.7c10.5-3.4 21.8 .4 29.4 8.5l71 75.5c6.3 6.7 17 6.7 23.3 0l71-75.5c7.6-8.1 18.9-11.9 29.4-8.5C401 348.6 448 409.4 448 481.3c0 17-13.8 30.7-30.7 30.7H30.7C13.8 512 0 498.2 0 481.3c0-71.9 47-132.7 111.9-153.6zM208 48V64H192c-4.4 0-8 3.6-8 8V88c0 4.4 3.6 8 8 8h16v16c0 4.4 3.6 8 8 8h16c4.4 0 8-3.6 8-8V96h16c4.4 0 8-3.6 8-8V72c0-4.4-3.6-8-8-8H240V48c0-4.4-3.6-8-8-8H216c-4.4 0-8 3.6-8 8z"/></svg>
+	</a>				
 	<?php
-					}
-        	}
-		   else
+	if(!isset($_SESSION["name"]))
+		
+		{ ?>
+
+	<form id="login_form" name="login_form" method="post" >
+	<input type="text"  id="uidInput" name="uid" class="form-control" style="width: 80px; font-size: 10px; display: inline-block;" placeholder="Your ID" required autofocus>
+	<label for="inputPassword" class="sr-only"></label>
+	<input type="password"  id="inputPassword"   name="upw" class="form-control" style="width: 60px; font-size: 10px;display: inline-block;" placeholder="Password" required>
+	<button id="loginBtn" class="login-button" type="button" data-home="<?php echo $home; ?>" style="font-size: 10px;">Login</button>
+	</form>		
+
+	<?php
+		}
+	if(isset($_SESSION["name"]))
+		
+		{ ?>
+
+		<form id="login_form" name="login_form" method="post">
+			<span style="color: white;" ><?php echo $_SESSION["name"]; ?>  님 환영</span>
+			<button id="logoutBtn" class="login-button" type="button">Log Out</button>
+		</form>
+	<?php
+		}
+	}
+	else
 	{
 
-                if(!isset($_SESSION["name"]))
-					
-					{ ?>				
-    
-				<form id="login_form" name="login_form" method="post" >
-				 <input type="text" id="uidInput" name="uid" class="form-control" style="width: 120px; display: inline-block;" placeholder="Your ID" required autofocus >
-				<label for="inputPassword" class="sr-only"></label>
-				<input  id="inputPassword"  type="password" name="upw" class="form-control" style="width: 120px; display: inline-block;" placeholder="Password" required>
-				<button id="loginBtn" class="login-button" type="button" data-home="<?php echo $home; ?>" >Login</button>									
-				</form>		
+	if(!isset($_SESSION["name"]))
+		
+		{ ?>				
 
-			<?php
-					}
-               if(isset($_SESSION["name"]))
-					
-					{ ?>
+	<form id="login_form" name="login_form" method="post" >
+		<input type="text" id="uidInput" name="uid" class="form-control" style="width: 120px; display: inline-block;" placeholder="Your ID" required autofocus >
+	<label for="inputPassword" class="sr-only"></label>
+	<input  id="inputPassword"  type="password" name="upw" class="form-control" style="width: 120px; display: inline-block;" placeholder="Password" required>
+	<button id="loginBtn" class="login-button" type="button" data-home="<?php echo $home; ?>" >Login</button>									
+	</form>		
 
-					<form id="login_form" name="login_form" method="post">
-						<span><?php echo $_SESSION["name"]; ?>  님 환영</span>
-						<button id="logoutBtn" class="login-button" type="button" style="font-size: 10px;">Log Out</button>
-					</form>
+	<?php
+		}
+	if(isset($_SESSION["name"]))
+		
+		{ ?>
 
-				
+		<form id="login_form" name="login_form" method="post">
+			<span><?php echo $_SESSION["name"]; ?>  님 환영</span>
+			<button id="logoutBtn" class="login-button" type="button" style="font-size: 10px;">Log Out</button>
+		</form>
+
+
 	<?php  }   }  ?>	
 	</ul>
-		</div>
+	</div>
 	
 </nav>
 <?php
@@ -920,9 +913,114 @@ nav {
 </div>	
 <!-- 연동제어기 메뉴얼 end -->
 
+<!-- 방범모터 제원 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhprevent_detail">
+    <div class="container">
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-lg-12">
+                <div class="col-md-12">
+                    <div class="shadow ratio ratio rounded bg-cover bp-center"
+                         data-aos="fade-right"
+                         style="background-image: url(img/dhprevent_detail.jpg);--bs-aspect-ratio: 58%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a name="dhprevent_detail"></a> <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 -->  	
+
+<!-- 방범모터 설정방법 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhprevent_settings">
+    <div class="container">
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-lg-12">
+                <div class="col-md-12">
+                    <div class="shadow ratio ratio rounded bg-cover bp-center"
+                         data-aos="fade-right"
+                         style="background-image: url(img/dhprevent_settings.jpg);--bs-aspect-ratio: 58%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a name="dhprevent_settings"></a> 
+
+<!-- 방범모터 스펙 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhprevent_spec1">
+    <div class="container">
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-lg-12">
+                <div class="col-md-12">
+                    <div class="shadow ratio ratio rounded bg-cover bp-center"
+                         data-aos="fade-right"
+                         style="background-image: url(img/dhprevent_spec1.jpg);--bs-aspect-ratio: 58%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a name="dhprevent_spec"></a> 
+
+
+<!-- 방범모터 스펙 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhprevent_spec2">
+    <div class="container">
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-lg-12">
+                <div class="col-md-12">
+                    <div class="shadow ratio ratio rounded bg-cover bp-center"
+                         data-aos="fade-right"
+                         style="background-image: url(img/dhprevent_spec2.jpg);--bs-aspect-ratio: 58%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 방범모터 스펙 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhprevent_spec3">
+    <div class="container">
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-lg-12">
+                <div class="col-md-12">
+                    <div class="shadow ratio ratio rounded bg-cover bp-center"
+                         data-aos="fade-right"
+                         style="background-image: url(img/dhprevent_spec3.jpg);--bs-aspect-ratio: 58%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 방범모터 구성품 Start -->
+<div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" id="dhprevent_parts">
+    <div class="container">
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-lg-12">
+                <div class="col-md-12">
+                    <div class="shadow ratio ratio rounded bg-cover bp-center"
+                         data-aos="fade-right"
+                         style="background-image: url(img/dhprevent_parts.jpg);--bs-aspect-ratio: 58%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a name="dhprevent_parts"></a> 
+
 <a name="dhc_motor"></a>	     <!-- 위치를 여기로 해야 자연스럽게 윗 여백을 확보하며 책갈피 기능을 수행함 --> 
 <!-- DH-C OHD 모터 -->
-
 <div class="py-vh-4 bg-gray-100 w-100 overflow-hidden" >
   <div class="container">       
 	<div class="row d-flex justify-content-between align-items-center">

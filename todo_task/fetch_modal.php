@@ -5,26 +5,27 @@ $mode = isset($_POST['mode']) ? $_POST['mode'] : '';
 $num = isset($_POST['num']) ? $_POST['num'] : '';
 $plan_month = isset($_POST['plan_month']) ? $_POST['plan_month'] . '-01' : date("Y-m-01");
 $seldate = isset($_POST['seldate']) ? $_POST['seldate'] :  date("Y-m-d", time());
+$debug = isset($_POST['debug']) ? $_POST['debug'] : '';
 
 // 디버깅을 위한 로그
-error_log("fetch_modal.php - mode: $mode, num: $num, seldate: $seldate, plan_month: $plan_month");
+error_log("fetch_modal.php - mode: $mode, num: $num, seldate: $seldate, plan_month: $plan_month, debug: $debug");
 
-// echo $seldate;
+// echo $seldate; 
 
-require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
+require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php"); 
 $pdo = db_connect();
-
-// employee_tasks 테이블 관련 변수 초기화
+ 
+// employee_tasks 테이블 관련 변수 초기화 
 $tablename = 'employee_tasks';
 $task_date = $seldate;
 $employee_name = $_SESSION['user_name'] ?? $_SESSION['name'] ?? $_SESSION['username'] ?? '';
 $department = $_SESSION['part'] ?? $_SESSION['department'] ?? $_SESSION['dept'] ?? $_SESSION['user_department'] ?? '';
 $memo = '';
 $tasks = [];
-$tasksCount = 0;
+$tasksCount = 0;  
 
 // 이전 날짜의 미완료 할일을 가져오는 함수
-function getPendingTasks($pdo, $employee_name, $current_date) {
+function getPendingTasks($pdo, $employee_name, $current_date) { 
     $pending_tasks = [];
     $task_content_map = []; // 중복 체크를 위한 맵
     
@@ -37,10 +38,10 @@ function getPendingTasks($pdo, $employee_name, $current_date) {
                 ORDER BY task_date ASC";
         
         $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(1, $employee_name, PDO::PARAM_STR);
+        $stmt->bindValue(1, $employee_name, PDO::PARAM_STR); 
         $stmt->bindValue(2, $current_date, PDO::PARAM_STR);
-        $stmt->execute();
-        
+        $stmt->execute(); 
+         
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($results as $row) {
@@ -151,7 +152,145 @@ function getPendingTasks($pdo, $employee_name, $current_date) {
     return $pending_tasks;
 }
 
-// 기존 데이터 확인 (check_existing 모드일 때)
+// 업무요청사항을 가져오는 함수
+function getWorkProcessTasks($pdo, $employee_name, $current_date, $debug, $excluded_nums = []) {
+    global $DB;
+    if(empty($DB)){
+        $DB = $_SESSION['DB'];  
+    } 
+     
+    $workprocess_tasks = []; 
+    
+    try {  
+        // 디버그용 - 기본 데이터 존재 여부 확인
+        if ($debug) {
+            $check_sql = "SELECT num, chargedPerson, regist_day, doneDate, subject FROM {$DB}.workprocess 
+                         WHERE chargedPerson = ? ORDER BY num DESC LIMIT 5";
+            $check_stmt = $pdo->prepare($check_sql);
+            $check_stmt->bindValue(1, $employee_name, PDO::PARAM_STR);
+            $check_stmt->execute();
+            $check_results = $check_stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo "<div style='background: yellow; padding: 10px; margin: 10px;'>";
+            echo "<strong>기본 데이터 확인:</strong> {$employee_name} 담당 업무요청사항 " . count($check_results) . "건<br>";
+            foreach ($check_results as $row) {
+                echo "#{$row['num']}: {$row['subject']} (등록: {$row['regist_day']}, 완료: " . ($row['doneDate'] ?: 'NULL') . ")<br>";
+            }
+            echo "</div>";
+        }
+        
+        // 기존 업무요청사항 번호들을 제외하는 SQL 조건 생성
+        $excluded_condition = '';
+        if (!empty($excluded_nums)) {
+            $placeholders = str_repeat('?,', count($excluded_nums) - 1) . '?';
+            $excluded_condition = " AND num NOT IN ($placeholders)";
+        }
+        
+        $sql = "SELECT * FROM {$DB}.workprocess 
+                WHERE chargedPerson = ? 
+                AND regist_day <= ?
+                AND (doneDate IS NULL OR YEAR(doneDate) = 0)
+                {$excluded_condition}
+                ORDER BY num DESC";
+        
+        if ($debug) {
+            echo "<div style='background: lightgreen; padding: 10px; margin: 10px;'>";
+            echo "<strong>업무요청사항 연동:</strong><br>";
+            echo "담당자: {$employee_name}, 현재 날짜: {$current_date}<br>";
+            echo "제외할 번호들: " . implode(', ', $excluded_nums) . "<br>";
+            echo "<strong>변경사항:</strong> regist_day <= '{$current_date}' 조건으로 등록일 이후 모든 미완료 업무요청건 조회<br>";
+            // SQL 디버그 출력 - 순차적으로 치환
+            $debug_sql = $sql;
+            $debug_sql = preg_replace('/\?/', "'{$employee_name}'", $debug_sql, 1); // 첫 번째 ? 치환
+            $debug_sql = preg_replace('/\?/', "'{$current_date}'", $debug_sql, 1); // 두 번째 ? 치환
+            // 나머지 ? (excluded_nums)는 그대로 표시
+            echo "SQL: {$debug_sql}<br>";
+            echo "</div>";
+        }
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(1, $employee_name, PDO::PARAM_STR);
+        $stmt->bindValue(2, $current_date, PDO::PARAM_STR);
+        
+        // 제외할 번호들 바인딩
+        $param_index = 3;
+        foreach ($excluded_nums as $excluded_num) {
+            $stmt->bindValue($param_index, $excluded_num, PDO::PARAM_INT);
+            $param_index++;
+        }
+        
+        $execute_result = $stmt->execute();
+        
+        if ($debug) {
+            echo "<div style='background: orange; padding: 10px; margin: 10px;'>";
+            echo "<strong>SQL 실행:</strong><br>";
+            echo "Execute 결과: " . ($execute_result ? '성공' : '실패') . "<br>";
+            if (!$execute_result) {
+                $error = $stmt->errorInfo();
+                echo "SQL 오류: " . implode(' - ', $error) . "<br>";
+            }
+            echo "</div>";
+        }
+        
+        if ($execute_result) {
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if ($debug) {
+                echo "<div style='background: lightblue; padding: 10px; margin: 10px;'>";
+                echo "<strong>결과:</strong> " . count($results) . "건의 새로운 업무요청사항 발견<br>";
+                foreach ($results as $i => $row) {
+                    echo "#{$row['num']}: {$row['subject']} (담당: {$row['chargedPerson']}, 등록: {$row['regist_day']}, 완료: " . ($row['doneDate'] ?: 'NULL') . ")<br>";
+                }
+                echo "</div>";
+            }
+        } else {
+            $results = [];
+        }
+        
+        foreach ($results as $row) {
+            $workprocess_id = 'workprocess_' . $row['num'];
+            $task_content = sprintf("(업무요청)%s, (처리기한)%s (제목)%s", 
+                $row['first_writer'], 
+                $row['dueDate'] ?: $current_date, 
+                $row['subject']
+            );
+            
+            // 경과일 계산: 등록일부터 현재까지
+            $regist_date_obj = new DateTime($row['regist_day']);
+            $current_date_obj = new DateTime($current_date);
+            $elapsed_days = $current_date_obj->diff($regist_date_obj)->days;
+            
+            $workprocess_task = [
+                'unique_id' => $workprocess_id,
+                'task_content' => $task_content,
+                'is_completed' => false,
+                'completion_date' => '',
+                'original_date' => $row['regist_day'],  // 등록일을 original_date로 설정
+                'elapsed_days' => $elapsed_days,
+                'is_pending' => true,  // 미완료 업무요청건은 추적 대상
+                'is_workprocess' => true,
+                'workprocess_num' => $row['num'],
+                'workprocess_data' => $row
+            ];
+            
+            $workprocess_tasks[] = $workprocess_task;
+        }
+        
+    } catch (PDOException $Exception) {
+        if ($debug == '1' || $debug === true || $debug === 1) {
+            echo "<div style='background: red; color: white; padding: 10px; margin: 10px;'>";
+            echo "<strong>SQL 예외 발생:</strong><br>";
+            echo "오류 메시지: " . $Exception->getMessage() . "<br>";
+            echo "오류 코드: " . $Exception->getCode() . "<br>";
+            echo "</div>";
+        }
+        error_log("Work process tasks fetch error: " . $Exception->getMessage());
+    }
+    
+    return $workprocess_tasks; 
+}
+ 
+// 기존 데이터 확인 (check_existing 모드일 때) 
 if ($mode === 'check_existing') {
     try {
         $sql = "SELECT num FROM " . $DB . "." . $tablename . " WHERE task_date = ? AND employee_name = ? AND (is_deleted = 'N' OR is_deleted IS NULL)";
@@ -183,7 +322,7 @@ if ($mode === 'check_existing') {
             'num' => null,
             'error' => $Exception->getMessage()
         ]);
-        exit;
+        exit; 
     }
 }
 
@@ -281,6 +420,37 @@ if ($mode === 'modify' && $num !== 'undefined') {
                     }
                 }
             }
+             
+            // 업무요청사항 가져오기 (수정 모드에서도)
+            // 현재 할일에 이미 있는 workprocess_num 추출
+            $existing_workprocess_nums = [];
+            $existing_workprocess_map = [];
+            foreach ($tasks as $task) {
+                if (!empty($task['workprocess_num'])) {
+                    $existing_workprocess_nums[] = intval($task['workprocess_num']);
+                    $existing_workprocess_map[intval($task['workprocess_num'])] = true;
+                }
+            }
+            
+            // 중복 제거
+            $existing_workprocess_nums = array_unique($existing_workprocess_nums);
+            
+            $workprocess_tasks = getWorkProcessTasks($pdo, $employee_name, $task_date, $debug, $existing_workprocess_nums);
+            if (!empty($workprocess_tasks)) {
+                // 한번 더 중복 체크 (이미 추가된 것은 제외)
+                $filtered_workprocess_tasks = [];
+                foreach ($workprocess_tasks as $wp_task) {
+                    if (!isset($existing_workprocess_map[$wp_task['workprocess_num']])) {
+                        $filtered_workprocess_tasks[] = $wp_task;
+                        $existing_workprocess_map[$wp_task['workprocess_num']] = true;
+                    }
+                }
+                
+                if (!empty($filtered_workprocess_tasks)) {
+                    $tasks = array_merge($filtered_workprocess_tasks, $tasks);
+                    $tasksCount = count($tasks);
+                }
+            }
         }
     } catch (PDOException $Exception) {
         echo "오류: " . $Exception->getMessage();
@@ -305,6 +475,65 @@ if ($mode === 'modify' && $num !== 'undefined') {
             $tasksCount = count($tasks);
         }
     }
+    
+    // 기존 employee_tasks 레코드에서 workprocess_nums 가져오기
+    $existing_workprocess_nums = [];
+    
+    // 현재 날짜에 이미 저장된 workprocess_nums 조회
+    try {
+        $existing_sql = "SELECT workprocess_nums FROM {$DB}.{$tablename} 
+                        WHERE employee_name = ? AND task_date = ? AND (is_deleted = 'N' OR is_deleted IS NULL)
+                        ORDER BY num DESC LIMIT 1";
+        $existing_stmt = $pdo->prepare($existing_sql);
+        $existing_stmt->bindValue(1, $employee_name, PDO::PARAM_STR);
+        $existing_stmt->bindValue(2, $seldate, PDO::PARAM_STR);
+        $existing_stmt->execute();
+        $existing_record = $existing_stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($existing_record && !empty($existing_record['workprocess_nums']) && $existing_record['workprocess_nums'] !== 'null') {
+            $stored_nums = json_decode($existing_record['workprocess_nums'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($stored_nums)) {
+                $existing_workprocess_nums = $stored_nums;
+            } else {
+                // JSON 파싱 실패시 로그 기록
+                error_log("JSON decode error for workprocess_nums: " . json_last_error_msg() . " - Data: " . $existing_record['workprocess_nums']);
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching existing workprocess_nums: " . $e->getMessage());
+    }
+    
+    // 현재 할일에서도 workprocess_num 추출하여 추가
+    $existing_workprocess_map = [];
+    foreach ($tasks as $task) {
+        if (!empty($task['workprocess_num'])) {
+            $workprocess_num = intval($task['workprocess_num']);
+            $existing_workprocess_nums[] = $workprocess_num;
+            $existing_workprocess_map[$workprocess_num] = true;
+        }
+    }
+    
+    // 중복 제거
+    $existing_workprocess_nums = array_unique($existing_workprocess_nums);
+    
+    // 업무요청사항 가져오기 (기존에 처리된 번호들은 제외)
+    $workprocess_tasks = getWorkProcessTasks($pdo, $employee_name, $seldate, $debug, $existing_workprocess_nums);
+    if (!empty($workprocess_tasks)) {
+        // 한번 더 중복 체크 (이미 추가된 것은 제외)
+        $filtered_workprocess_tasks = [];
+        foreach ($workprocess_tasks as $wp_task) {
+            $wp_num = intval($wp_task['workprocess_num']);
+            if (!isset($existing_workprocess_map[$wp_num])) {
+                $filtered_workprocess_tasks[] = $wp_task;
+                $existing_workprocess_map[$wp_num] = true;
+            }
+        }
+        
+        if (!empty($filtered_workprocess_tasks)) {
+            $tasks = array_merge($filtered_workprocess_tasks, $tasks);
+            $tasksCount = count($tasks);
+        }
+    }    
 }
 
 $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
@@ -342,33 +571,30 @@ $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
 		</div>
             <div class="card-body">
 				<div class="row justify-content-center text-center">
-                    <div class="d-flex align-items-center justify-content-center m-2">						
+                    <div class="d-flex align-items-center justify-content-center m-2">		
+                        <div class="table-responsive">				
 						<table class="table table-bordered table-sm">
 							<tbody>
 								<tr>
 									<td class="text-center fs-6 " style="width:100px;">날짜</td>
 									<td class="text-center" style="width:120px;">
-										<input type="date" class="form-control fs-6" id="task_date" name="task_date" style="width:130px;" value="<?= $task_date ?>">
+										<input type="date" class="form-control fs-6" id="task_date" name="task_date" style="width:130px; border:none; box-shadow:none;" value="<?= $task_date ?>">
 									</td>
-									<td class="text-center fs-6" style="width:100px;">직원명</td>
+                                    <td class="text-center fs-6" style="width:100px;">부서</td>
+									<td class="text-center" style="width:180px;">
+										<input type="text" class="form-control fs-6" id="department" name="department" value="<?= htmlspecialchars($department) ?>" autocomplete="off" style="border:none; box-shadow:none;" >			
+                                    </td>									                                    
+									<td class="text-center fs-6" style="width:100px;">성명</td>
 									<td class="text-center">
-										<input type="text" class="form-control fs-6 w100px" id="employee_name" name="employee_name" value="<?= htmlspecialchars($employee_name) ?>" autocomplete="off">
+										<input type="text" class="form-control fs-6 w100px" id="employee_name" name="employee_name" value="<?= htmlspecialchars($employee_name) ?>" autocomplete="off" style="border:none; box-shadow:none;">
 									</td>
-								</tr>
-								<tr>
-									<td class="text-center fs-6" style="width:100px;">부서</td>
-									<td class="text-center" style="width:120px;">
-										<input type="text" class="form-control fs-6" id="department" name="department" value="<?= htmlspecialchars($department) ?>" autocomplete="off">
-									</td>
-									<td class="text-center fs-6" style="width:100px;">메모</td>
-									<td class="text-start">
-										<input type="text" class="form-control fs-6 text-start" id="memo" name="memo" value="<?= htmlspecialchars($memo) ?>" autocomplete="off">
-									</td>
-								</tr>
+								</tr>																	
+									<input type="hidden" class="form-control fs-6 text-start" id="memo" name="memo" value="<?= htmlspecialchars($memo) ?>" autocomplete="off">									
 							</tbody>
                         </table>
+                        </div>
                     </div>
-                		</div>
+                </div>
             <!-- 할일 목록 테이블과 통계 정보 -->
                 <div class="row">
                     <div class="col-md-12">
@@ -391,10 +617,18 @@ $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
                                         $is_pending = $task['is_pending'] ?? false;
                                         $elapsed_days = $task['elapsed_days'] ?? 0;
                                         $unique_id = $task['unique_id'] ?? '';
+                                        $is_workprocess = $task['is_workprocess'] ?? false;
+                                        $workprocess_num = $task['workprocess_num'] ?? '';
+                                        
+                                        // 저장된 tasks에서 workprocess_num이 있으면 workprocess로 처리
+                                        if (!empty($workprocess_num) && !$is_workprocess) {
+                                            $is_workprocess = true;
+                                        }
+                                        
                                         // 할일 날짜
                                         $original_task_date = $task['original_task_date'] ?? '';         
                                     ?>
-                                    <tr class="task-row align-middle <?= $is_pending ? 'table-warning' : '' ?>" data-row="<?= $i ?>" data-unique-id="<?= $unique_id ?>">
+                                    <tr class="task-row align-middle <?= $is_pending ? 'table-warning' : '' ?> <?= $is_workprocess ? 'table-info' : '' ?>" data-row="<?= $i ?>" data-unique-id="<?= $unique_id ?>" data-workprocess-num="<?= $workprocess_num ?>">
                                         <td class="text-center align-middle">
                                             <div class="d-flex align-items-center justify-content-center">
                                                 <div class="btn-group btn-group-sm" role="group" style="gap: 1px;">
@@ -423,15 +657,23 @@ $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
                                                         if ($original_date_obj < $today) {
                                                             $readonly = 'readonly';
                                                         }
-                                                    }
+                                                    }   
                                                 ?>
                                                 <?php if ($is_pending): ?>
                                                     <span> <?= date('m/d', strtotime(htmlspecialchars($original_task_date))) ?> </span>
                                                     <span class="badge bg-warning me-2" title="이전 날짜 미완료 할일">추적</span>
                                                 <?php endif; ?>
-                                                <input type="text" name="tasks[<?= $i ?>][task_content]" class="form-control form-control-sm task-content-input flex-grow-1" placeholder="할일을 입력하세요" value="<?= htmlspecialchars($task['task_content'] ?? '') ?>" <?= $is_pending ? 'readonly' : $readonly ?>>
+                                                <?php if ($is_workprocess): ?>
+                                                    <button type="button" class="btn btn-outline-dark btn-sm me-2" onclick="showWorkprocessDetail(<?= $workprocess_num ?>)" title="업무요청사항 상세보기" style="padding: 2px 6px; font-size: 11px;">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <span class="badge bg-danger me-2" title="업무요청사항">업무</span>
+                                                <?php endif; ?>
+                                                <textarea name="tasks[<?= $i ?>][task_content]" class="form-control form-control-sm task-content-input flex-grow-1 <?= $is_workprocess ? 'workprocess-task' : '' ?>" placeholder="할일을 입력하세요" rows="1" style="resize: none; overflow-y: hidden; line-height: 1.5; padding: 0.25rem 0.5rem; <?= $is_workprocess ? 'cursor: pointer; background-color: #e3f2fd;' : '' ?>" <?= ($is_pending || $is_workprocess) ? 'readonly' : $readonly ?> data-workprocess-num="<?= $workprocess_num ?>"><?= htmlspecialchars($task['task_content'] ?? '') ?></textarea>
                                                 <input type="hidden" name="tasks[<?= $i ?>][unique_id]" value="<?= $unique_id ?>">
                                                 <input type="hidden" name="tasks[<?= $i ?>][is_pending]" value="<?= $is_pending ? '1' : '0' ?>">
+                                                <input type="hidden" name="tasks[<?= $i ?>][is_workprocess]" value="<?= $is_workprocess ? '1' : '0' ?>">
+                                                <input type="hidden" name="tasks[<?= $i ?>][workprocess_num]" value="<?= htmlspecialchars($workprocess_num) ?>">
                                                 <input type="hidden" name="tasks[<?= $i ?>][date_key]" value="<?= htmlspecialchars($task['date_key'] ?? '') ?>">
                                             </div>
                                         </td>
@@ -468,14 +710,14 @@ $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
                                                 $today = new DateTime(); // 현재 날짜
                                                 
                                                 // elapsed_days 값이 있으면 우선 사용
-                                                if (isset($task['elapsed_days']) && !empty($task['elapsed_days'])) {
+                                                if (isset($task['elapsed_days']) && ($task['elapsed_days'] !== '')) {
                                                     $elapsed = $task['elapsed_days'];
                                                     
                                                     // 숫자가 아닌 경우 (예: "예정", "-" 등) 처리
                                                     if (is_numeric($elapsed)) {
-                                                        if ($original_date > $today || $elapsed == 0) {
+                                                        if ($original_date > $today) {
                                                             echo '<span class="badge bg-info elapsed-days-display" data-original-date="' . $task_original_date . '">예정</span>';
-                                                        } else if ($elapsed > 0) {
+                                                        } else if ($elapsed >= 0) {
                                                             $badge_class = ($task['is_completed'] ?? false) ? 'bg-success' : 'bg-secondary';
                                                             echo '<span class="badge ' . $badge_class . ' elapsed-days-display" data-original-date="' . $task_original_date . '">' . $elapsed . '일</span>';
                                                         } else {
@@ -506,7 +748,7 @@ $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
                                                         }
                                                         
                                                         $elapsed = $reference_date->diff($original_date)->days;
-                                                        if($elapsed > 0) {
+                                                        if($elapsed >= 0) {
                                                             $badge_class = ($task['is_completed'] ?? false) ? 'bg-success' : 'bg-secondary';
                                                             echo '<span class="badge ' . $badge_class . ' elapsed-days-display" data-original-date="' . $task_original_date . '">' . $elapsed . '일</span>';
                                                         } else {
@@ -525,7 +767,7 @@ $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
                             </table>                
                         </div>
                     </div>
-                </div>
+                </div> 
                 <div class="d-flex justify-content-center">
                     <?php 
                     $is_past_date_for_save = false;
@@ -551,4 +793,94 @@ $title_message = ($mode === 'modify') ? '할일 수정' : '할일 등록';
                 </div>
             </div>
 		</div>
+
+<script>
+// Textarea 자동 높이 조절 함수
+function autoResizeTextarea(textarea) {
+    // 높이를 auto로 재설정하여 scrollHeight를 정확히 계산
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+// 모든 textarea 초기화 함수
+function initializeAllTextareas() {
+    document.querySelectorAll('.task-content-input').forEach(function(textarea) {
+        // 초기 높이 설정 - 내용이 있으면 그에 맞춰 조절
+        autoResizeTextarea(textarea);
+        
+        // 입력 시 높이 자동 조절 (이벤트 중복 방지를 위해 먼저 제거)
+        textarea.removeEventListener('input', handleTextareaInput);
+        textarea.addEventListener('input', handleTextareaInput);
+    });
+}
+
+// textarea input 이벤트 핸들러
+function handleTextareaInput() {
+    autoResizeTextarea(this);
+}
+
+// 페이지 로드 시 모든 textarea 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    // 약간의 지연을 주어 DOM이 완전히 렌더링된 후 실행
+    setTimeout(function() {
+        initializeAllTextareas();
+    }, 100);
+});
+
+// 모달이 표시될 때도 textarea 초기화 (Bootstrap 모달 이벤트 활용)
+if (typeof bootstrap !== 'undefined') {
+    document.addEventListener('shown.bs.modal', function(event) {
+        if (event.target.id === 'taskModal') {
+            setTimeout(function() {
+                initializeAllTextareas();
+            }, 100);
+        }
+    });
+}
+
+// 동적으로 추가되는 textarea를 위한 이벤트 위임
+document.addEventListener('input', function(e) {
+    if (e.target && e.target.classList.contains('task-content-input')) {
+        autoResizeTextarea(e.target);
+    }
+});
+
+// 업무요청사항 클릭 이벤트
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('workprocess-task')) {
+        const workprocessNum = e.target.getAttribute('data-workprocess-num');
+        if (workprocessNum) {
+            // workprocess 상세보기 팝업 열기
+            const url = `/workprocess/view.php?num=${workprocessNum}&tablename=workprocess`;
+            customPopup(url, '', 1400, 900);
+        }
+    }
+}); 
+
+// MutationObserver로 DOM 변경 감지하여 새로운 textarea 자동 초기화
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) { // Element node
+                    const textareas = node.querySelectorAll ? node.querySelectorAll('.task-content-input') : [];
+                    textareas.forEach(function(textarea) {
+                        setTimeout(function() {
+                            autoResizeTextarea(textarea);
+                        }, 10);
+                    });
+                }
+            });
+        }
+    });
+});
+
+// body 요소를 관찰
+if (document.body) {
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+</script>
 

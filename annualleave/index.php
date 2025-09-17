@@ -1,12 +1,5 @@
 <?php require_once($_SERVER['DOCUMENT_ROOT'] . '/session.php');
 
-// if (!isset($_SESSION["name"])) {
-    // $_SESSION["url"] = 'https://dh2024.co.kr/annualleave/index.php?user_name=' . $user_name;
-    // sleep(1);
-    // header("Location:https://dh2024.co.kr/login/logout.php");
-    // exit;
-// }
-
 $title_message = '직원 연차';
 
 ?>
@@ -38,6 +31,10 @@ $tablename = "eworks";
 // 변수 초기화
 $mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';
 $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';
+$selectedYear = isset($_REQUEST['year']) ? intval($_REQUEST['year']) : intval(date("Y"));
+$yearStart = $selectedYear . "-01-01";
+$yearEnd = $selectedYear . "-12-31";
+$headerUsageLabel = isset($_REQUEST['year']) ? '사용기간' : '사용시간';
 
 $AndisDeleted = " AND is_deleted IS NULL ";
 $WhereisDeleted = " where is_deleted IS NULL ";
@@ -45,15 +42,15 @@ $WhereisDeleted = " where is_deleted IS NULL ";
 if ($mode == "search" || $mode == "") {
     if ($search == "") {
         if ($admin == 1) {
-            $sql = "SELECT * FROM " . $DB . "." . $tablename . $WhereisDeleted . " ORDER BY al_askdatefrom DESC, registdate DESC";
+            $sql = "SELECT * FROM " . $DB . "." . $tablename . $WhereisDeleted . " AND (al_askdatefrom <= '" . $yearEnd . "' AND al_askdateto >= '" . $yearStart . "') ORDER BY al_askdatefrom DESC, registdate DESC";
         } else {
-            $sql = "SELECT * FROM " . $DB . "." . $tablename . " WHERE author LIKE '%$user_name%' " . $AndisDeleted . " ORDER BY al_askdatefrom DESC, registdate DESC";
+            $sql = "SELECT * FROM " . $DB . "." . $tablename . " WHERE author LIKE '%$user_name%' " . $AndisDeleted . " AND (al_askdatefrom <= '" . $yearEnd . "' AND al_askdateto >= '" . $yearStart . "') ORDER BY al_askdatefrom DESC, registdate DESC";
         }
     } elseif ($search != "") {
         if ($admin == 1) {
-            $sql = "SELECT * FROM " . $DB . "." . $tablename . " WHERE (author LIKE '%$search%') " . $AndisDeleted . " ORDER BY al_askdatefrom DESC, registdate DESC";
+            $sql = "SELECT * FROM " . $DB . "." . $tablename . " WHERE (author LIKE '%$search%') " . $AndisDeleted . " AND (al_askdatefrom <= '" . $yearEnd . "' AND al_askdateto >= '" . $yearStart . "') ORDER BY al_askdatefrom DESC, registdate DESC";
         } else {
-            $sql = "SELECT * FROM " . $DB . "." . $tablename . " WHERE (author = '$user_name') AND (author LIKE '%$search%') " . $AndisDeleted . " ORDER BY al_askdatefrom DESC, registdate DESC";
+            $sql = "SELECT * FROM " . $DB . "." . $tablename . " WHERE (author = '$user_name') AND (author LIKE '%$search%') " . $AndisDeleted . " AND (al_askdatefrom <= '" . $yearEnd . "' AND al_askdateto >= '" . $yearStart . "') ORDER BY al_askdatefrom DESC, registdate DESC";
         }
     }
 }
@@ -68,6 +65,7 @@ try {
 <form name="board_form" id="board_form" method="post" >
 
 <input type="hidden" id="username" name="username" value="<?= isset($user_name) ? $user_name : '' ?>">
+<input type="hidden" id="year" name="year" value="<?=$selectedYear?>">
 
     <?php if ($chkMobile == false) { ?>
         <div class="container">
@@ -79,7 +77,7 @@ try {
                 <div class="card-body">
                     <div class="d-flex justify-content-center align-items-center mt-3 mb-3">
                         <span class=" fs-5"> <?=$title_message?> </span>
-                        <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  	 			
+                        <button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>   	 			
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <? if ($admin == 1) { ?>
                             <button type="button" id="openAlmemberBtn" class="btn btn-success btn-sm me-2">
@@ -90,26 +88,34 @@ try {
                                     관리자모드
                                 </button>
                             <? } ?>
-                            <small class="ms-5 text-muted"> 연차 기간을 넣고 결재요청 버튼을 누르시면 등록됩니다. </small>    
+                            <small class="ms-5 text-muted"> 연차 기간을 넣고 결재요청 버튼을 누르시면 등록됩니다. <br>
+                               회계연도 (매년 1월1일)기준 연차일수 부여합니다.
+                        </small>    
                     </div>
-					<div class="d-flex justify-content-center align-items-center mt-3 mb-4">
-						<h6>
-							<select id="yearSelect" class="form-select form-select-sm d-inline w-auto">
-								<?php
-								$currentYear = date("Y");
-								for ($year = $currentYear; $year >= $currentYear - 3; $year--) {
-									echo "<option value='{$year}'" . ($year == $currentYear ? " selected" : "") . ">{$year}</option>";
-								}
-								?>
-							</select>
-							년도 연차 &nbsp; <?=$user_name?>님 &nbsp;
-							<span class="badge bg-success fs-6"> 발생일수 </span>
-							<span id="totalDays" class="text-success"> <?=$total?> &nbsp; </span>
-							<span class="badge bg-primary fs-6"> 사용일수 </span>
-							<span id="usedDays" class="text-primary"> <?=$thisyeartotalusedday?> &nbsp; </span>
-							<span class="badge bg-secondary fs-6"> 잔여일수 </span>
-							<span id="remainingDays" class="text-dark"> <?=$thisyeartotalremainday?> &nbsp; </span>
-						</h6>
+					<div class="row justify-content-center align-items-center mt-3 mb-4">
+						<div class="col-auto">
+							<div class="input-group input-group-sm shadow rounded-pill bg-white px-3 py-2 align-items-center" style="min-width: 420px;">
+								<span class="me-2 fw-bold text-secondary"><i class="bi bi-calendar3"></i></span>
+								<select id="yearSelect" class="form-select form-select-sm border-0 bg-light rounded-pill me-2" style="width: 90px; min-width: 70px;">
+									<?php
+									$currentYear = date("Y");
+									for ($year = $currentYear; $year >= $currentYear - 3; $year--) {
+										echo "<option value='{$year}'" . ($year == $selectedYear ? " selected" : "") . ">{$year}</option>";
+									}
+									?>
+								</select>
+								<span class="me-2 fw-bold text-dark"><?=$user_name?>님</span>
+								<span class="badge bg-gradient bg-success text-white px-2 py-1 me-1 d-flex align-items-center" style="font-size:1rem;">
+									<i class="bi bi-plus-circle me-1"></i>발생 <span id="totalDays" class="ms-1"><?=$total?></span>
+								</span>
+								<span class="badge bg-gradient bg-primary text-white px-2 py-1 me-1 d-flex align-items-center" style="font-size:1rem;">
+									<i class="bi bi-check2-circle me-1"></i>사용 <span id="usedDays" class="ms-1"><?=$thisyeartotalusedday?></span>
+								</span>
+								<span class="badge bg-gradient bg-secondary text-white px-2 py-1 d-flex align-items-center" style="font-size:1rem;">
+									<i class="bi bi-archive me-1"></i>잔여 <span id="remainingDays" class="ms-1"><?=$thisyeartotalremainday?></span>
+								</span>
+							</div>
+						</div>
 					</div>
 
 
@@ -132,8 +138,7 @@ try {
                                 <tr>
                                     <th class="text-center">번호</th>
                                     <th class="text-center">접수일</th>
-                                    <th class="text-center">시작일</th>
-                                    <th class="text-center">종료일</th>
+                                    <th class="text-center"><?=$headerUsageLabel?></th>
                                     <th class="text-center">사용일수</th>
                                     <th class="text-center">성명</th>
                                     <th class="text-center">사유</th>
@@ -167,9 +172,45 @@ try {
                                     <tr onclick="loadForm('update','<?=$num?>');">
                                         <td class="text-center"><?=$start_num?></td>
                                         <td class="text-center"><?=iconv_substr($registdate, 5, 5, "utf-8")?></td>
-                                        <td class="text-center"><?=iconv_substr($al_askdatefrom, 5, 5, "utf-8")?></td>
-                                        <td class="text-center"><?=iconv_substr($al_askdateto, 5, 5, "utf-8")?></td>
-                                        <td class="text-center"><?=$al_usedday?></td>
+                                        <?php
+                                            $display_from = ($al_askdatefrom > $yearStart) ? $al_askdatefrom : $yearStart;
+                                            $display_to = ($al_askdateto < $yearEnd) ? $al_askdateto : $yearEnd;
+                                            $period_text = '';
+                                            if ($display_from === $display_to) {
+                                                $period_text = iconv_substr($display_from, 5, 5, 'utf-8');
+                                            } else {
+                                                $period_text = iconv_substr($display_from, 5, 5, 'utf-8') . ' ~ ' . iconv_substr($display_to, 5, 5, 'utf-8');
+                                            }
+
+                                            // 연도 내 사용일수(주말 제외) 계산
+                                            $usedDaysInYear = 0;
+                                            if ($display_from <= $display_to) {
+                                                $startDateObj = new DateTime($display_from);
+                                                $endDateObj = new DateTime($display_to);
+                                                $endDateObj->modify('+1 day'); // inclusive
+                                                $interval = new DateInterval('P1D');
+                                                $period = new DatePeriod($startDateObj, $interval, $endDateObj);
+                                                foreach ($period as $dt) {
+                                                    $dow = (int)$dt->format('w');
+                                                    if ($dow !== 0 && $dow !== 6) {
+                                                        $usedDaysInYear++;
+                                                    }
+                                                }
+                                            }
+
+                                            // 항목 유형별 가중치 적용
+                                            if (isset($al_item)) {
+                                                if ($al_item === '오전반차' || $al_item === '오후반차') {
+                                                    $usedDaysInYear = $usedDaysInYear / 2;
+                                                } elseif ($al_item === '오전반반차' || $al_item === '오후반반차') {
+                                                    $usedDaysInYear = $usedDaysInYear / 4;
+                                                } elseif ($al_item === '경조사' || $al_item === '예비군훈련' || $al_item === '공가') {
+                                                    $usedDaysInYear = 0;
+                                                }
+                                            }
+                                        ?>
+                                        <td class="text-center"><?=$period_text?></td>
+                                        <td class="text-center"><?=$usedDaysInYear?></td>
                                         <td class="text-center"><?=$author?></td>
                                         <td class="text-center"><?=$al_content?></td>
                                         <td class="text-center <?=$statusClass?>"><?=$statusstr?></td>
@@ -343,11 +384,11 @@ function loadForm(mode, num = null) {
                                         background: "linear-gradient(to right, #00b09b, #96c93d)"
                                     },
                                 }).showToast();                            
-							setTimeout(function() {			 
-								 $("#myModal").modal('hide');
-								 location.reload();           
-							}, 1000);								
-						   
+						setTimeout(function() { 			 
+							 $("#myModal").modal('hide');
+							 location.reload();           
+						}, 1000);								
+					   
                         },
                         error : function(jqxhr, status, error) {
                             console.log(jqxhr, status, error);
@@ -410,7 +451,7 @@ function loadForm(mode, num = null) {
                                 data: formData,
                                 dataType: "json",
                                 success: function(data) {
-									console.log(data);
+								console.log(data);
                                     Toastify({
                                         text: "파일 삭제완료",
                                         duration: 2000,
@@ -449,20 +490,20 @@ function loadForm(mode, num = null) {
 					 $('#al_usedday').val(result);
 					 break;
 				  case '오전반차' :	 
-				  case '오후반차' :	 	   
+				  case '오후반차' : 	   
 					 $('#al_usedday').val(result/2);
 					 break;
 				  case '오전반반차' :	 
-				  case '오후반반차' :	 	   
+				  case '오후반반차' : 	   
 					 $('#al_usedday').val(result/4);
 					 break;
-				  case '경조사' :	 	   
+				  case '경조사' : 	   
 					 $('#al_usedday').val(0);
 					 break;		 
-				  case '예비군훈련' :	 	   
+				  case '예비군훈련' : 	   
 					 $('#al_usedday').val(0);
 					 break;		 
-				  case '공가' :	 	   
+				  case '공가' : 	   
 					 $('#al_usedday').val(0);
 					 break;		 
 			   }
@@ -482,22 +523,22 @@ function loadForm(mode, num = null) {
 					 $('#al_usedday').val(result);
 					 break;
 				  case '오전반차' :	 
-				  case '오후반차' :	 	   
+				  case '오후반차' : 	   
 					 $('#al_usedday').val(result/2);
 					 break;
 				  case '오전반반차' :	 
-				  case '오후반반차' :	 	   
+				  case '오후반반차' : 	   
 					 $('#al_usedday').val(result/4);
 					 break;
-				  case '경조사' :	 	   
+				  case '경조사' : 	   
 					 $('#al_usedday').val(0);
 					 break;
-                     case '예비군훈련' :	 	   
+                     case '예비군훈련' : 	   
 					 $('#al_usedday').val(0);
 					 break;		 
-				  case '공가' :	 	   
+				  case '공가' : 	   
 					 $('#al_usedday').val(0);
-					 break;	                     
+					 break; 	                     
 			   }
 			});	
 
@@ -515,24 +556,24 @@ function loadForm(mode, num = null) {
 					 $('#al_usedday').val(result);
 					 break;
 				  case '오전반차' :	 
-				  case '오후반차' :	 	   
+				  case '오후반차' : 	   
 					 $('#al_usedday').val(result/2);
 					 break;
 				  case '오전반반차' :	 
-				  case '오후반반차' :	 	   
+				  case '오후반반차' : 	   
 					 $('#al_usedday').val(result/4);
 					 break;
-				  case '경조사' :	 	   
+				  case '경조사' : 	   
 					 $('#al_usedday').val(0);
 					 break;		 
-                     case '예비군훈련' :	 	   
+                     case '예비군훈련' : 	   
 					 $('#al_usedday').val(0);
 					 break;		 
-				  case '공가' :	 	   
+				  case '공가' : 	   
 					 $('#al_usedday').val(0);
-					 break;	                     
+					 break; 	                     
 			   }
-			});			  
+			});		  
 		  
 		  
         },
@@ -608,25 +649,13 @@ return count;
 $(document).ready(function () {
     $('#yearSelect').change(function () {
         const selectedYear = $(this).val();
-        $.ajax({
-            url: '/almember/update_annual_leave.php', // 데이터 업데이트를 처리할 PHP 파일
-            method: 'POST',
-            data: { year: selectedYear, user_name: "<?=$user_name?>" },
-            dataType: 'json',
-            success: function (response) {
-                if (response.success) {
-                    $('#totalDays').text(response.total);
-                    $('#usedDays').text(response.usedDays);
-                    $('#remainingDays').text(response.remainingDays);
-                } else {
-                    alert('데이터를 업데이트하는 동안 오류가 발생했습니다.');
-                }
-            },
-            error: function(jqxhr, status, error) {
-                console.log(jqxhr, status, error);				
-                alert('서버 요청 중 오류가 발생했습니다.');
-            }
-        });
+        // 연도 변경 시 해당 연도로 화면 갱신 (테이블/헤더/계산 반영)
+        const params = new URLSearchParams(window.location.search);
+        params.set('mode', 'search');
+        params.set('year', selectedYear);
+        params.set('changed', '1');
+        const baseUrl = window.location.pathname;
+        window.location.href = baseUrl + '?' + params.toString();
     });
 });
 

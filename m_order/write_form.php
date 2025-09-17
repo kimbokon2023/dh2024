@@ -109,7 +109,7 @@ if ($mode == "copy" || $mode == 'split') {
 	
     <?php include $_SERVER['DOCUMENT_ROOT'] . '/m_order/modal.php'; ?>
 	
-    <div class="container">
+    <div class="container-fluid">
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-center align-items-center mt-3 mb-5">
@@ -152,7 +152,8 @@ if ($mode == "copy" || $mode == 'split') {
                             </tbody>
                         </table>
 					<div class="alert alert-primary mx-3 w-25" role="alert">
-						단가, 금액은 위엔화 기준입니다.
+						단가, 금액은 위엔화 기준입니다.<br>
+                        <span style="color: red; font-weight: bold;">모터는 단품기준의 위엔화 가격이 적용됩니다.(SET 아님)</span>
 					</div>							
 				</div>             
             </div>
@@ -204,17 +205,17 @@ if ($mode == "copy" || $mode == 'split') {
 var ajaxRequest = null;
 var ajaxRequest_write = null;
 
-// 전역 변수에 품목 데이터 저장 (material_reg 폴더의 fetch_itemcode.php 재활용)
+// 전역 변수에 품목 데이터 저장 (m_order 폴더의 fetch_itemcode.php 사용)
 var itemData = [];
 
 // 품목 데이터를 Ajax로 로드하는 함수
 function loadItemData() {
     $.ajax({
-        url: "/material_reg/fetch_itemcode.php", // 재활용: material_reg 폴더의 fetch_itemcode.php
+        url: "/m_order/fetch_itemcode.php", // m_order 폴더 전용 엔드포인트
         type: "GET",
         dataType: "json",
         success: function(data) {
-			console.log('fetch_itemcode : ',data);
+            console.log('m_order/fetch_itemcode : ',data);
             if(data.items) {
                 itemData = data.items;
             }
@@ -837,7 +838,6 @@ $(document).ready(function() {
 		});
 	});
 
-	
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);

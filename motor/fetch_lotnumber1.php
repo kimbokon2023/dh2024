@@ -7,7 +7,7 @@ $unitsection = $_POST['unit'] ?? '';
 $item_qty = isset($_POST['item_qty']) ? $_POST['item_qty'] : 0;
 $itemCode_bracket = isset($_POST['itemCode_bracket']) ? $_POST['itemCode_bracket'] : 0;
 
-echo '검색 item_code : ' . $item_code;
+echo '검색(item_code) : ' . $item_code;
 
 function decodeUrlEncodedJson($encodedJson) {
     return json_decode(urldecode($encodedJson), true);

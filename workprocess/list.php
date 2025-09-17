@@ -65,9 +65,9 @@ $fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';
 $todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
 
 // 현재 날짜
-$currentDate = date("Y-m-d");
+$currentDate = date("Y-m-d"); 
 
-// 검색 타입에 따른 날짜 설정
+// 검색 타입에 따른 날짜 설정 
 if ($search_type === 'year') {
     // 연도별 검색
     $fromdate = $selected_year . "-01-01";
@@ -75,7 +75,8 @@ if ($search_type === 'year') {
 } elseif ($search_type === 'month') {
     // 월별 검색
     $fromdate = $selected_month . "-01";
-    $todate = $selected_year . "-01-01";
+    // 해당 월의 마지막 날 계산
+    $todate = date("Y-m-t", strtotime($selected_month . "-01"));
 } else {
     // 기간별 검색 (기본값)
     if ($fromdate === "" || $fromdate === null || $todate === "" || $todate === null) {
@@ -116,6 +117,7 @@ try{
 ?>
 	
 <form name="board_form" id="board_form"  method="post">
+<input type="hidden" id="previous_search_type" value="<?=$search_type?>">
    
 <div class="container justify-content-center">  
 <div class="card mt-2 mb-4">  
@@ -266,6 +268,36 @@ function toggleSearchType() {
 
 // 검색 타입 변경 시 자동 검색 실행
 function toggleSearchTypeAndSubmit() {
+    var currentSearchType = $('input[name="search_type"]:checked').val();
+    var previousSearchType = $('#previous_search_type').val();
+    
+    // 월별에서 기간별로 전환 시 날짜 설정
+    if (previousSearchType === 'month' && currentSearchType === 'period') {
+        var selectedMonth = $('#selected_month').val();
+        if (selectedMonth) {
+            // 선택된 월의 첫날과 마지막날 설정
+            var firstDay = selectedMonth + '-01';
+            var lastDay = new Date(selectedMonth + '-01');
+            lastDay.setMonth(lastDay.getMonth() + 1);
+            lastDay.setDate(0); // 이전 달의 마지막 날
+            
+            $('#fromdate').val(firstDay);
+            $('#todate').val(lastDay.toISOString().split('T')[0]);
+        }
+    }
+    
+    // 연도별에서 기간별로 전환 시 날짜 설정
+    if (previousSearchType === 'year' && currentSearchType === 'period') {
+        var selectedYear = $('#selected_year').val();
+        if (selectedYear) {
+            $('#fromdate').val(selectedYear + '-01-01');
+            $('#todate').val(selectedYear + '-12-31');
+        }
+    }
+    
+    // 현재 검색 타입 저장
+    $('#previous_search_type').val(currentSearchType);
+    
     toggleSearchType();
     
     // 약간의 지연 후 폼 제출 (UI 업데이트를 위해)

@@ -7,13 +7,14 @@ if (!isset($_SESSION["level"]) || intval($_SESSION["level"]) > 7) {
     exit;
 }
 $Get_task_num = isset($_GET['task_num']) ? $_GET['task_num'] : '';
+$debug = isset($_GET['debug']) ? $_GET['debug'] : '';
 $today = date("Y-m-d");
 require_once($_SERVER['DOCUMENT_ROOT'] . "/load_header.php");
 $titlemessage = '오늘의 할일 달력';
 $version = time();
 $header = isset($_GET['header']) ? $_GET['header'] : 'yes';
 
-?>
+?> 
 
 <title> <?=$titlemessage?>  </title>
 <!-- Favicon-->    
@@ -49,25 +50,22 @@ if($header !== 'no') {
                 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
                 $pdo = db_connect();
 
-                // dailyworkcheck가 '작성'인 회원들 불러오기
-                $sql = "SELECT name FROM member WHERE dailyworkcheck = '작성'";
+                // dailyworkcheck가 '작성'이고 퇴직자가 아닌 회원들만 불러오기 (quitDate 기준)
+                $sql = "SELECT name FROM member WHERE dailyworkcheck = '작성' AND (quitDate IS NULL OR quitDate = '0000-00-00')";
                 $stmh = $pdo->prepare($sql);
                 $stmh->execute();
                 $members = $stmh->fetchAll(PDO::FETCH_ASSOC);
 
                 array_unshift($members, array('name' => '전체'));
-
+				echo '<div class="d-flex justify-content-center align-items-center">';
 				foreach ($members as $member) {
 					$name = htmlspecialchars($member['name']);					
 					$id = 'member_' . htmlspecialchars($member['name']); // input과 label 연결을 위한 id 설정
-					$checked = ($name === '전체') ? 'checked' : ''; // '전체'가 기본 선택되도록 설정
-					echo '<div class="col-sm-1 mb-3">';
-					echo '<div class="d-flex align-items-center">';
-					echo '<input type="radio" id="' . $id . '" name="selected_member" value="' . $name . '" class="form-check-input me-2 member-radio" ' . $checked . ' data-member="' . $name . '">';
-					echo '<label for="' . $id . '" class="form-check-label fs-6">' . $name . '</label>'; // label 태그로 감싸서 클릭 가능하게 변경
-					echo '</div>';
-					echo '</div>';
-					}
+					$checked = ($name === '전체') ? 'checked' : ''; // '전체'가 기본 선택되도록 설정										
+					echo '<input type="radio" id="' . $id . '" name="selected_member" value="' . $name . '" class="form-check-input ms-3 me-1 member-radio" ' . $checked . ' data-member="' . $name . '">';
+					echo '<label for="' . $id . '" class="form-check-label fs-6 ">' . $name . '</label>'; // label 태그로 감싸서 클릭 가능하게 변경
+				}
+				echo '</div>';
 			?>
             </div>
         </div>

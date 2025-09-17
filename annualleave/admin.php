@@ -32,7 +32,7 @@ $mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';
 $search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';
 
 isset($_REQUEST["year"]) ? $year=$_REQUEST["year"] : $year = date("Y");
- 	  
+	  
 $whereCon = " where  referencedate = '$year' AND is_deleted IS NULL   "; 
 $andCon = " AND referencedate = '$year' AND is_deleted IS NULL "; 
 
@@ -42,13 +42,13 @@ $pdo = db_connect();
 if($mode=="search"){
 	  if($search==""){		
 		$sql = "select * from ".$DB.".almember  " . $whereCon . " order by referencedate   desc,  dateofentry asc, num desc  " ;
-			       }
+		       }
 	 else {
-			  $sql ="select * from ".$DB.".almember where (name like '%$search%')  or (part like '%$search%') or (referencedate like '%$search%')  ";
+			  $sql ="select * from ".$DB.".almember where ((name like '%$search%') or (part like '%$search%') or (referencedate like '%$search%')) ";
 			  $sql .=" " . $andCon . " order by referencedate desc,  dateofentry asc, num desc ";
 			}				
 	 }      
-  if($mode=="") {			 		
+  if($mode=="") { 				
 		$sql = "select * from ".$DB.".almember " . $whereCon . "order by referencedate desc,  dateofentry asc, num desc  " ;
                 }	
 
@@ -56,11 +56,11 @@ if($mode=="search"){
 
  try{  	  
 	  $stmh = $pdo->query($sql);           
-	  $total_row = $stmh->rowCount();  				 			 
+	  $total_row = $stmh->rowCount();  				 		 
 	?>      
 	
 <form name="board_form" id="board_form"  method="post" action="admin.php?mode=search">    
-  
+ 
 <div class="container">  
 	<div class="card mt-2 mb-4">  
 	<div class="card-body"> 		        		    
@@ -71,21 +71,21 @@ if($mode=="search"){
 <div class="d-flex mt-3 mb-1 justify-content-center  align-items-center"> 	
 			선택년도 &nbsp;
 		<select name="year" id="year"  class="form-select w-auto me-1" style="font-size:0.8rem; height:32px;"  >
-		   <?php		    
+		   <?php 		    
 			$current_year = date("Y"); // 현재 년도를 얻습니다.
 			$year_arr = array(); // 빈 배열을 생성합니다.
-
+			
 			for ($i = 0; $i < 3; $i++) {
 				$year_arr[] = $current_year - $i;
 			}
 		   for($i=0;$i<count($year_arr);$i++) {
 				 if($year==$year_arr[$i])
-							print "<option selected value='" . $year_arr[$i] . "'> " . $year_arr[$i] .   "</option>";
-					 else   
-							print "<option value='" . $year_arr[$i] . "'> " . $year_arr[$i] .   "</option>";
+						print "<option selected value='" . $year_arr[$i] . "'> " . $year_arr[$i] .   "</option>";
+				 else   
+						print "<option value='" . $year_arr[$i] . "'> " . $year_arr[$i] .   "</option>";
 		   } 		   
-				?>	  
-		</select> 					
+				?> 	  
+		</select> 		 			
 			
 		 <button type="button" class="btn btn-dark btn-sm" onclick="popupCenter('write_form.php', '신규', 600, 700);return false;" >  <ion-icon name="create-outline"></ion-icon> 신규 </button> &nbsp;&nbsp;		 
 
@@ -93,7 +93,7 @@ if($mode=="search"){
 
 	   <input type="text" name="search" id="search" class="form-control me-1" style="width:120px;" value="<?=$search?>" autocomplete="off" onkeydown="JavaScript:SearchEnter();" placeholder="검색어"> 
 	   &nbsp;
-		<button type="button" id="searchBtn" class="btn btn-dark btn-sm"  > <i class="bi bi-search"></i> 검색 </button>	
+		<button type="button" id="searchBtn" class="btn btn-dark btn-sm"  > <i class="bi bi-search"></i> 검색 </button> 	
 	
 </div>  
 <div class="row d-flex mt-3 mb-1 justify-content-center  align-items-center"> 	
@@ -119,39 +119,39 @@ if($mode=="search"){
 	    
 	   while($row = $stmh->fetch(PDO::FETCH_ASSOC)) {
 		   include "_row.php";  
-			   
+		   	   
         // var_dump($totalused_arr);
 		$totalusedday = 0;
-		$totalremainday = isset($availableday) ? $availableday : 0 ;		
+		$totalremainday = isset($availableday) ? $availableday : 0 ; 		
 		
 		 for($i=0;$i<count($totalname_arr);$i++)
 		 {			 
 
              // 해당년도가 같고 이름이 같으면 계산			 
 			 if(trim($name) == trim($totalname_arr[$i]) && $referencedate == $totalusedYear_arr[$i] )
-			 {				 
+			 { 		 
 				$totalusedday = $totalused_arr[$i];
-				$totalremainday = $availableday - $totalusedday;				
-			 }			
+				$totalremainday = $availableday - $totalusedday; 				
+			 } 			
 		 }
 		 
 			if (isset($dateofentry) && isset($referencedate)) {
 				// DateTime 객체로 변환
 				$entryDate = new DateTime($dateofentry);
 				$referenceDate = new DateTime($referencedate);
-
+				
 				// 두 날짜 간의 차이 계산
 				$interval = $entryDate->diff($referenceDate);
-
+				
 				// 총 년수 계산
 				$years = $interval->y;
-
+				
 				// 총 월수 계산
 				$months = $interval->m;
-
+				
 				// 근속년수 계산 (년 + (월 / 12)), 소수점 첫째 자리까지 반올림
 				$continueYear = round($years + ($months / 12), 1);
-
+				
 				// 단순 월 계산
 				$continueMonth = intval($years) * 12 + $interval->m;
 			} else {
@@ -159,7 +159,7 @@ if($mode=="search"){
 				$continueYear = 0;
 				$continueMonth = 0;
 			}
-
+			
 			?>
 			
 				
@@ -169,20 +169,20 @@ if($mode=="search"){
             <td class="text-center"><?=$name?>	    </td>
             <td class="text-center"><?=$part?>   	</td>
             <td class="text-center"><?=$dateofentry?>	</td>
-            <td class="text-center"><?=$referencedate?>	</td>		
+            <td class="text-center"><?=$referencedate?>	</td> 		
             <td class="text-center"><?=$continueYear?>	</td>
-            <td class="text-center"><?=$continueMonth?>	</td>			
-            <td class="text-center text-primary"><b><?=$availableday?></b>	</td>            			
-            <td class="text-center text-success"><b><?=$totalusedday?></b>	</td>            			
-            <td class="text-center text-danger"><b> <?=$totalremainday?></b>	</td>            			         
+            <td class="text-center"><?=$continueMonth?>	</td> 			
+            <td class="text-center text-primary"><b><?=$availableday?></b>	</td>            		
+            <td class="text-center text-success"><b><?=$totalusedday?></b>	</td>            		
+            <td class="text-center text-danger"><b> <?=$totalremainday?></b>	</td>            	         
 		</tr>
 
 <?php
 			    $start_num--;
 			 } 
-  } catch (PDOException $Exception) {
-  print "오류: ".$Exception->getMessage();
-  }  
+	  } catch (PDOException $Exception) {
+	  print "오류: ".$Exception->getMessage();
+	  }  
 ?>
  
         </tbody>
@@ -209,7 +209,7 @@ if($mode=="search"){
 
 <!-- 페이지로딩 -->
 <script>
-$(document).ready(function(){	
+$(document).ready(function(){ 	
 	var loader = document.getElementById('loadingOverlay');
 	loader.style.display = 'none';
 });
@@ -219,7 +219,7 @@ $(document).ready(function(){
 var dataTable; // DataTables 인스턴스 전역 변수
 var aladminpageNumber; // 현재 페이지 번호 저장을 위한 전역 변수
 
-$(document).ready(function() {			
+$(document).ready(function() { 			
     // DataTables 초기 설정
     dataTable = $('#myTable').DataTable({
         "paging": true,
@@ -274,12 +274,11 @@ function SearchEnter(){
 	
 
 
-$(document).ready(function(){	
+$(document).ready(function(){ 	
 
-	$('select[name="year"]').change(function(){
-	   var val = $('input[name="year"]:checked').val();	   
+	$('#year').on('change', function(){
 	   document.getElementById('board_form').submit(); 
-	});	
+	}); 	
 
 
 	$("#closeModalBtn").click(function(){ 
@@ -288,19 +287,19 @@ $(document).ready(function(){
 
 	$("#searchBtn").click(function(){  
 		document.getElementById('board_form').submit();   
-	});		
+	}); 		
 	
 	$("#backBtn").click(function(){  
 		location.href='/annualleave/index.php'; 
-	});			
+	}); 			
 
 
 
 });
 
-function redirectToView(num, tablename) {	
+function redirectToView(num, tablename) { 	
     var url = "write_form.php?mode=modifiy&num=" + num + "&tablename=" + tablename;          
-	customPopup(url, '연차등록/변경', 500, 600); 		    
+	customPopup(url, '연차등록/변경', 500, 600); 	    
 }
 
 </script>

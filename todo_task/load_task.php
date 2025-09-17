@@ -8,6 +8,7 @@
 	<input type="hidden" id="tablename" name="tablename" value="employee_tasks">
 	<input type="hidden" id="tasksCount" name="tasksCount" value="0">
 	<input type="hidden" id="plan_month" name="plan_month" value="<?= date('Y-m') ?>">
+	<input type="hidden" id="debug" name="debug" value="<?= isset($debug) ? $debug : '' ?>">
 
 <!-- todo모달 컨테이너 -->
 <div class="container-fluid">
@@ -517,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-    });
+    }); 
 
 	function loadTaskForm(num, date, plan_month) {
 		let mode = num == 'undefined' || num == null ? 'insert' : 'modify';
@@ -528,6 +529,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		console.log("plan_month:", plan_month);
 		console.log("mode:", mode);
 
+		var debug = $('#debug').val();
+
 		// num이 undefined나 null일 때, 해당 날짜에 현재 사용자의 데이터가 있는지 확인
 		if (num == 'undefined' || num == null) {
 			// 먼저 해당 날짜에 기존 데이터가 있는지 확인
@@ -537,7 +540,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				data: { 
 					mode: 'check_existing', 
 					seldate: date, 
-					plan_month: plan_month 
+					plan_month: plan_month,
+					debug: debug
 				},
 				dataType: "json",
 				success: function(checkResponse) {
@@ -567,18 +571,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function proceedWithFormLoad(mode, num, date, plan_month) {
 		// Set form values
-		$("#mode").val(mode);
+		$("#mode").val(mode); 
 		$("#num").val(num);    
-		// 모달창 상단에 고유번호 보여주기
+		// 모달창 상단에 고유번호 보여주기 
 		$("#task_num").text(num);
 
 		// $로 된 php코드를 가져오기    
 		$("#plan_month").val(plan_month);
+		var debug = $('#debug').val();
 
 		$.ajax({
 			type: "POST",
 			url: "/todo_task/fetch_modal.php",
-			data: { mode: mode, num: num, seldate: date, plan_month: plan_month },
+			data: { mode: mode, num: num, seldate: date, plan_month: plan_month, debug: debug },
 			dataType: "html",
 			success: function(response) {                
 				document.querySelector(".modal-body .custom-card").innerHTML = response;
@@ -586,7 +591,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				// Bootstrap 5 modal show method
 				const modal = new bootstrap.Modal(document.getElementById('taskModal'));
 				modal.show();
-
 
 				// 전역 변수
 				let taskRowCount = '<?php echo isset($tasksCount) ? $tasksCount : 0; ?>';
@@ -621,6 +625,45 @@ document.addEventListener('DOMContentLoaded', function() {
 				// 초기 통계 업데이트
 				updateStatistics();
 				
+				// Textarea 자동 높이 조절 함수
+				function autoResizeTextarea(textarea) {
+					textarea.style.height = 'auto';
+					textarea.style.height = textarea.scrollHeight + 'px';
+				}
+				
+				// 모든 textarea 초기화 및 이벤트 리스너 추가
+				function initializeModalTextareas() {
+					document.querySelectorAll('.task-content-input').forEach(function(textarea) {
+						// 초기 높이 설정 - 내용에 맞춰 조절
+						autoResizeTextarea(textarea);
+						
+						// 입력 시 높이 자동 조절
+						textarea.removeEventListener('input', handleInput);
+						textarea.addEventListener('input', handleInput);
+						
+						function handleInput() {
+							autoResizeTextarea(this);
+						}
+					});
+				}
+				
+				// 모달 콘텐츠가 로드된 후 실행
+				setTimeout(function() {
+					initializeModalTextareas();
+				}, 200);
+				
+				// 추가로 모달이 완전히 표시된 후에도 실행
+				$('#taskModal').on('shown.bs.modal', function() {
+					setTimeout(function() {
+						initializeModalTextareas();
+					}, 100);
+				});
+				
+				// 동적으로 추가되는 textarea를 위한 이벤트 위임
+				$(document).on('input', '.task-content-input', function() {
+					autoResizeTextarea(this);
+				});
+				
 				// 할일 내용 입력 시 통계 업데이트
 				$(document).on('input', '.task-content-input', function() {
 					updateStatistics();
@@ -635,17 +678,64 @@ document.addEventListener('DOMContentLoaded', function() {
 				window.updateCompletionDate = function(checkbox) {
 					const row = $(checkbox).closest('.task-row');
 					const completionDateInput = row.find('.completion-date-input');
+					const elapsedDaysDisplay = row.find('.elapsed-days-display');
 					
 					if (checkbox.checked) {
 						// 체크된 경우 오늘 날짜로 설정
-						const today = new Date().toISOString().split('T')[0];
-						completionDateInput.val(today);
+						const today = new Date();
+						const year = today.getFullYear();
+						const month = String(today.getMonth() + 1).padStart(2, '0');
+						const day = String(today.getDate()).padStart(2, '0');
+						const todayStr = `${year}-${month}-${day}`;
+						
+						completionDateInput.val(todayStr);
 						completionDateInput.prop('readonly', false);
+						
+						// 경과일 업데이트
+						const originalDate = elapsedDaysDisplay.data('original-date');
+						if (originalDate) {
+							const original = new Date(originalDate);
+							const completion = new Date(todayStr);
+							
+							// 같은 날짜면 0일
+							if (original.toDateString() === completion.toDateString()) {
+								elapsedDaysDisplay.removeClass('bg-secondary bg-success bg-info').addClass('bg-success');
+								elapsedDaysDisplay.text('0일');
+							} else {
+								const diffTime = Math.abs(completion - original);
+								const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+								elapsedDaysDisplay.removeClass('bg-secondary bg-info').addClass('bg-success');
+								elapsedDaysDisplay.text(diffDays + '일');
+							}
+						}
 					} else {
 						// 체크 해제된 경우 날짜 초기화
 						completionDateInput.val('');
 						completionDateInput.prop('readonly', true);
+						
+						// 경과일을 미완료 상태로 업데이트
+						const originalDate = elapsedDaysDisplay.data('original-date');
+						if (originalDate) {
+							const original = new Date(originalDate);
+							const today = new Date();
+							
+							if (original > today) {
+								elapsedDaysDisplay.removeClass('bg-success bg-secondary').addClass('bg-info');
+								elapsedDaysDisplay.text('예정');
+							} else if (original.toDateString() === today.toDateString()) {
+								elapsedDaysDisplay.removeClass('bg-success bg-info').addClass('bg-secondary');
+								elapsedDaysDisplay.text('0일');
+							} else {
+								const diffTime = Math.abs(today - original);
+								const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+								elapsedDaysDisplay.removeClass('bg-success bg-info').addClass('bg-secondary');
+								elapsedDaysDisplay.text(diffDays + '일');
+							}
+						}
 					}
+					
+					// 통계 업데이트
+					updateStatistics();
 				};
 
 				window.addRowAfter = function(rowIndex) {
@@ -668,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								</div>
 							</td>
 							<td class="text-center align-middle">
-								<input type="text" name="tasks[${newRowIndex}][task_content]" class="form-control form-control-sm task-content-input" placeholder="할일을 입력하세요">
+								<textarea name="tasks[${newRowIndex}][task_content]" class="form-control form-control-sm task-content-input" placeholder="할일을 입력하세요" rows="1" style="resize: none; overflow-y: hidden; line-height: 1.5; padding: 0.25rem 0.5rem;"></textarea>
 							</td>
 							<td class="text-center align-middle">
 								<div class="form-check d-flex justify-content-center">
@@ -687,6 +777,12 @@ document.addEventListener('DOMContentLoaded', function() {
 					// 지정된 행 뒤에 새 행 삽입
 					const targetRow = $(`.task-row[data-row="${rowIndex}"]`);
 					targetRow.after(newRow);
+					
+					// 새로 추가된 textarea의 높이 초기화
+					const newTextarea = targetRow.next().find('.task-content-input')[0];
+					if (newTextarea) {
+						autoResizeTextarea(newTextarea);
+					}
 					
 					taskRowCount++;
 					updateRowNumbers();
@@ -720,7 +816,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								</div>
 							</td>
 							<td class="text-center align-middle">
-								<input type="text" name="tasks[${newRowIndex}][task_content]" class="form-control form-control-sm task-content-input" placeholder="할일을 입력하세요" value="${taskContent}">
+								<textarea name="tasks[${newRowIndex}][task_content]" class="form-control form-control-sm task-content-input" placeholder="할일을 입력하세요" rows="1" style="resize: none; overflow-y: hidden; line-height: 1.5; padding: 0.25rem 0.5rem;">${taskContent}</textarea>
 							</td>
 							<td class="text-center align-middle">
 								<div class="form-check d-flex justify-content-center">
@@ -738,6 +834,14 @@ document.addEventListener('DOMContentLoaded', function() {
 					
 					// 소스 행 뒤에 새 행 삽입
 					sourceRow.after(newRow);
+					
+					// 새로 복사된 textarea의 높이 조절
+					setTimeout(function() {
+						const copiedTextarea = sourceRow.next().find('.task-content-input')[0];
+						if (copiedTextarea) {
+							autoResizeTextarea(copiedTextarea);
+						}
+					}, 10);
 					
 					taskRowCount++;
 					updateRowNumbers();
@@ -800,6 +904,8 @@ document.addEventListener('DOMContentLoaded', function() {
 							const originalDate = $(this).find('.elapsed-days-display').data('original-date') || '';
 							const uniqueId = $(this).find('input[name*="[unique_id]"]').val() || '';
 							const isPending = $(this).find('input[name*="[is_pending]"]').val() === '1';
+							const isWorkprocess = $(this).find('input[name*="[is_workprocess]"]').val() === '1';
+							const workprocessNum = $(this).find('input[name*="[workprocess_num]"]').val() || '';
 							const dateKey = $(this).find('input[name*="[date_key]"]').val() || '';
 							const elapsedDaysText = $(this).find('.elapsed-days-display').text();
 							
@@ -833,6 +939,14 @@ document.addEventListener('DOMContentLoaded', function() {
 								if (isPending) {
 									taskData.is_pending = true;
 								}
+								// 업무요청사항 관련 데이터 추가
+								if (isWorkprocess) {
+									taskData.is_workprocess = true;
+								}
+								// workprocess_num이 있으면 항상 저장 (기존 저장된 tasks에서도 유지)
+								if (workprocessNum) {
+									taskData.workprocess_num = workprocessNum;
+								}
 								// date_key 전달
 								if (dateKey) {
 									taskData.date_key = dateKey;
@@ -840,7 +954,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								
 								tasks.push(taskData);
 							}
-						});
+						}); 
 						
 						// 추적 시스템 관련 데이터 계산
 						const pendingTasks = tasks.filter(task => task.is_pending).length;
@@ -857,10 +971,10 @@ document.addEventListener('DOMContentLoaded', function() {
 						const department = $('#department').val();
 						const memo = $('#memo').val();
 
-						formData.append('mode', mode);
+						formData.append('mode', mode); 
 						formData.append('num', num);
 						formData.append('tablename', tablename);
-						formData.append('task_date', task_date);
+						formData.append('task_date', task_date); 
 						formData.append('employee_name', employee_name);
 						formData.append('department', department);
 						formData.append('memo', memo);
@@ -884,7 +998,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								if (response.result === 'success') {
 									Toastify({
 										text: response.message,
-										duration: 3000,
+										duration: 1500,
 										close: true,
 										gravity: "top",
 										position: "center",
@@ -899,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								} else {
 									Toastify({
 										text: "저장 실패: " + response.message,
-										duration: 5000,
+										duration: 3000,
 										close: true,
 										gravity: "top", 
 										position: "center",
@@ -911,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								console.log('Error:', jqxhr, status, error);
 								Toastify({
 									text: "저장 중 오류가 발생했습니다.",
-									duration: 5000,
+									duration: 3000,
 									close: true,
 									gravity: "top", 
 									position: "center",
@@ -952,12 +1066,12 @@ document.addEventListener('DOMContentLoaded', function() {
 						});
 						return;
 					}
-
+ 
 					Swal.fire({
 						title: '할일 삭제',
 						text: "정말로 이 할일을 삭제하시겠습니까?",
 						icon: 'warning',
-						showCancelButton: true,
+						showCancelButton: true, 
 						confirmButtonColor: '#d33',
 						cancelButtonColor: '#3085d6',
 						confirmButtonText: '삭제',
@@ -1002,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', function() {
 											close: true,
 											gravity: "top", 
 											position: "center",
-											backgroundColor: "#ff0000",
+											backgroundColor: "#ff0000", 
 										}).showToast();
 									}
 								},
@@ -1022,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					});
 				});
 		 
-				// 체크박스 클릭시 처리
+				// 체크박스 클릭시 처리 
 				function updateApproversInput() {
 					let approvers = [];
 					$('.approver-checkbox:checked').each(function() {
@@ -1075,7 +1189,21 @@ document.addEventListener('DOMContentLoaded', function() {
 			loadTaskForm(Get_task_num);		
 		}
 	}, 1000);
+ 
+}); 
 
-});
+// 업무요청사항 상세보기 함수 (전역 함수로 정의)
+window.showWorkprocessDetail = function(workprocessNum) {
+    if (!workprocessNum) {
+        alert('업무요청사항 번호가 없습니다.');
+        return; 
+    }
+    
+    // workprocess 모듈의 상세보기 페이지를 새 창으로 열기
+    const url = '/workprocess/view.php?num=' + workprocessNum + '&tablename=workprocess';
+    const windowFeatures = 'width=1500,height=800,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,status=no';
+    
+    window.open(url, 'workprocess_detail_' + workprocessNum, windowFeatures);
+};
 
 </script>

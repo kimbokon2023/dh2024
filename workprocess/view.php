@@ -143,6 +143,10 @@ $doneBtnText = ($doneDate && $doneDate !== '0000-00-00') ? '취소' : '완료';
 							<td colspan="1">
 								<input id="first_writer" name="first_writer" readonly type="text" autocomplete="off" value="<?= $first_writer ?>" class="form-control w100px" >
 							</td>	
+                            <td class="table-light text-center" style="width: 8%;">작성일</td>
+							<td colspan="1">
+								<input id="regist_day" name="regist_day" type="date" autocomplete="off" readonly value="<?= $regist_day ?>" class="form-control w120px" >
+							</td>	
 							<td class="table-light text-center" style="width: 8%;">업무담당자</td>
 							<td colspan="1">
 								<input id="chargedPerson" name="chargedPerson" type="text" autocomplete="off" readonly value="<?= $chargedPerson ?>" class="form-control" >
@@ -154,7 +158,7 @@ $doneBtnText = ($doneDate && $doneDate !== '0000-00-00') ? '취소' : '완료';
 							</tr>
 							<tr>
 							<td class="table-light text-center">제목</td>
-							<td colspan="3">
+							<td colspan="5">
 								<input id="subject" name="subject" type="text" autocomplete="off"  readonly  class="form-control"
 								style="width: 100%;" value="<?= $subject ?>" >
 							</td>

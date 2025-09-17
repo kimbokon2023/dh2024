@@ -164,7 +164,7 @@ if ($mode == "returndue") {
 	 
   }
          
-// 주자재 단가표 읽어오기        
+// 주자재 단가표 읽어오기  (최신단가표에서 가져오기)   
 $sql = "SELECT * FROM " . $DB . ".fee where is_deleted is NULL ORDER BY basicdate DESC LIMIT 1";
 
 try {
@@ -182,7 +182,7 @@ try {
 	$ecountcodes = json_decode($row['ecountcode']); // 품목코드
 	
 	// Use array_filter to remove empty entries from the array
-	$non_empty_items = array_filter($items, function($value) {
+	$non_empty_items = array_filter($ecountcodes, function($value) {
 		return !empty($value) && $value !== null && $value !== '';
 	});	
 
@@ -201,6 +201,10 @@ try {
 		// Assume $prices is already an array of integers/floats
 		$unitprices[] = $prices[$i];
 	}
+
+	// echo '<pre>';
+	// print_r($unitnames);
+	// echo '</pre>';
 		
 	$priceData = [];  // Initialize an empty array to hold the price data
 
@@ -213,26 +217,20 @@ try {
 		$units[$i] =  strtoupper(str_replace(' ', '', $units[$i])); 
 		$ecountcodes[$i] =  strtoupper(str_replace(' ', '', $ecountcodes[$i])); 
 
-		if (!isset($priceData[$volts[$i]])) {
-			$priceData[$volts[$i]] = [];
+		// Build nested price map: [품목코드][단위] => 가격
+		if (!isset($priceData[$ecountcodes[$i]])) {
+			$priceData[$ecountcodes[$i]] = [];
 		}
-		if (!isset($priceData[$volts[$i]][$wires[$i]])) {
-			$priceData[$volts[$i]][$wires[$i]] = [];
-		}
-		if (!isset($priceData[$volts[$i]][$wires[$i]][$items[$i]])) {
-			$priceData[$volts[$i]][$wires[$i]][$items[$i]] = [];
-		}
-		if (!isset($priceData[$volts[$i]][$wires[$i]][$items[$i]][$upweights[$i]])) {
-			$priceData[$volts[$i]][$wires[$i]][$items[$i]][$upweights[$i]] = [];
-		}
-
-		// Now set the price for this specific configuration
-		$priceData[$volts[$i]][$wires[$i]][$items[$i]][$upweights[$i]][$units[$i]] = $prices[$i];
+		$priceData[$ecountcodes[$i]][$units[$i]] = $prices[$i];
 	}
 	
 } catch (PDOException $Exception) {
     print "오류: " . $Exception->getMessage();
 }
+
+// echo '<pre>';
+// print_r($priceData);
+// echo '</pre>';
 
 	
 // 시공전후 데이터 파일경로등을 읽어오는 구문
@@ -281,7 +279,7 @@ $notdcprice_dummy= 0;
 
 $powerOptions = ['','220', '380'];
 $wirelessOptions = ['','유선', '무선'];
-$securityOptions = ['','스크린','철재','방범', '제연', '방폭','무기둥모터'];
+$securityOptions = ['','스크린','철재','방범', '방범25', '제연', '방폭','무기둥모터'];
 $capacityOptions = ['','150k', '300k', '400k', '500k', '600k', '800k', '1000k', '1500k', '2000k'];
 $unitOptions = ['','SET', '모터단품', '브라켓트'];
 $bracketSizeOptions = ['','380*180','530*320', '600*320','600*350','650*270', '690*390', '910*600'];
@@ -332,9 +330,7 @@ try {
 } catch (PDOException $Exception) {
     echo "오류: " . $Exception->getMessage();
 }
-
 array_unshift($sub_item, ''); // 배열의 맨 앞에 빈 문자열 추가
-
 $fabricOptions = $sub_item;
 
 // 부속자재에 대한 배열 가져오기
@@ -357,7 +353,6 @@ try {
 } catch (PDOException $Exception) {
     echo "오류: " . $Exception->getMessage();
 }
-
 array_unshift($sub_item, ''); // 배열의 맨 앞에 빈 문자열 추가
 
 $subOptions = $sub_item;
@@ -427,7 +422,6 @@ if ($returndue == '회수예정') {
 // 회수예정시   
 }
 ?>	
-		
 <div class="card">	  
 	<div class="card-body">	  
 		<div class="d-flex justify-content-center align-items-center mt-3 mb-2 ">		
@@ -676,8 +670,6 @@ if ($returndue == '회수예정') {
 				</tr>		   
 		</tbody>
 	</table>		
-
-	
 	</div>						
 	<div class="col-sm-8 rounded p-1" > 	
 		<table class="table table-bordered ">		 		
@@ -905,7 +897,7 @@ if ($returndue == '회수예정') {
 						<th class="text-center" style="width:100px;">금액</th>				
 						<th class="text-center text-primary" style="width:80px;">할인</th>
 						<th class="text-center" style="width:100px;">확정금액</th>					
-						<th rowspan="2" class="text-center" style="width:120px;" data-bs-toggle="tooltip" data-bs-placement="left" title="로트번호 생성방식 DH-M, DH-M(방범), C , B - 0424(중국제조번호) - 0507(대한입고월일) : 약자설명) M-모터, C-연동제어기, B-브라켓트, F-원단"> 모터<br>로트번호 </th>
+						<th rowspan="2" class="text-center" style="width:120px;" data-bs-toggle="tooltip" data-bs-placement="left" title="로트번호 생성방식 DH-M, DH-M(방범), DH-M(방범25) C , B - 0424(중국제조번호) - 0507(대한입고월일) : 약자설명) M-모터, C-연동제어기, B-브라켓트, F-원단"> 모터<br>로트번호 </th>
 						<th rowspan="2" class="text-center" style="width:90px;" data-bs-toggle="tooltip" data-bs-placement="left" title="로트번호 생성방식 참조"> 브라켓 <br> 로트번호 </th>
 						<th rowspan="2" class="text-center" style="width:150px;" data-bs-toggle="tooltip" data-bs-placement="left" title="출고증에 표시될 내용, 업체에 제공할 내용" > 전달사항	</th>
 						<?php if($mode!=='view') { ?>
@@ -925,7 +917,6 @@ if ($returndue == '회수예정') {
 		</div>	  
 	</div>  
 </div>
-
 <!-- 연동제어기 -->
 <div class="d-flex row justify-content-center p-2 rounded"  style=" border: 1px solid #392f31; "> 		
 	<div class="d-flex row">	
@@ -1095,7 +1086,7 @@ if ($returndue == '회수예정') {
 						출고예정 &nbsp; <input type="date" name="deadline" id="deadline" value="<?=$deadline?>"  class="form-control"  style="width:120px;">				
 					</div>
 				</td>    
-			  <td style="color:blue;"   data-bs-toggle="tooltip" data-bs-placement="bottom" title="실제 물건이 출고되면 기록하는 날짜. 처리완료 의미 (보통 출고하는 분이 기록)">
+			  <td style="color:blue;"   data-bs-toggle="tooltip" data-bs-placement="bottom" title="실제 물건이 출고되면 기록하는 날짜. 처리완료 의미 (보통 출고하는 분이 기록)"> 
 					<div class="d-flex align-items-center justify-content-center"> 
 						출고완료 &nbsp;<input type="date" name="outputdate" id="outputdate" value="<?=$outputdate?>"   class="form-control" style="width:120px;">
 					</div>
@@ -1347,7 +1338,6 @@ if ($returndue == '회수예정') {
 	</div>
 </div>
 </div>
-
 <div class="row d-flex justify-content-center">
 			
 	<?php	if($chkMobile) 	{	?>
@@ -1514,7 +1504,6 @@ if ($returndue == '회수예정') {
 
 	?>
 	</div>
-</div>
 </div>
 </div>
 </div>
@@ -1796,7 +1785,6 @@ function showlotError() {
 		}         
 	});
 }
-	
 // 로트번호 입력여부 확인
 function validateLotNumbers() {
 		
@@ -1815,7 +1803,8 @@ function validateLotNumbers() {
 		let isValid = true;
 		formData.forEach(function(row) {
 			if (row.hasOwnProperty('col5')) {
-				if (row['col5'] === 'SET') {
+				var unitUpper = (row['col5'] || '').toUpperCase();
+				if (unitUpper === 'SET') {
 					if (row['col13'] === '' || row['col14'] === '') {
 						isValid = false;
 					}
@@ -2040,7 +2029,6 @@ function saveData() {
 					} 			      		
 	   });				
 }	
-
 // add, remove 버튼 처리부분
 $(document).ready(function() {
     $(document).on('click', '.add', function() {
@@ -2182,7 +2170,6 @@ function getSafeInputValue(input) {
     }
     return '';
 }
-
 $(document).ready(function() {    
     var powerOptions = <?php echo json_encode($powerOptions); ?>;    
     var capacityOptions = <?php echo json_encode($capacityOptions); ?>;
@@ -2277,14 +2264,14 @@ $(document).ready(function() {
                        col === 'col6' ? 'bracketSize' : 
                        col === 'col7' ? 'flangeSize' : '') + 
                       (['col3', 'col4', 'col5'].includes(col) ? ' optionSelector' : '');
-        var onChangeHandler = (['col3', 'col4', 'col5'].includes(col)) ? 'updateOptions(this.closest(\'tr\'))' : 'updatePrice(this.closest(\'tr\'))';
+        var onChangeHandler = (['col3', 'col4', 'col5'].includes(col)) ? 'updateOptions(this.closest(\'tr\'))' : 'updatePrice(this.closest(\'tr\')); updateOrderQuantities();';
         return '<select name="' + col + '[]" class="' + classes + '" onchange="' + onChangeHandler + '">' + generateOptions(options, value) + '</select>';
     }
 
     function generateInputHTML(col, value) {
         switch (col) {
             case 'col8': // (수량) 숫자만 입력 가능
-                return '<input type="text" name="' + col + '[]" class="form-control text-center unitField recalculate main_unitprice_change" autocomplete="off" required value="' + value + '" onkeyup="inputNumberFormat(this); updatePrice(this.closest(\'tr\'));" />';
+                return '<input type="text" name="' + col + '[]" class="form-control text-center unitField recalculate main_unitprice_change" autocomplete="off" required value="' + value + '" onkeyup="inputNumberFormat(this); updatePrice(this.closest(\'tr\')); updateOrderQuantities();" />';
             case 'col9': // 단가 숫자만 입력 가능, 읽기만 가능
                 return '<input type="text" name="' + col + '[]" class="form-control text-center priceField main_unitprice_change recalculate" value="' + value + '" onkeyup="inputNumberFormat(this);" />';
             case 'col10': // 금액
@@ -2362,7 +2349,6 @@ function addNewRow() {
     // Call updateOptions explicitly to set up the row correctly
     updateOptions($newRow);
 }
-
 function createDefaultRow() {
     var powerOptions = <?php echo json_encode($powerOptions); ?>;    
     var capacityOptions = <?php echo json_encode($capacityOptions); ?>;
@@ -2381,7 +2367,7 @@ function createDefaultRow() {
     newRow.append('<td class="text-center"><select name="col3[]" class="form-control  text-center type securityField optionSelector" onchange="updateOptions(this.closest(\'tr\'))">' + generateOptions(securityOptions) + '</select></td>');			
     newRow.append('<td class="text-center"><select name="col4[]" class="form-control text-center capacity optionSelector"  onchange="updateOptions(this.closest(\'tr\'))">' + generateOptions(capacityOptions) + '</select></td>');
     newRow.append('<td class="text-center"><select name="col5[]" class="form-control text-center unit optionSelector" onchange="updateOptions(this.closest(\'tr\'))">' + generateOptions(unitOptions) + '</select></td>');
-    newRow.append('<td class="text-center"><select name="col6[]" class="form-control  text-center bracketSize " onchange="updatePrice(this.closest(\'tr\'))" ></select></td>'); // Assuming options will be added dynamically
+    newRow.append('<td class="text-center"><select name="col6[]" class="form-control  text-center bracketSize " onchange="updatePrice(this.closest(\'tr\')); updateOrderQuantities();" ></select></td>'); // Assuming options will be added dynamically
     newRow.append('<td class="text-center"><select name="col7[]" class="form-control  text-center flangeSize " ></select></td>'); // Assuming options will be added dynamically    
     newRow.append('<td><input type="text" name="col8[]" class="form-control text-center unitField main_unitprice_change  recalculate"  required autocomplete="off" onkeyup="inputNumberFormat(this);" /></td>');
     newRow.append('<td><input type="text" name="col9[]" class="form-control text-center  priceField  main_unitprice_change recalculate"  onkeyup="inputNumberFormat(this);"  /> </td>'); 
@@ -2436,9 +2422,11 @@ function generateItemCode(orderItem) {
         if (ecountcode.endsWith('-')) {
             ecountcode = ecountcode.slice(0, -1);
         }
-		if (item == '방범') {  // 방범은 -방범 넣어줌  (추가됨)
-			ecountcode += '-' + item  ;
-		}				
+		// '방범'이란 단어가 포함되어 있으면 -방범을 추가
+		if (item && item.indexOf('방범') !== -1) {
+			ecountcode += '-' + item;
+		}
+
         return ecountcode;
     } else {
         // 브라켓트 품명을 만든다.
@@ -2451,7 +2439,8 @@ function generateItemCode_bracket(orderItem) {
     var bracketitem = orderItem.bracketitem || '';
     var flange = orderItem.flange || '';
 
-    if (unit == '브라켓트' || unit == 'SET') {
+    var unitUpper = (unit || '').toUpperCase();
+    if (unit == '브라켓트') {
         var ecountcode = '';
         if (bracketitem) {
             ecountcode += bracketitem + '-';
@@ -2490,7 +2479,8 @@ $(document).on('click', '.orderlotnumBtn', function() {
     
     qty = row.find('input[name="col8[]"]').val();  // 발주수량을 가져옴
     var unit =row.find('select[name="col5[]"]').val();  // 단위
-	if (unit == 'SET')  // SET인 경우는 모터,브라켓 개수이므로 *2 해야함
+	var unitUpperQty = (unit || '').toUpperCase();
+	if (unitUpperQty == 'SET')  // SET인 경우는 모터,브라켓 개수이므로 *2 해야함
 		$('#request_qty').val(qty*2);
 	else
 		$('#request_qty').val(qty);
@@ -2610,8 +2600,6 @@ $(document).on('change', '#anotherBKStockChk', function() {
         $('#lotModalBody_bracket').html(originalBracketHTML);
     }
 });
-
-
 var initialSetup = true; // Set this based on your app's logic
 
 // 모터,브라켓 단가 강제 수정하는 구문 
@@ -2660,7 +2648,8 @@ function updateOptions_unitprice(row) {
     }
     
     row.find('.amountField').val(amountField.toLocaleString());
-    if (security === '스크린' && unit === 'SET') {
+    var unitUpper = (unit || '').toUpperCase();
+    if (security === '스크린' && unitUpper === 'SET') {
         dcField = (amountField * screenDcValue / 100) * -1;
     } else {
         dcField = (amountField * dcValue / 100) * -1;
@@ -2680,8 +2669,6 @@ function updateOptions_unitprice(row) {
     calculateConditionalSums();
 	updateTotalPrice();
 }
-
-
 function updateOptions(rowElement) {
     var $row = $(rowElement);
     var $typeSelect = $row.find('.type');
@@ -2755,7 +2742,8 @@ function updateOptions(rowElement) {
         });
     }
 
-   if (typeSelected === '철재' || typeSelected === '방범' || typeSelected === '방폭') {
+	 // 방범이란 단어 포함여부 수정 250915
+   if (typeSelected === '철재' || typeSelected === '방폭' || (typeSelected && typeSelected.indexOf('방범') !== -1)) {
 	  if (unitSelected !== '모터단품')
 	  {
 		   // 브라켓 자동설정 부분
@@ -2790,61 +2778,47 @@ function updatePrice(row) {
     row = $(row); // row를 jQuery 객체로 변환
     var priceData = <?php echo json_encode($priceData); ?>;
     
-    // Safely fetch and process input values
-    var power = getSafeInputValue(row.find('[name="col1[]"]')).replace(/\s+/g, '').toUpperCase();
-    var wireless = getSafeInputValue(row.find('[name="col2[]"]')).replace(/\s+/g, '').toUpperCase();
-    var security = getSafeInputValue(row.find('[name="col3[]"]')).replace(/\s+/g, '').toUpperCase();
-    var capacity = getSafeInputValue(row.find('[name="col4[]"]')).replace(/\s+/g, '').toUpperCase();
-    var unit = getSafeInputValue(row.find('[name="col5[]"]')).replace(/\s+/g, '').toUpperCase();
-    var bracket = getSafeInputValue(row.find('[name="col6[]"]')).replace(/\s+/g, '').toUpperCase();
-    var unitsu = getSafeInputValue(row.find('[name="col8[]"]')).replace(/\s+/g, '').toUpperCase();
+    // 선택된 옵션 값들
+    var volt = row.find('select[name="col1[]"]').val() || '';
+    var wire = row.find('select[name="col2[]"]').val() || '';
+    var item = row.find('select[name="col3[]"]').val() || '';
+    var upweight = row.find('select[name="col4[]"]').val() || '';
+    var unit = row.find('select[name="col5[]"]').val() || '';
+    var bracketitem = row.find('select[name="col6[]"]').val() || '';
+    var flange = row.find('select[name="col7[]"]').val() || '';
+    var unitsu = getSafeInputValue(row.find('[name="col8[]"]')) || '';
 
-    // 콤마를 제거한 후 숫자로 변환
+    // 수량 숫자화
     unitsu = unitsu.replace(/,/g, '');
     unitsu = parseFloat(unitsu);
 
-    var amountField = 0;
+    // ecountcode 생성 (주자재/브라켓 구분)
+    var code = '';
+    var unitUpper = (unit || '').replace(/\s+/g, '').toUpperCase();
+    if (unit === '브라켓트') {
+        code = generateItemCode_bracket({ unit: unit, bracketitem: bracketitem, flange: flange }) || '';
+    } else {
+        code = generateItemCode({ volt: volt, wire: wire, item: item, upweight: upweight, unit: unit, bracketitem: bracketitem }) || '';
+    }
+    var normalizedCode = (code + '').replace(/\s+/g, '').toUpperCase();
+
+    // 단가 조회: [코드][단위]
+    var computedPrice = 0;
+    if (normalizedCode && priceData && Object.prototype.hasOwnProperty.call(priceData, normalizedCode)) {
+        var unitKey = unitUpper; // already normalized
+        var codeBucket = priceData[normalizedCode];
+        if (codeBucket && Object.prototype.hasOwnProperty.call(codeBucket, unitKey)) {
+            computedPrice = parseFloat(codeBucket[unitKey]) || 0;
+        }
+    }
+ 
+    // 금액 계산
+    var amountField = computedPrice * (isNaN(unitsu) ? 0 : unitsu);
     var dcField = 0;
     var totalField = 0;
 
-    var computedPrice = 0;
-
-    // 브라켓트 가격 계산
-    if (unit === '브라켓트') {
-        var bracketKey = bracket.replace(/\s+/g, '').toUpperCase();
-        console.log("unit 선택 ", unit);
-        
-        if (
-            priceData[""] && 
-            priceData[""][""] && 
-            priceData[""][""][bracketKey] 
-        ) {
-            computedPrice = priceData[""][""][bracketKey][""]["브라켓트"] || 0;
-            console.log("computedPrice values:", computedPrice);
-        }
-    } else {
-        // 다른 경우 가격 계산
-        var powerKey = power.replace(/\s+/g, '').toUpperCase();
-        var wirelessKey = wireless.replace(/\s+/g, '').toUpperCase();
-        var securityKey = security.replace(/\s+/g, '').toUpperCase();
-        var capacityKey = capacity.replace(/\s+/g, '').toUpperCase();
-        var unitKey = unit.replace(/\s+/g, '').toUpperCase();
-
-        if (
-            priceData[powerKey] && 
-            priceData[powerKey][wirelessKey] && 
-            priceData[powerKey][wirelessKey][securityKey] && 
-            priceData[powerKey][wirelessKey][securityKey][capacityKey] && 
-            priceData[powerKey][wirelessKey][securityKey][capacityKey][unitKey]
-        ) {
-            computedPrice = priceData[powerKey][wirelessKey][securityKey][capacityKey][unitKey] || 0;
-        }
-    }
-
-    amountField = computedPrice * (isNaN(unitsu) ? 0 : unitsu);
-
-    // Set the computed price with formatting for thousands separators
-    row.find('.priceField').val(computedPrice.toLocaleString());
+    // 단가 표시
+    row.find('.priceField').val(computedPrice ? computedPrice.toLocaleString() : '');
 
     // 할인율 계산
     var screenDcType = document.querySelector('input[name="screen_dc_type"]:checked')?.value || '';
@@ -2853,7 +2827,7 @@ function updatePrice(row) {
     var dcValue = parseFloat(document.getElementById("company_dc_value")?.value || 0);
 
     row.find('.amountField').val(amountField.toLocaleString());
-    if (security === '스크린' && unit === 'SET') {
+    if (item === '스크린' && unitUpper === 'SET') {
         dcField = (amountField * screenDcValue / 100) * -1;
     } else {
         dcField = (amountField * dcValue / 100) * -1;
@@ -2871,7 +2845,6 @@ function updatePrice(row) {
 
     calculateConditionalSums();
 }
-
 
 </script>
 
@@ -3025,7 +2998,6 @@ $(document).ready(function(){
     }
 	
 });
-
 function controller_addNewRow() {
     var $tableBody = $('#controller_dynamicTable tbody');
     var $newRow;	
@@ -3065,10 +3037,6 @@ function create_controllerRow() {  // 연동제어기
     // Create a new row element
     var newRow = $('<tr>');
 	
-    // Append a select element for controller options
-	// controllerDCOptions = ['','스크린모터 SET','철재모터 및 단품'];									
-    // newRow.append('<td class="text-center"><select name="col1[]" class="form-control text-center sub_optionSelector">' + generateOptions(controllerDCOptions, '') + '</select></td>');
-
     // Append an empty select for accessory items - assuming options are added dynamically elsewhere
     newRow.append('<td><select name="col2[]" class="form-control text-center sub_optionSelector" > ' + generateOptions(controllerOptions, '') + '</select></td>');
 
@@ -3125,8 +3093,7 @@ $(document).on('click', '.controllerlotnumBtn', function() {
         $('#controllerlotModal').modal('show'); // 모달 띄우기
     });
 });
-	
-$(document).on('click', '.controlleradaptBtn', function() {
+$(document).off('click', '.controlleradaptBtn').on('click', '.controlleradaptBtn', function() {
 	var controllerrequestQty = parseInt($('#controllerrequest_qty').val());
 	var totalAppliedQty = 0;
 	var lotData = {};
@@ -3340,7 +3307,6 @@ function fabric_Unit(row) {
 	
 	fabric_updateOptions(row);
 }
-
 function fabric_updateOptions(row) {	    
     var length = getSafeInputValue(row.find('[name="col3[]"]')).replace(/\s+/g, '').toUpperCase();
     var unitsu = getSafeInputValue(row.find('[name="col4[]"]')).replace(/\s+/g, '').toUpperCase();
@@ -3611,7 +3577,6 @@ $(document).on('click', '.fabricadaptBtn', function () {
         alert('적용된 수량의 합이 발주수량과 일치하지 않습니다.');
     }
 });
-
 </script>
 
 <!-- 부속자재 보여주는 루틴 -->
@@ -3690,8 +3655,6 @@ $(document).ready(function() {
 				$(document).on('change input', '.sub_optionSelector', function() {
 					sub_updateOptions($(this).closest('tr'));
 				});
-				
-				
 				$(document).on('change input', '.sub_updateOptions_unit', function() {
 					sub_updateOptions_unit($(this).closest('tr'));
 				});					
@@ -4024,7 +3987,6 @@ $('#refreshButton').on('click', function() {
     fetchSubPriceData();
 });
 </script>
-
 <!-- 주자재 수량을 추가 삭제할때 자동업데이트-->
 <script>
 // 주자재 수량을 추가 삭제할때 자동업데이트 코드
@@ -4069,7 +4031,10 @@ function updateOrderQuantities() {
 		switch (type) {
 			case '스크린': totals.screens += quantity; break;
 			case '철재': totals.steels += quantity; break;
-			case '방범': totals.protects += quantity; break;
+			// '방범'이란 단어가 포함되어 있으면 protects에 더함 (switch-case 내에서)
+			case (type && type.indexOf('방범') !== -1 ? type : undefined):
+				totals.protects += quantity;
+				break;
 			case '제연': totals.smokes += quantity; break;
 			case '방폭': totals.explosions += quantity; break;
 			case '무기둥모터': totals.poles += quantity; break;
@@ -4108,7 +4073,6 @@ function calculateTotalForRow(totalField, fields) {
 	});
 	totalField.val(total);
 }
-
 function calculateDifferencesForRow(totalField, differenceFields, orderFields, actualFields) {
 	differenceFields.forEach(function(field, index) {
 		var orderedValue = parseFloat($(orderFields[index]).val()) || 0;
@@ -4370,7 +4334,6 @@ $(document).ready(function() {
 function screen_handledcType() {
     screen_updatedcPrice(); // 할인율에 따라 할인가를 계산
 }
-
 // 스크린SET DC에 대한 함수처리
 function screen_setdcType(type) {
     if (type === 'company') {
@@ -4563,7 +4526,6 @@ function fetchControllerData(callback) {
         }                           
     });
 }
-
 // 합계표를 계산해서 넣는다.
 // 전체 테이블의 가격을 재계산
 function updateTotalPrice() {
@@ -4688,7 +4650,6 @@ function updateTotalPrice() {
 
         sub_total3 += total;
     });
-
 	//////////////// 주자재에 대한 합계표 작성
 	document.querySelectorAll('#dynamicTable tbody tr').forEach(function(row) {
         var amountFieldElement = row.querySelector('.amountField');
@@ -4991,7 +4952,6 @@ window.rotateFn = function(event, uniqueId, imageName, itemType) {
 	rotateImageAndUpload(imageElement, 'upload_rotated_image.php', imageName, uniqueId, itemType);			
 
 }
-
 function rotateImageAndUpload(imageElement, uploadUrl, originalFileName, uniqueId, itemType) {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
@@ -5059,7 +5019,6 @@ function rotateImageAndUpload(imageElement, uploadUrl, originalFileName, uniqueI
         }, 'image/jpeg');
     };
 }
-
 function updateButtonsAfterUpload(uniqueId, newImagePath, itemType) {
     var cleanedNewPath = newImagePath.replace('./uploads/', '');
 
@@ -5342,10 +5301,6 @@ window.FileProcess = function (item, idx, inputElement) {
 		reader.readAsDataURL(file);
 	}
 };
-
-
-
-
 function displayPictureLoad() {    
     // 이미지 화면에 보여주기
     var picNum = "<?php echo $picNum; ?>";                     
@@ -5508,7 +5463,6 @@ document.addEventListener('DOMContentLoaded', function () {
   	// $("#order_form_write").modal("show");	  
 });
 </script>
-
 <!-- 화물회사에 알람보내기 -->
 <!-- mode == 'view' 조회 화면일때 사용금지 시키는 구문 -->
 <script>
@@ -5691,7 +5645,6 @@ $(document).on('click', '.fabriclotModalclose', function(e) {
 	updateBadges();
 	});
 </script>
-
 <!-- 테스트를 위해서 강제로 값을 넣기 -->
 <script>
 

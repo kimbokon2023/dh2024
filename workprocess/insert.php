@@ -18,7 +18,7 @@ function updateChargedPersonStatus($chargedPerson, $oldStatusJson) {
     $persons = array_map('trim', explode(',', $chargedPerson));
     $oldStatus = $oldStatusJson ? json_decode($oldStatusJson, true) : [];
     $newStatus = [];
-    foreach ($persons as $person) {
+    foreach ($persons as $person) { 
         if (!$person) continue;
         if (isset($oldStatus[$person])) {
             $newStatus[$person] = $oldStatus[$person];
@@ -73,7 +73,7 @@ if ($mode == "modify") {
         $sql = "INSERT INTO {$DB}.{$tablename} 
                 (id, name, subject, content, regist_day, hit, is_html, noticecheck, searchtext, 
                  first_writer, chargedPerson, dueDate, doneDate, chargedPersonStatus)
-                VALUES (?, ?, ?, ?, now(), 0, ?, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (?, ?, ?, ?, CURDATE(), 0, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmh = $pdo->prepare($sql);
         $stmh->bindValue(1, $_SESSION["userid"], PDO::PARAM_STR);
         $stmh->bindValue(2, $_SESSION["name"], PDO::PARAM_STR);

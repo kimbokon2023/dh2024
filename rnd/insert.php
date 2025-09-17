@@ -8,14 +8,14 @@ isset($_REQUEST["timekey"])  ? $timekey=$_REQUEST["timekey"] :  $timekey='';   /
   
 $page = $_REQUEST["page"] ?? 1;
 $mode = $_REQUEST["mode"] ?? "";
-$tablename = $_REQUEST["tablename"] ?? "";
+$tablename = $_REQUEST["tablename"] ?? "rnd";
 $id = $_REQUEST["id"] ?? "";
 $num = $_REQUEST["num"] ?? "";
 $is_html = $_REQUEST["is_html"] ?? "";
 $noticecheck = $_REQUEST["noticecheck"] ?? "";
    
-$subject=$_REQUEST["subject"];
-$content=$_REQUEST["content"];
+$subject = $_REQUEST["subject"] ?? '';
+$content = $_REQUEST["content"] ?? '';
 $content_b64 = $_REQUEST["content_b64"] ?? '';
 if ($content_b64 !== '') {
     // base64로 온 경우 우선 디코드하여 content로 사용
@@ -24,7 +24,14 @@ if ($content_b64 !== '') {
         $content = $decoded;
     }
 }
-$searchtext=$_REQUEST["searchtext"];
+$searchtext = $_REQUEST["searchtext"] ?? '';
+        
+// 필수값 검증: tablename 없거나 형식이 잘못된 경우 중단
+if ($tablename === '' || !preg_match('/^[A-Za-z0-9_]+$/', $tablename)) {
+    http_response_code(400);
+    echo json_encode(["error" => "invalid_tablename"], JSON_UNESCAPED_UNICODE);
+    exit;
+}
         
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
  $pdo = db_connect();
@@ -38,10 +45,9 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
         $stmh->bindValue(1,$num,PDO::PARAM_STR); 
         $stmh->execute(); 
         $row = $stmh->fetch(PDO::FETCH_ASSOC);
-     } catch (PDOException $Exception) {
-		  $pdo->rollBack();
-        print "오류: ".$Exception->getMessage();
-     } 
+    } catch (PDOException $Exception) {
+       print "오류: ".$Exception->getMessage();
+    } 
                
      try{
         $pdo->beginTransaction();   
@@ -76,8 +82,9 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
      $stmh->bindValue(6, $is_html, PDO::PARAM_STR);  
      $stmh->bindValue(7, $searchtext, PDO::PARAM_STR);  
      
-     $stmh->execute();
-     $pdo->commit(); 
+    $stmh->execute();
+    $num = $pdo->lastInsertId();
+    $pdo->commit(); 
      } catch (PDOException $Exception) {
           $pdo->rollBack();
        print "오류: ".$Exception->getMessage();
@@ -87,26 +94,25 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
    
    
 if ($mode!=="modify"){
-	
-// 신규데이터인경우 num을 추출한 후 view로 보여주기
- $sql="select * from ".$DB."." . $tablename . " order by num asc"; 					
+    
+    // 신규데이터의 num은 lastInsertId()로 확보됨. 혹시 비어 있으면 보정
+    if (empty($num)) {
+        try {
+            $sql = "select num from ".$DB."." . $tablename . " order by num desc limit 1";
+            $stmh = $pdo->query($sql);
+            $row = $stmh->fetch(PDO::FETCH_ASSOC);
+            if ($row && isset($row["num"])) {
+                $num = $row["num"];
+            }
+        } catch (PDOException $Exception) {
+            print "오류: ".$Exception->getMessage();
+        }
+    }
 
-  try{  
-   $stmh = $pdo->query($sql);            // 검색조건에 맞는글 stmh
-   $rowNum = $stmh->rowCount();  
-   while($row = $stmh->fetch(PDO::FETCH_ASSOC)) {	   
- 			  $num=$row["num"];			   			 
-	 } 	 
-   } catch (PDOException $Exception) {
-    print "오류: ".$Exception->getMessage();
-}    
-
-// 신규데이터인 경우 첨부파일/첨부이미지 추가한 것이 있으면 parentid 변경해줌
-// 신규데이터인경우 num을 추출한 후 view로 보여주기
- 
- $id = $num;
- 
-  try{
+    // 신규데이터인 경우 첨부파일/첨부이미지 추가한 것이 있으면 parentid 변경해줌
+    $id = $num;
+    
+    try{
         $pdo->beginTransaction();   
         $sql = "update ".$DB.".fileuploads set parentid=? where parentid=?";
         $stmh = $pdo->prepare($sql); 
@@ -114,11 +120,10 @@ if ($mode!=="modify"){
         $stmh->bindValue(2, $timekey, PDO::PARAM_STR);   
         $stmh->execute();
         $pdo->commit(); 
-        } catch (PDOException $Exception) {
-           $pdo->rollBack();
-           print "오류: ".$Exception->getMessage();
-       }                         
-      		
+    } catch (PDOException $Exception) {
+        $pdo->rollBack();
+        print "오류: ".$Exception->getMessage();
+    }
 }
 
  $data = [   
