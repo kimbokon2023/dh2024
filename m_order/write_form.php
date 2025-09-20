@@ -260,6 +260,11 @@ function initializeAutocomplete($input) {
 				$this.closest("tr").find("input.item-code").val(ui.item.item_code);
 				$this.closest("tr").find("input.unit-price").val(ui.item.item_yuan);
 			}
+
+			// 브라켓트 관련 항목인 경우 카테고리를 자동으로 '모터'로 설정
+			if (ui.item.item_unit === '브라켓트' || ui.item.item_name.includes('브라켓트')) {
+				$this.closest("tr").find("select.item-category").val('모터');
+			}
 			return false;
 		},
 		

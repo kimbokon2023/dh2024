@@ -8,7 +8,11 @@
       "Read(c:\\Project\\dh2024\\account/**)",
       "Read(c:\\Project\\dh2024\\account/**)",
       "Bash(grep:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(claude mcp:*)",
+      "Bash(copy:*)",
+      "Bash(dir:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

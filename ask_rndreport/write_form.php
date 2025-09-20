@@ -1,6 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/session.php';
-$title_message = '연구개발계획서'; 
+$title_message = '연구개발보고서'; 
 ?>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/common.php' ?>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php'; ?>
@@ -53,7 +53,7 @@ if ($mode=="modify" or $mode=="view"){
 		$mytitle = $outworkplace ?? '';
 		$content = $al_content ?? '';
 		$content_reason = $request_comment ?? '';
-		$titlemsg = $mode === 'modify' ? '연구개발계획서(수정)' : '연구개발계획서(조회)';
+		$titlemsg = $mode === 'modify' ? '연구개발보고서(수정)' : '연구개발보고서(조회)';
       }
      }catch (PDOException $Exception) {
        print "오류: ".$Exception->getMessage();
@@ -61,7 +61,7 @@ if ($mode=="modify" or $mode=="view"){
   }
   else{
     include $_SERVER['DOCUMENT_ROOT'] .'/eworks/_request.php';
-    $titlemsg = '연구개발계획서 작성';
+    $titlemsg = '연구개발보고서 작성';
     $mytitle = $outworkplace ?? '';
 	$content = $al_content ?? '';
 	$content_reason = $request_comment ?? '';
@@ -71,7 +71,7 @@ if ($mode=="modify" or $mode=="view"){
 if ($mode!="modify" and $mode!="view" and $mode!="copy"){
     $indate=date("Y-m-d");
 	$author = $user_name;
-	$titlemsg = '연구개발계획서 작성';
+	$titlemsg = '연구개발보고서 작성';
 }
 
 if ($mode=="copy"){
@@ -94,7 +94,7 @@ if ($mode=="copy"){
      }catch (PDOException $Exception) {
          print "오류: ".$Exception->getMessage();
      }
-    $titlemsg = '(데이터 복사) 연구개발계획서';
+    $titlemsg = '(데이터 복사) 연구개발보고서';
     $num='';
     $id = $num;
     $author = $user_name;
@@ -329,7 +329,7 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
 			<label for="mytitle">제목</label>
 		  </td>
 		 <td colspan="3">
-			<input type="text" class="form-control viewNoBtn" id="mytitle" name="mytitle" value="<?php echo $mytitle; ?>" placeholder="연구개발계획서 제목을 입력하세요">
+			<input type="text" class="form-control viewNoBtn" id="mytitle" name="mytitle" value="<?php echo $mytitle; ?>" placeholder="연구개발보고서 제목을 입력하세요">
 		  </td>
 		</tr>
     </table>
@@ -339,13 +339,13 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
       <table class="table table-bordered">
 		<tr>
 		  <td class="text-center fw-bold" style="width:15%;">
-			<label for="content">계획서 내용</label>
+			<label for="content">보고서 내용</label>
 		  </td>
 		 <td>
-			<textarea class="form-control viewNoBtn" id="content" name="content" rows="10" placeholder="연구개발계획서 내용을 입력하세요"><?php echo $content; ?></textarea>
+			<textarea class="form-control viewNoBtn" id="content" name="content" rows="20" placeholder="연구개발보고서 내용을 입력하세요"><?php echo $content; ?></textarea>
 		  </td>
 		</tr>
-		<tr>
+		<tr style="display:none;">
 		  <td class="text-center fw-bold">
 			<label for="content_reason">작성 이유</label>
 		  </td>
@@ -490,7 +490,7 @@ $("#upfile").change(function(e) {
     $("#fileorimage").val('file');
     $("#item").val('attached');
     $("#upfilename").val('upfile');
-    $("#savetitle").val('연구개발계획서 첨부파일');
+    $("#savetitle").val('연구개발보고서 첨부파일');
 
 	if(Number($("#id").val()) == 0)
 		$("#id").val($("#timekey").val());
@@ -529,7 +529,7 @@ $("#upfileimage").change(function(e) {
     $("#fileorimage").val('image');
     $("#item").val('image');
     $("#upfilename").val('upfileimage');
-    $("#savetitle").val('연구개발계획서 이미지');
+    $("#savetitle").val('연구개발보고서 이미지');
 
 	if(Number($("#id").val()) == 0)
 		$("#id").val($("#timekey").val());

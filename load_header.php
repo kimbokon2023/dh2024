@@ -138,7 +138,7 @@ $version = '10';
 <link rel="stylesheet" href="<?$root_dir?>/css/style.css?v=<?$version?>">
 <link rel="stylesheet" href="<?$root_dir?>/css/eworks.css?v=<?$version?>">
 
-<?php
+<?php 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/common.php");
 
 $now = date("Y-m-d",time()) ;  

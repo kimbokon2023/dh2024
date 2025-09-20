@@ -16,8 +16,8 @@ $timekey = $_REQUEST["timekey"] ?? '';
 $outworkplace = $mytitle;
 $al_content = $content;
 $request_comment = $content_reason;
-$e_title = '연구개발계획서';
-$eworks_item = '연구개발계획서';
+$e_title = '연구노트';
+$eworks_item = '연구노트';
 
 $data = [
     "e_title" => $e_title,
@@ -37,7 +37,7 @@ if ($mode === "modify") {
     $first_approval_id = 'chandj';
     $first_approval_name = '신지환 대표이사';
 
-    // 연구개발계획서는 항상 결재라인 적용
+    // 연구노트는 항상 결재라인 적용
     $e_line_id = $first_approval_id;
     $e_line = $first_approval_name;
     $status = 'send';
@@ -83,7 +83,7 @@ if ($mode === "modify") {
     $first_approval_id = 'chandj';
     $first_approval_name = '신지환 대표이사';
 
-    // 연구개발계획서는 항상 결재라인 적용
+    // 연구노트는 항상 결재라인 적용
     $e_line_id = $first_approval_id;
     $e_line = $first_approval_name;
 	

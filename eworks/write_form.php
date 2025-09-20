@@ -28,7 +28,10 @@
 								<select class="form-select w-auto"  style="font-size:0.7rem;"id="eworks_item" name="eworks_item" onchange="eworksItemChanged(this)">
 									<option value="일반">일반</option>
 									<option value="연차">연차</option>									
-									<option value="지출결의서">지출결의서</option>									
+									<option value="지출결의서">지출결의서</option>	
+									<option value="연구개발계획서">연구개발계획서</option>
+									<option value="연구노트">연구노트</option>
+									<option value="연구개발보고서">연구개발보고서</option>								
 								</select>
 							</td>
 					  <td class="text-center" > 결제라인 </td>

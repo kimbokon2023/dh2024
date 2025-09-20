@@ -2368,7 +2368,7 @@ function createDefaultRow() {
     newRow.append('<td class="text-center"><select name="col4[]" class="form-control text-center capacity optionSelector"  onchange="updateOptions(this.closest(\'tr\'))">' + generateOptions(capacityOptions) + '</select></td>');
     newRow.append('<td class="text-center"><select name="col5[]" class="form-control text-center unit optionSelector" onchange="updateOptions(this.closest(\'tr\'))">' + generateOptions(unitOptions) + '</select></td>');
     newRow.append('<td class="text-center"><select name="col6[]" class="form-control  text-center bracketSize " onchange="updatePrice(this.closest(\'tr\')); updateOrderQuantities();" ></select></td>'); // Assuming options will be added dynamically
-    newRow.append('<td class="text-center"><select name="col7[]" class="form-control  text-center flangeSize " ></select></td>'); // Assuming options will be added dynamically    
+    newRow.append('<td class="text-center"><select name="col7[]" class="form-control  text-center flangeSize " onchange="updatePrice(this.closest(\'tr\')); updateOrderQuantities();" ></select></td>'); // 플랜지 선택시에도 단가 업데이트    
     newRow.append('<td><input type="text" name="col8[]" class="form-control text-center unitField main_unitprice_change  recalculate"  required autocomplete="off" onkeyup="inputNumberFormat(this);" /></td>');
     newRow.append('<td><input type="text" name="col9[]" class="form-control text-center  priceField  main_unitprice_change recalculate"  onkeyup="inputNumberFormat(this);"  /> </td>'); 
     newRow.append('<td><input type="text" name="col10[]" class="form-control text-center text-secondary amountField recalculate " readonly > </td>'); // 금액
@@ -2434,22 +2434,28 @@ function generateItemCode(orderItem) {
     }
 }
 // Helper function to generate item code based on given columns
-function generateItemCode_bracket(orderItem) {    
+function generateItemCode_bracket(orderItem) {
     var unit = orderItem.unit || '';
     var bracketitem = orderItem.bracketitem || '';
     var flange = orderItem.flange || '';
 
     var unitUpper = (unit || '').toUpperCase();
-    if (unit == '브라켓트') {
+
+    // 브라켓트인 경우에만 코드 생성, 그 외에는 빈 문자열 리턴
+    if (unit == '브라켓트' || unitUpper == '브라켓트') {
         var ecountcode = '';
         if (bracketitem) {
-            ecountcode += bracketitem + '-';
-        }       
+            ecountcode += bracketitem;
+        }
         if (flange) {
-            ecountcode += flange ;
-        }       
-        return ecountcode;
+            ecountcode += (bracketitem ? '-' : '') + flange;
+        }
+        // 빈 문자열이면 기본값 처리
+        return ecountcode || '';
     }
+
+    // 브라켓트가 아닌 경우 빈 문자열 리턴 (undefined 방지)
+    return '';
 }
 
 // 로트번호 적용 모달을 호출할 때 tr 요소를 저장하는 변수
@@ -2795,8 +2801,11 @@ function updatePrice(row) {
     // ecountcode 생성 (주자재/브라켓 구분)
     var code = '';
     var unitUpper = (unit || '').replace(/\s+/g, '').toUpperCase();
-    if (unit === '브라켓트') {
+
+    if (unit === '브라켓트' || unitUpper === '브라켓트') {
         code = generateItemCode_bracket({ unit: unit, bracketitem: bracketitem, flange: flange }) || '';
+        // 브라켓 디버깅용 로그 (개발 환경에서만)
+        // console.log('브라켓 코드 생성:', { unit: unit, bracketitem: bracketitem, flange: flange, code: code });
     } else {
         code = generateItemCode({ volt: volt, wire: wire, item: item, upweight: upweight, unit: unit, bracketitem: bracketitem }) || '';
     }
@@ -2810,6 +2819,16 @@ function updatePrice(row) {
         if (codeBucket && Object.prototype.hasOwnProperty.call(codeBucket, unitKey)) {
             computedPrice = parseFloat(codeBucket[unitKey]) || 0;
         }
+    }
+
+    // 브라켓 단가 조회 실패시 추가 디버깅 정보 (개발환경에서만)
+    if ((unit === '브라켓트' || unitUpper === '브라켓트') && computedPrice === 0) {
+        // console.log('브라켓 단가 조회 실패:', {
+        //     normalizedCode: normalizedCode,
+        //     unitKey: unitKey,
+        //     priceDataKeys: Object.keys(priceData || {}),
+        //     codeBucket: priceData[normalizedCode]
+        // });
     }
  
     // 금액 계산
@@ -3111,7 +3130,7 @@ $(document).off('click', '.controlleradaptBtn').on('click', '.controlleradaptBtn
 					'로트번호': lotnum,
 					'수량': applyQty
 				};
-			} else {
+			} else { 
 				// 같은 itemcode가 있으면 수량만 증가
 				lotData[itemcode]['수량'] += applyQty;
 			}
@@ -4089,11 +4108,18 @@ function calculateDifferencesForRow(totalField, differenceFields, orderFields, a
 
 $(document).ready(function() {
     // 색을 칠할 ID들을 배열에 저장
-    var ids = [ "order_total" ,"realendsu", "noendsu" , "realscreensu", "noscreensu"  , "realsteelsu", "nosteelsu"  , "realprotectsu", "noprotectsu" , "realsmokesu", "nosmokesu" , "realexplosionsu", "noexplosionsu", "realpolesu", "nopolesu" ];  
+    var ids = [ "order_total" ,"realendsu", "noendsu" , "realscreensu", "noscreensu"  , "realsteelsu", "nosteelsu"  , "realprotectsu", "noprotectsu" , "realsmokesu", "nosmokesu" , "realexplosionsu", "noexplosionsu", "realpolesu", "nopolesu" ];
 
     // 배열을 순회하면서 각 요소에 스타일 적용
     ids.forEach(function(id) {
         $('#' + id).css('background-color', '#FFEBF0');
+    });
+
+    // 기존 행들의 브라켓/플랜지 변경 시 단가 업데이트 이벤트 추가
+    $(document).on('change', 'select[name="col6[]"], select[name="col7[]"]', function() {
+        var row = $(this).closest('tr');
+        updatePrice(row);
+        updateOrderQuantities();
     });
 });
 </script>

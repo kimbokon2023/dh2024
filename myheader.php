@@ -47,7 +47,7 @@
 				  <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.707l.547.547 1.17-1.951a.5.5 0 1 1 .858.514Z"/>
 				</svg> </a>
             </div>		
-            <div class="nav-item dropdown flex-fill me-3">			 			 
+            <div class="nav-item dropdown flex-fill me-2">			 			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" >
                     <i class="bi bi-sliders2"></i> 업무일지
@@ -86,7 +86,7 @@
 				</a>					
 			</div>
             </div>
-            <div class="nav-item dropdown flex-fill me-3">			 			 
+            <div class="nav-item dropdown flex-fill me-2">			 			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" >
                     수주/출고
@@ -125,7 +125,7 @@
 			</div>
 
             </div>				
-            <div class="nav-item dropdown flex-fill me-3">			 			 
+            <div class="nav-item dropdown flex-fill me-2">			 			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" >
                     결선/AS
@@ -149,7 +149,7 @@
 				</div>
             </div>	
 			<?php if($level =='1' or $level =='2') { ?>			
-			<div class="nav-item dropdown flex-fill me-3">			 
+			<div class="nav-item dropdown flex-fill me-2">			 
                 <!-- 드롭다운 메뉴-->				
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
                     구매 관리
@@ -181,7 +181,7 @@
 				</div>
 
             </div>		
-			<div class="nav-item dropdown flex-fill me-3">			 
+			<div class="nav-item dropdown flex-fill me-2">			 
 				<!-- 드롭다운 메뉴-->				
 				<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
 					자재 관리
@@ -206,7 +206,7 @@
 			</div>			
 			<?php } ?>					
 			<?php if($level =='1') { ?>
-				<div class="nav-item dropdown flex-fill me-3">			 
+				<div class="nav-item dropdown flex-fill me-2">			 
 					<!-- 드롭다운 메뉴-->				
 					<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
 						회계
@@ -263,7 +263,7 @@
 					</div>
 				</div>					
 			<?php } ?>	
-            <div class="nav-item dropdown flex-fill me-3">			 			 
+            <div class="nav-item dropdown flex-fill me-2">			 			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" >
                     차량 및 장비
@@ -277,7 +277,33 @@
 						</a>                    
 					</div>
             </div>
-            <div class="nav-item dropdown flex-fill me-3">			 
+            <div class="nav-item dropdown flex-fill me-2">			 
+                <!-- 드롭다운 메뉴-->
+                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+                    연구소
+                </a> 
+				<div class="dropdown-menu">				
+					<a class="dropdown-item" href="<?=$root_dir?>/ask_rndplan/list.php">
+						<i class="bi bi-journal-medical"></i> 연구개발계획서
+					</a>			
+					<a class="dropdown-item" href="<?=$root_dir?>/ask_rndnote/list.php">
+						<i class="bi bi-journal-medical"></i> 연구노트
+					</a>			
+					<a class="dropdown-item" href="<?=$root_dir?>/ask_rndreport/list.php">
+						<i class="bi bi-journal-medical"></i> 연구개발보고서
+					</a>
+					<a class="dropdown-item" href="https://www.rnd.or.kr/user/main.do" target="_blank">
+						<i class="bi bi-building"></i> 연구개발전담부서
+					</a>
+					<a class="dropdown-item" href="https://research.rnd.or.kr/krc/" target="_blank">
+						<i class="bi bi-pencil-square"></i> 연구개발활동 입력확인
+					</a>
+					<a class="dropdown-item" href="https://www.koita.or.kr/" target="_blank">
+						<i class="bi bi-globe"></i> 한국산업기술진흥협회
+					</a>
+				</div>
+            </div>				
+            <div class="nav-item dropdown flex-fill me-2">			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
                     게시
@@ -303,7 +329,7 @@
 						</a>                    			                    
 					</div>
             </div>                      
-            <div class="nav-item dropdown flex-fill me-3">			 
+            <div class="nav-item dropdown flex-fill me-2">			 
                 <!-- 드롭다운 메뉴-->
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
                     공유
@@ -324,7 +350,7 @@
 				</div>
 
             </div>			
-			<div class="nav-item dropdown flex-fill me-3">			 
+			<div class="nav-item dropdown flex-fill me-2">			 
 				<!-- 드롭다운 메뉴-->
 				<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
 					<?=$user_name?>님(Lv<?=$level?>)

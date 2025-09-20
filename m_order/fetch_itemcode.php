@@ -41,7 +41,14 @@ function generate_ecountcode($volt, $wire, $upweight, $unit, $item) {
             }
             return '모터 ' . $ecountcode;
         } else {
-            return '브라켓트 ' . $item;
+            // 브라켓트의 경우 item에서 규격 정보 추출 (예: '690*390' 같은 형태)
+            if (preg_match('/\d+\*\d+/', $item, $matches)) {
+                // '690*390' 같은 규격이 있는 경우
+                return '모터 브라켓트 ' . $matches[0];
+            } else {
+                // 규격이 없거나 다른 형태인 경우
+                return '모터 브라켓트 ' . $item;
+            }
         }
     }
 }
@@ -63,8 +70,8 @@ try {
             if (isset($items_array[$index])) {
                 $unitValue = $units[$index] ?? '';
 
-                // unit이 '모터단품'인 것만 포함
-                if ($unitValue === '모터단품') {
+                // unit이 '모터단품' 또는 '브라켓트'인 것만 포함 (모터 카테고리)
+                if ($unitValue === '모터단품' || $unitValue === '브라켓트') {
                     $generated_code = generate_ecountcode(
                         $volts[$index] ?? '',
                         $wires[$index] ?? '',
@@ -74,7 +81,7 @@ try {
                     );
 
                     if ($generated_code === '' || $generated_code === null) {
-                        $generated_code = '모터단품';
+                        $generated_code = $unitValue === '브라켓트' ? '모터 브라켓트' : '모터단품';
                     }
 
                     if (!in_array($item_code, $item_codes_set)) {

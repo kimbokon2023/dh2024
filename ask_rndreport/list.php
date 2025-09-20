@@ -2,7 +2,7 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/session.php'; // 세션 파일 포함
 require_once($_SERVER['DOCUMENT_ROOT'] . '/lib/mydb.php');
  
-$title_message = '연구개발계획서';      
+$title_message = '연구개발보고서';      
 ?> 
  
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php'; ?> 
@@ -146,7 +146,7 @@ try{
 				<div class="d-flex mb-3 mt-2 justify-content-center align-items-center">  
 					<h4> <?=$title_message?> </h4>  
 					<button type="button" class="btn btn-dark btn-sm mx-3"  onclick='location.reload();' title="새로고침"> <i class="bi bi-arrow-clockwise"></i> </button>  	 			
-                    <small class="ms-5 text-muted">  연구개발계획서를 작성하면 결재시스템으로 넘어갑니다. </small>  
+                    <small class="ms-5 text-muted">  연구개발보고서를 작성하면 결재시스템으로 넘어갑니다. </small>  
 				</div>	
 			<div class="d-flex mb-1 mt-1 justify-content-center align-items-center">  													   
 			<!-- 기간부터 검색까지 연결 묶음 start -->

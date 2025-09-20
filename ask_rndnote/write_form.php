@@ -1,6 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/session.php';
-$title_message = '연구개발계획서'; 
+$title_message = '연구노트'; 
 ?>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/common.php' ?>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php'; ?>
@@ -53,7 +53,7 @@ if ($mode=="modify" or $mode=="view"){
 		$mytitle = $outworkplace ?? '';
 		$content = $al_content ?? '';
 		$content_reason = $request_comment ?? '';
-		$titlemsg = $mode === 'modify' ? '연구개발계획서(수정)' : '연구개발계획서(조회)';
+		$titlemsg = $mode === 'modify' ? '연구노트(수정)' : '연구노트(조회)';
       }
      }catch (PDOException $Exception) {
        print "오류: ".$Exception->getMessage();
@@ -61,7 +61,7 @@ if ($mode=="modify" or $mode=="view"){
   }
   else{
     include $_SERVER['DOCUMENT_ROOT'] .'/eworks/_request.php';
-    $titlemsg = '연구개발계획서 작성';
+    $titlemsg = '연구노트 작성';
     $mytitle = $outworkplace ?? '';
 	$content = $al_content ?? '';
 	$content_reason = $request_comment ?? '';
@@ -71,7 +71,7 @@ if ($mode=="modify" or $mode=="view"){
 if ($mode!="modify" and $mode!="view" and $mode!="copy"){
     $indate=date("Y-m-d");
 	$author = $user_name;
-	$titlemsg = '연구개발계획서 작성';
+	$titlemsg = '연구노트 작성';
 }
 
 if ($mode=="copy"){
@@ -94,7 +94,7 @@ if ($mode=="copy"){
      }catch (PDOException $Exception) {
          print "오류: ".$Exception->getMessage();
      }
-    $titlemsg = '(데이터 복사) 연구개발계획서';
+    $titlemsg = '(데이터 복사) 연구노트';
     $num='';
     $id = $num;
     $author = $user_name;
@@ -275,6 +275,7 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
 	</div>
 </div>
 
+
 <?php if($mode!='view') { ?>
 	<div class="row">
 		<div class="col-sm-6">
@@ -318,7 +319,7 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
 			<input type="date" class="form-control w120px viewNoBtn" id="indate" name="indate" value="<?php echo $indate; ?>">
 		  </td>
 		   <td class="text-center w-25 fw-bold">
-			<label for="author">기안자</label>
+			<label for="author">작성자</label>
 		  </td>
 		 <td>
 			<input type="text" class="form-control text-center w80px viewNoBtn" id="author" name="author" value="<?php echo $author; ?>">
@@ -329,7 +330,7 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
 			<label for="mytitle">제목</label>
 		  </td>
 		 <td colspan="3">
-			<input type="text" class="form-control viewNoBtn" id="mytitle" name="mytitle" value="<?php echo $mytitle; ?>" placeholder="연구개발계획서 제목을 입력하세요">
+			<input type="text" class="form-control viewNoBtn" id="mytitle" name="mytitle" value="<?php echo $mytitle; ?>" placeholder="연구노트 제목을 입력하세요">
 		  </td>
 		</tr>
     </table>
@@ -339,13 +340,13 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
       <table class="table table-bordered">
 		<tr>
 		  <td class="text-center fw-bold" style="width:15%;">
-			<label for="content">계획서 내용</label>
+			<label for="content">연구 내용</label>
 		  </td>
 		 <td>
-			<textarea class="form-control viewNoBtn" id="content" name="content" rows="10" placeholder="연구개발계획서 내용을 입력하세요"><?php echo $content; ?></textarea>
+			<textarea class="form-control viewNoBtn" id="content" name="content" rows="20" placeholder="연구노트 내용을 입력하세요"><?php echo $content; ?></textarea>
 		  </td>
 		</tr>
-		<tr>
+		<tr style="display:none;">
 		  <td class="text-center fw-bold">
 			<label for="content_reason">작성 이유</label>
 		  </td>
@@ -490,7 +491,7 @@ $("#upfile").change(function(e) {
     $("#fileorimage").val('file');
     $("#item").val('attached');
     $("#upfilename").val('upfile');
-    $("#savetitle").val('연구개발계획서 첨부파일');
+    $("#savetitle").val('연구노트 첨부파일');
 
 	if(Number($("#id").val()) == 0)
 		$("#id").val($("#timekey").val());
@@ -529,7 +530,7 @@ $("#upfileimage").change(function(e) {
     $("#fileorimage").val('image');
     $("#item").val('image');
     $("#upfilename").val('upfileimage');
-    $("#savetitle").val('연구개발계획서 이미지');
+    $("#savetitle").val('연구노트 이미지');
 
 	if(Number($("#id").val()) == 0)
 		$("#id").val($("#timekey").val());
@@ -564,7 +565,15 @@ $("#upfileimage").change(function(e) {
 });
 
 delPicimageFn = function(divID, delChoice) {
-	console.log(divID, delChoice);
+	console.log('이미지 삭제 요청:', {
+		divID: divID,
+		delChoice: delChoice,
+		tablename: $("#tablename").val(),
+		id: $("#id").val(),
+		timekey: $("#timekey").val(),
+		mode: $("#mode").val()
+	});
+
 	Swal.fire({
 		title: '이미지 삭제',
 		text: '정말로 이 이미지를 삭제하시겠습니까?',
@@ -576,29 +585,70 @@ delPicimageFn = function(divID, delChoice) {
 		cancelButtonText: '취소'
 	}).then((result) => {
 		if (result.isConfirmed) {
+			// 로딩 표시
+			Swal.fire({
+				title: '삭제 중...',
+				text: '이미지를 삭제하고 있습니다.',
+				allowOutsideClick: false,
+				showConfirmButton: false,
+				willOpen: () => {
+					Swal.showLoading();
+				}
+			});
+
 			$.ajax({
 				url:'../file/del_file.php?savename=' + delChoice ,
 				type:'post',
 				data: $("#board_form").serialize(),
 				dataType: 'json',
 				}).done(function(data){
-				   const savename = data["savename"];
+					console.log('삭제 응답:', data);
 
-					$("#image" + divID).closest('.image-container').remove();
+					// 삭제 응답 상세 확인
+					console.log('삭제 응답 상세:', {
+						data: data,
+						hasStatus: data && data.status,
+						hasSavename: data && data.savename,
+						statusValue: data ? data.status : 'undefined',
+						savenameValue: data ? data.savename : 'undefined'
+					});
 
-					Swal.fire(
-						'삭제 완료!',
-						'이미지가 성공적으로 삭제되었습니다.',
-						'success'
-					);
+					// 삭제가 성공한 경우에만 화면에서 제거
+					if (data && (data.status === 'success' || data.savename)) {
+						// 전체 이미지 컨테이너 찾아서 제거
+						const container = $("#image" + divID).closest('.image-container');
+						console.log('제거할 컨테이너:', container.length > 0 ? '찾음' : '못찾음');
+						container.remove();
+
+						// 삭제 완료 메시지
+						Swal.fire({
+							title: '삭제 완료!',
+							text: '이미지가 성공적으로 삭제되었습니다.',
+							icon: 'success',
+							timer: 1500,
+							showConfirmButton: false
+						});
+
+						console.log('이미지 화면에서 제거 완료');
+					} else {
+						// 서버에서 삭제 실패 응답이 온 경우
+						console.warn('삭제 실패 - 서버 응답:', data);
+						Swal.fire({
+							title: '삭제 실패!',
+							text: '서버에서 이미지 삭제에 실패했습니다. (응답: ' + JSON.stringify(data) + ')',
+							icon: 'error',
+							confirmButtonText: '확인'
+						});
+					}
 
 		        }).fail(function(xhr, status, error) {
-					Swal.fire(
-						'삭제 실패!',
-						'이미지 삭제 중 오류가 발생했습니다.',
-						'error'
-					);
-					console.error('삭제 오류:', error);
+					console.error('이미지 삭제 오류:', xhr, status, error);
+					Swal.fire({
+						title: '삭제 실패!',
+						text: '이미지 삭제 중 오류가 발생했습니다. 다시 시도해주세요.',
+						icon: 'error',
+						confirmButtonText: '확인'
+					});
 		        });
 		}
 	});
@@ -829,6 +879,7 @@ function deleteFn(href) {
     });
 }
 
+
 $(document).ready(function () {
 	var mode = '<?php echo $mode; ?>';
 	if (mode === 'view') {
@@ -842,7 +893,7 @@ $(document).ready(function () {
 		$('.viewNoBtn').prop('disabled', true);
 	}
 });
-
 </script>
+
 </body>
 </html>

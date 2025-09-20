@@ -49,4 +49,12 @@ $expense_data = $_REQUEST["expense_data"] ?? '';
 $companyCard = $_REQUEST["companyCard"] ?? '';
 $secondordpaydate = $_REQUEST["secondordpaydate"] ?? '';
 $secondordnum = $_REQUEST["secondordnum"] ?? '';
+$subject = $_REQUEST["subject"] ?? '';
+$is_html = $_REQUEST["is_html"] ?? '';
+$content = $_REQUEST["content"] ?? '';
+$item_subject = $_REQUEST["item_subject"] ?? '';
+$item_subject_id = $_REQUEST["item_subject_id"] ?? '';
+$item_subject_name = $_REQUEST["item_subject_name"] ?? '';
+$item_subject_name_id = $_REQUEST["item_subject_name_id"] ?? '';
 ?>
+

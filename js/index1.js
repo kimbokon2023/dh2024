@@ -681,169 +681,511 @@ viewEworks_detail = function(e_num, eworksPage)
 					});
 				}
 			}
-									
-			
-			if(isNull(eworks_item))
-				eworks_item = '일반';
-							
-				$('#registdate').val(registdate.trim()); 				
-				$('#e_title').val(e_title.trim()); 	
-				$('#eworks_item').val(eworks_item.trim()); 
-				$('#contents').val(contents.trim()); 					
-				$('#author').val(author.trim()); 	
-				$('#author_id').val(author_id.trim()); 	
-				$('#e_line').val(e_line.trim()); 	
-				$('#e_line_id').val(e_line_id.trim()); 	
-				$('#r_line').val(r_line.trim()); 	
-				$('#r_line_id').val(r_line_id.trim()); 	
-				$('#e_confirm').val(e_confirm.trim()); 	
-				$('#e_confirm_id').val(e_confirm_id.trim()); 	
-				$('#e_prograss').val(e_prograss.trim()); 	
-				$('#done').val(done.trim()); 					
-				$('#numdisplay').text(String(e_num).trim()); // 자료번호 화면에 출력
-	  
-				
-				// console.log(" 조회창 버튼 readonly 속성 부여");
-				// console.log("status", status);
 								
-				// 모달 내의 input, textarea, button 요소에 대한 속성 변경을 처리하는 함수
-				function setModalElementsReadonly(readonly) {
-					var modalInputs = document.querySelectorAll('#eworks_viewmodal input');					
-					var modalTextareas = document.querySelectorAll('#eworks_viewmodal textarea');
-					var modalButtons = document.querySelectorAll('#eworks_viewmodal button');
+		// 20250920 추가된 것 (연구소 발족에 의한 처리)
+		else if (eworks_item === '연구개발계획서') {
+			var textarea = document.getElementById("contents");
+			if (textarea) {
+				textarea.style.display = "none";
+				var jsonContent = JSON.parse(contents);
+				var htmlContainer = document.getElementById('htmlContainer');
 
-					// 예외로 처리할 버튼 ID 목록
-					var excludeButtonIds = ['closeModaldetailBtn', 'closesecondModalBtn', 'eworks_saveBtn', 'eworks_approvalBtn', 'eworks_delBtn', 'eworks_sendBtn', 'eworks_recallBtn', 'eworks_rejectBtn', 'eworks_waitBtn'];
+				var keyMapping = {
+					"e_title": "연구개발계획서",
+					"indate": "작성일",
+					"author": "기안자",
+					"outworkplace": "제목",
+					"al_content": "내역"
+				};
 
-					// input과 textarea 요소 처리
-					[...modalInputs, ...modalTextareas].forEach(function(element) {
-						element.readOnly = readonly;
-					});
+				var tableHtml = '<table class="table table-bordered" style="width:80%;"><tbody>';
 
-					// button 요소 처리
-					modalButtons.forEach(function(button) {
-						if (!excludeButtonIds.includes(button.id)) {
-							button.disabled = readonly;
+				for (var key in jsonContent) {
+					if (jsonContent.hasOwnProperty(key) && keyMapping[key]) {
+						tableHtml += '<tr>';
+						tableHtml += '<td class="text-center fw-bold" style="width:20%;">' + keyMapping[key] + '</td>';
+						var value = jsonContent[key] === null ? '' : jsonContent[key].replace(/\n/g, "<br>");
+						tableHtml += '<td class="text-start">' + value + '</td>';
+						tableHtml += '</tr>';
+					}
+				}
+
+				tableHtml += '</tbody></table>';
+
+				// 첨부파일/이미지 영역 추가
+				var fileTableHtml = '<div id="imageArea" class="mt-3"></div><div id="fileArea" class="mt-3"></div>';
+
+				htmlContainer.innerHTML = tableHtml + fileTableHtml;
+
+				// 첨부파일 비동기 로드
+				const tablename = "eworks";  // 고정값				
+
+				$.ajax({
+					url: "/file/load_file.php",
+					type: "POST",
+					data: { id: e_num, tablename: tablename, item: "attached" },
+					dataType: "json",
+					success: function (data) {
+						var fileArea = document.getElementById("fileArea");
+						if (!fileArea) return;
+
+						var recid = data && data.recid ? parseInt(data.recid, 10) : 0;
+						var fileArr = (data && data.file_arr) ? data.file_arr : [];
+						var realArr = (data && data.realfile_arr) ? data.realfile_arr : [];
+
+						if (recid > 0 && fileArr.length > 0) {
+							var list = "<h6 class='fw-bold'>첨부파일</h6><ul class='list-group'>";
+							for (var i = 0; i < recid; i++) {
+								var savename = fileArr[i];
+								var realname = realArr[i] || savename || '첨부파일';
+								if (!savename) continue;
+								var href = "/uploads/" + savename;
+								list += "<li class=\"list-group-item\">" +
+									"<a href='" + href + "' download='" + realname.replace(/'/g, "&#39;") + "'>" +
+										"<i class=\"bi bi-paperclip\"></i> " + realname +
+									"</a>" +
+								"</li>";
+							}
+							list += "</ul>";
+							fileArea.innerHTML = list;
+						} else {
+							fileArea.innerHTML = '<div class="text-muted">첨부파일 없음</div>';
 						}
-					});
-				}
+					}
+				});
 
+				// 첨부이미지 비동기 로드 (분리)
+				$.ajax({
+					url: "/file/load_file.php",
+					type: "POST",
+					data: { id: e_num, tablename: tablename, item: "image" },
+					dataType: "json",
+					success: function (data) {
+						var imageArea = document.getElementById("imageArea");
+						if (!imageArea) return;
 
-			if(id==='') 		 
-				 {	 	
-					$('#registdate').val(getCurrentDateTime()); 	
-					$('#e_title').val(''); 						
-					$('#contents').val(''); 	
-					$('#author_id').val($('#user_id').val()); 	
-					$('#author').val($('#user_name').val()); 						
-					$('#e_line').val(''); 	
-					$('#e_line_id').val(''); 	
-					$('#r_line').val(''); 	
-					$('#r_line_id').val(''); 						
-					$('#status').val('draft'); 	
-					status = 'draft';
-					
-				   }	
-			
-				// 상태에 따라 함수 호출
-				if(status !== null && status !== 'draft' && status !== '' ) {
-					setModalElementsReadonly(true);
+						var recid = data && data.recid ? parseInt(data.recid, 10) : 0;
+						var fileArr = (data && data.file_arr) ? data.file_arr : [];
+						var realArr = (data && data.realfile_arr) ? data.realfile_arr : [];
+
+						if (recid > 0 && fileArr.length > 0) {
+							var gallery = "<h6 class='fw-bold'>첨부이미지</h6><div class='d-flex flex-wrap gap-2'>";
+							for (var i = 0; i < recid; i++) {
+								var savename = fileArr[i];
+								var realname = realArr[i] || savename || '이미지';
+								if (!savename) continue;
+								var href = "/uploads/" + savename;
+								gallery += "<a href='" + href + "' target='_blank' class=\"me-2 mb-2\">"
+									+ "<img src='" + href + "' alt='" + realname.replace(/'/g, "&#39;") + "' class='img-thumbnail' style=\"max-width:200px; max-height:150px;\" loading=\"lazy\">"
+									+ "</a>";
+							}
+							gallery += "</div>";
+							imageArea.innerHTML = gallery;
+						} else {
+							imageArea.innerHTML = "<div class='text-muted'>첨부이미지 없음</div>";
+						}
+					}
+				});
+
+				// Readonly 처리
+				var inputs = htmlContainer.querySelectorAll('input, textarea, select');
+				inputs.forEach(function(input) {
+					if (input.tagName === 'SELECT') {
+						input.setAttribute('disabled', true);
+					} else {
+						input.setAttribute('readonly', true);
+					}
+				});
+			}
+		}
+
+		// 2025 5 12 추가된 것 '연구노트' 와 '프로젝트 개발진행 노트' 두개 모두 처리 2025 7 13 추가
+		else if (eworks_item === '연구노트' ) {
+
+		var jsonContent = JSON.parse(contents); // JSON 문자열을 객체로 변환
+		var htmlContainer = document.getElementById('htmlContainer');
+
+		// 키 매핑
+		var keyMapping = {
+			"e_title": "연구노트",
+			"indate": "작성일",
+			"author": "기안자",
+			"outworkplace": "제목",
+			"al_content": "내용"
+		};
+
+		var tableHtml = '<table class="table table-bordered" style="width:80%;"><tbody>';
+
+		for (var key in jsonContent) {
+			if (jsonContent.hasOwnProperty(key) && keyMapping[key] && key !== 'al_content') {
+				tableHtml += '<tr>';
+				tableHtml += '<td class="text-center fw-bold" style="width:20%;">' + keyMapping[key] + '</td>';
+				var value = jsonContent[key] === null ? '' : jsonContent[key].replace(/\n/g, "<br>");
+				tableHtml += '<td class="text-start">' + value + '</td>';
+				tableHtml += '</tr>';
+			}
+		}
+
+		tableHtml += '</tbody></table>';
+
+		// summernote 내용을 별도로 div에 출력
+		var contentHtml = jsonContent["al_content"] || '';
+		var summerHtml = `
+			<div class="mt-3">				
+				<div class="border p-3" style="min-height:150px;text-align:left;">
+					${contentHtml}
+				</div>
+			</div>
+		`;
+
+		// 첨부파일/이미지 영역 추가
+		var fileTableHtml = '<div id="imageArea" class="mt-3"></div><div id="fileArea" class="mt-3"></div>';
+
+		// 최종 렌더링
+		htmlContainer.innerHTML = tableHtml + summerHtml + fileTableHtml;
+		// 첨부파일 비동기 로드
+		const tablename = "eworks";  // 고정값				
+
+		$.ajax({
+			url: "/file/load_file.php",
+			type: "POST",
+			data: { id: e_num, tablename: tablename, item: "attached" },
+			dataType: "json",
+			success: function (data) {
+				var fileArea = document.getElementById("fileArea");
+				if (!fileArea) return;
+
+				var recid = data && data.recid ? parseInt(data.recid, 10) : 0;
+				var fileArr = (data && data.file_arr) ? data.file_arr : [];
+				var realArr = (data && data.realfile_arr) ? data.realfile_arr : [];
+
+				if (recid > 0 && fileArr.length > 0) {
+					var list = "<h6 class='fw-bold'>첨부파일</h6><ul class='list-group'>";
+					for (var i = 0; i < recid; i++) {
+						var savename = fileArr[i];
+						var realname = realArr[i] || savename || '첨부파일';
+						if (!savename) continue;
+						var href = "/uploads/" + savename;
+						list += "<li class=\"list-group-item\">" +
+							"<a href='" + href + "' download='" + realname.replace(/'/g, "&#39;") + "'>" +
+								"<i class=\"bi bi-paperclip\"></i> " + realname +
+							"</a>" +
+						"</li>";
+					}
+					list += "</ul>";
+					fileArea.innerHTML = list;
 				} else {
-					setModalElementsReadonly(false);
+					fileArea.innerHTML = '<div class="text-muted">첨부파일 없음</div>';
 				}
+			}
+		});
 
-			 // console.log('status');
-			 // console.log(status);			
-								
-			// 결재권자이면 버튼을 다르게 부여한다. 승인/거절/보류   
-			// 결재권자에 해당되면 버튼을 다르게 띄워준다.
-			let str = $("#user_id").val();
-			 
-			let url = "/eworks/eworksBtn.php";				 
+		// 첨부이미지 비동기 로드 (분리)
+		$.ajax({
+			url: "/file/load_file.php",
+			type: "POST",
+			data: { id: e_num, tablename: tablename, item: "image" },
+			dataType: "json",
+			success: function (data) {
+				var imageArea = document.getElementById("imageArea");
+				if (!imageArea) return;
 
-			if (ajaxReq2 !== null) {
-					ajaxReq2.abort();
+				var recid = data && data.recid ? parseInt(data.recid, 10) : 0;
+				var fileArr = (data && data.file_arr) ? data.file_arr : [];
+				var realArr = (data && data.realfile_arr) ? data.realfile_arr : [];
+
+				if (recid > 0 && fileArr.length > 0) {
+					var gallery = "<h6 class='fw-bold'>첨부이미지</h6><div class='d-flex flex-wrap gap-2'>";
+					for (var i = 0; i < recid; i++) {
+						var savename = fileArr[i];
+						var realname = realArr[i] || savename || '이미지';
+						if (!savename) continue;
+						var href = "/uploads/" + savename;
+						gallery += "<a href='" + href + "' target='_blank' class=\"me-2 mb-2\">"
+							+ "<img src='" + href + "' alt='" + realname.replace(/'/g, "&#39;") + "' class='img-thumbnail' style=\"max-width:200px; max-height:150px;\" loading=\"lazy\">"
+							+ "</a>";
+					}
+					gallery += "</div>";
+					imageArea.innerHTML = gallery;
+				} else {
+					imageArea.innerHTML = "<div class='text-muted'>첨부이미지 없음</div>";
 				}
+			}
+		});
+	}	
 
-				 // ajax 요청 생성
-			ajaxReq2 =$.ajax({
-				  url:  url ,
-				  type: 'POST',
-				  data: $("#eworks_board_form").serialize() ,
-				  success: function(response) {					  	
-				  
-				  $('#eworksBtn').html(response);												
-					// console.log(response);		
+		else if (eworks_item === '연구개발보고서' ) {
 
+		var jsonContent = JSON.parse(contents); // JSON 문자열을 객체로 변환
+		var htmlContainer = document.getElementById('htmlContainer');
 
-					// show로 보여주고	
-					setTimeout(function(){ 
-						$("#eworks_viewmodal").modal("show");							
-					 }, 1000); //중복 방지를 위해 타임아웃 설정    
+		// 키 매핑
+		var keyMapping = {
+			"e_title": "연구개발보고서",
+			"indate": "작성일",
+			"author": "작성자",
+			"outworkplace": "제목",
+			"al_content": "내용"
+		};
 
-					$("#eworks_viewmodal").on("shown.bs.modal", function () {
-						// 모달에 대해 shown.bs.modal 가동하고										
-						isModalOpen = true; // 모달이 열리면 true로 설정
-						$('.sideEworksBanner').css('display', 'none'); // sideEworksBanner 숨김
+		var tableHtml = '<table class="table table-bordered" style="width:80%;"><tbody>';
+
+		for (var key in jsonContent) {
+			if (jsonContent.hasOwnProperty(key) && keyMapping[key] && key !== 'al_content') {
+				tableHtml += '<tr>';
+				tableHtml += '<td class="text-center fw-bold" style="width:20%;">' + keyMapping[key] + '</td>';
+				var value = jsonContent[key] === null ? '' : jsonContent[key].replace(/\n/g, "<br>");
+				tableHtml += '<td class="text-start">' + value + '</td>';
+				tableHtml += '</tr>';
+			}
+		}
+
+		tableHtml += '</tbody></table>';
+
+		// summernote 내용을 별도로 div에 출력
+		var contentHtml = jsonContent["al_content"] || '';
+		var summerHtml = `
+			<div class="mt-3">				
+				<div class="border p-3" style="min-height:150px;text-align:left;">
+					${contentHtml}
+				</div>
+			</div>
+		`;
+
+		// 첨부파일/이미지 영역 추가
+		var fileTableHtml = '<div id="imageArea" class="mt-3"></div><div id="fileArea" class="mt-3"></div>';
+
+		// 최종 렌더링
+		htmlContainer.innerHTML = tableHtml + summerHtml + fileTableHtml;
+		// 첨부파일 비동기 로드
+		const tablename = "eworks";  // 고정값				
+
+		$.ajax({
+			url: "/file/load_file.php",
+			type: "POST",
+			data: { id: e_num, tablename: tablename, item: "attached" },
+			dataType: "json",
+			success: function (data) {
+				var fileArea = document.getElementById("fileArea");
+				if (!fileArea) return;
+
+				var recid = data && data.recid ? parseInt(data.recid, 10) : 0;
+				var fileArr = (data && data.file_arr) ? data.file_arr : [];
+				var realArr = (data && data.realfile_arr) ? data.realfile_arr : [];
+
+				if (recid > 0 && fileArr.length > 0) {
+					var list = "<h6 class='fw-bold'>첨부파일</h6><ul class='list-group'>";
+					for (var i = 0; i < recid; i++) {
+						var savename = fileArr[i];
+						var realname = realArr[i] || savename || '첨부파일';
+						if (!savename) continue;
+						var href = "/uploads/" + savename;
+						list += "<li class=\"list-group-item\">" +
+							"<a href='" + href + "' download='" + realname.replace(/'/g, "&#39;") + "'>" +
+								"<i class=\"bi bi-paperclip\"></i> " + realname +
+							"</a>" +
+						"</li>";
+					}
+					list += "</ul>";
+					fileArea.innerHTML = list;
+				} else {
+					fileArea.innerHTML = '<div class="text-muted">첨부파일 없음</div>';
+				}
+			}
+		});
+
+		// 첨부이미지 비동기 로드 (분리)
+		$.ajax({
+			url: "/file/load_file.php",
+			type: "POST",
+			data: { id: e_num, tablename: tablename, item: "image" },
+			dataType: "json",
+			success: function (data) {
+				var imageArea = document.getElementById("imageArea");
+				if (!imageArea) return;
+
+				var recid = data && data.recid ? parseInt(data.recid, 10) : 0;
+				var fileArr = (data && data.file_arr) ? data.file_arr : [];
+				var realArr = (data && data.realfile_arr) ? data.realfile_arr : [];
+
+				if (recid > 0 && fileArr.length > 0) {
+					var gallery = "<h6 class='fw-bold'>첨부이미지</h6><div class='d-flex flex-wrap gap-2'>";
+					for (var i = 0; i < recid; i++) {
+						var savename = fileArr[i];
+						var realname = realArr[i] || savename || '이미지';
+						if (!savename) continue;
+						var href = "/uploads/" + savename;
+						gallery += "<a href='" + href + "' target='_blank' class=\"me-2 mb-2\">"
+							+ "<img src='" + href + "' alt='" + realname.replace(/'/g, "&#39;") + "' class='img-thumbnail' style=\"max-width:200px; max-height:150px;\" loading=\"lazy\">"
+							+ "</a>";
+					}
+					gallery += "</div>";
+					imageArea.innerHTML = gallery;
+				} else {
+					imageArea.innerHTML = "<div class='text-muted'>첨부이미지 없음</div>";
+				}
+			}
+		});
+	}		
+
+    // 2025 7 13 추가된 것			
+	if(isNull(eworks_item))
+		eworks_item = '일반';
+							
+		$('#registdate').val(registdate.trim()); 				
+		$('#e_title').val(e_title.trim()); 	
+		$('#eworks_item').val(eworks_item.trim()); 
+		$('#contents').val(contents.trim()); 					
+		$('#author').val(author.trim()); 	
+		$('#author_id').val(author_id.trim()); 	
+		$('#e_line').val(e_line.trim()); 	
+		$('#e_line_id').val(e_line_id.trim()); 	
+		$('#r_line').val(r_line.trim()); 	
+		$('#r_line_id').val(r_line_id.trim()); 	
+		$('#e_confirm').val(e_confirm.trim()); 	
+		$('#e_confirm_id').val(e_confirm_id.trim()); 	
+		$('#e_prograss').val(e_prograss.trim()); 	
+		$('#done').val(done.trim()); 					
+		$('#numdisplay').text(String(e_num).trim()); // 자료번호 화면에 출력
+	  			
+		// console.log(" 조회창 버튼 readonly 속성 부여");
+		// console.log("status", status);
 						
-						 
-						  // 모달창에서 
-						  $('#eworks_delBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });	
-						  
-						  $('#eworks_viewExceptBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });						  
-						  $('#eworks_approvalviewExceptBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });	
-						  // 모달창에서 결재요청
-						  $('#eworks_sendBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });		
-						  // 모달창에서 회신
-						  $('#eworks_recallBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });	
-						  // 모달창에서 
-						  $('#eworks_approvalBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });	
-						  // 모달창에서 
-						  $('#eworks_closeviewBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });	
-						  // 모달창에서 
-						  $('#eworks_rejectBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });		
-						  // 모달창에서 
-						  $('#eworks_waitBtn').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });		
-						  // 모달창에서 버튼 이벤트 막기 처리 행추가
-						  $('.btnClear').on('click', function(e) {
-								e.preventDefault(); // 기본 이벤트 동작 막기
-							// 클릭 이벤트 처리 로직    
-						  });				
+		// 모달 내의 input, textarea, button 요소에 대한 속성 변경을 처리하는 함수
+		function setModalElementsReadonly(readonly) {
+			var modalInputs = document.querySelectorAll('#eworks_viewmodal input');					
+			var modalTextareas = document.querySelectorAll('#eworks_viewmodal textarea');
+			var modalButtons = document.querySelectorAll('#eworks_viewmodal button');
 
+			// 예외로 처리할 버튼 ID 목록
+			var excludeButtonIds = ['closeModaldetailBtn', 'closesecondModalBtn', 'eworks_saveBtn', 'eworks_approvalBtn', 'eworks_delBtn', 'eworks_sendBtn', 'eworks_recallBtn', 'eworks_rejectBtn', 'eworks_waitBtn'];
+
+			// input과 textarea 요소 처리
+			[...modalInputs, ...modalTextareas].forEach(function(element) {
+				element.readOnly = readonly;
+			});
+
+			// button 요소 처리
+			modalButtons.forEach(function(button) {
+				if (!excludeButtonIds.includes(button.id)) {
+					button.disabled = readonly;
+				}
+			});
+		}
+
+
+	if(id==='') 		 
+			{	 	
+			$('#registdate').val(getCurrentDateTime()); 	
+			$('#e_title').val(''); 						
+			$('#contents').val(''); 	
+			$('#author_id').val($('#user_id').val()); 	
+			$('#author').val($('#user_name').val()); 						
+			$('#e_line').val(''); 	
+			$('#e_line_id').val(''); 	
+			$('#r_line').val(''); 	
+			$('#r_line_id').val(''); 						
+			$('#status').val('draft'); 	
+			status = 'draft';
+			
+			}	
+	
+		// 상태에 따라 함수 호출
+		if(status !== null && status !== 'draft' && status !== '' ) {
+			setModalElementsReadonly(true);
+		} else {
+			setModalElementsReadonly(false);
+		}
+
+		// console.log('status');
+		// console.log(status);			
+						
+	// 결재권자이면 버튼을 다르게 부여한다. 승인/거절/보류   
+	// 결재권자에 해당되면 버튼을 다르게 띄워준다.
+	let str = $("#user_id").val();
+		
+	let url = "/eworks/eworksBtn.php";				 
+
+	if (ajaxReq2 !== null) {
+			ajaxReq2.abort();
+		}
+
+			// ajax 요청 생성
+	ajaxReq2 =$.ajax({
+			url:  url ,
+			type: 'POST',
+			data: $("#eworks_board_form").serialize() ,
+			success: function(response) {					  	
+			
+			$('#eworksBtn').html(response);												
+			// console.log(response);		
+
+
+			// show로 보여주고	
+			setTimeout(function(){ 
+				$("#eworks_viewmodal").modal("show");							
+				}, 1000); //중복 방지를 위해 타임아웃 설정    
+
+			$("#eworks_viewmodal").on("shown.bs.modal", function () {
+				// 모달에 대해 shown.bs.modal 가동하고										
+				isModalOpen = true; // 모달이 열리면 true로 설정
+				$('.sideEworksBanner').css('display', 'none'); // sideEworksBanner 숨김
+				
 					
+					// 모달창에서 
+					$('#eworks_delBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});	
+					
+					$('#eworks_viewExceptBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});						  
+					$('#eworks_approvalviewExceptBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});	
+					// 모달창에서 결재요청
+					$('#eworks_sendBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});		
+					// 모달창에서 회신
+					$('#eworks_recallBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});	
+					// 모달창에서 
+					$('#eworks_approvalBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});	
+					// 모달창에서 
+					$('#eworks_closeviewBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});	
+					// 모달창에서 
+					$('#eworks_rejectBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});		
+					// 모달창에서 
+					$('#eworks_waitBtn').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});		
+					// 모달창에서 버튼 이벤트 막기 처리 행추가
+					$('.btnClear').on('click', function(e) {
+						e.preventDefault(); // 기본 이벤트 동작 막기
+					// 클릭 이벤트 처리 로직    
+					});							
 
 					// eworks 저장버튼 실행	(임시저장 의미) 결재 요청전
-				$("#eworks_saveBtn").click( function() {
+				$("#eworks_saveBtn").off('click').click( function() {
 					
-						
-						 if($("#e_line").val() == '')
+						if($("#e_line").val() == '')
 						 {
 							  Toastify({
 									text: "결재라인은 반드시 있어야 합니다.",
@@ -2658,4 +3000,3 @@ function pagestartOverlay() {
 			},
 		}).showToast();	
 }	
-

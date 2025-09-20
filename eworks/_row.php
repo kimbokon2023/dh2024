@@ -49,4 +49,11 @@ $expense_data = $row["expense_data"] ?? '';
 $companyCard = $row["companyCard"] ?? '';
 $secondordpaydate = $row["secondordpaydate"] ?? '';
 $secondordnum = $row["secondordnum"] ?? '';
+$subject = $row["subject"] ?? '';
+$is_html = $row["is_html"] ?? '';
+$content = $row["content"] ?? '';
+$item_subject = $row["item_subject"] ?? '';
+$item_subject_id = $row["item_subject_id"] ?? '';
+$item_subject_name = $row["item_subject_name"] ?? '';
+$item_subject_name_id = $row["item_subject_name_id"] ?? '';
 ?>
