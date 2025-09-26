@@ -5,7 +5,6 @@ header("Content-Type: application/json");
 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect();
-$DB = $_SESSION["DB"];  // DB 변수 설정 추가
 
 $items = [];
 $item_codes_set = [];

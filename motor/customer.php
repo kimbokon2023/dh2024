@@ -363,22 +363,23 @@ $allResults = array_values($allResults);
         <input type="date" id="todate" name="todate" class="form-control me-1" style="width:100px;" value="<?=$todate?>">  &nbsp;     </span> 
         </div>
         <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">       
+            <button type="button" class="btn btn-dark btn-sm mx-1" onclick="location.href='../getmoney/list.php?header=header'"><i class="bi bi-journal-x"></i> 수금 </button>    
+            <button type="button" class="btn btn-dark btn-sm mx-1" onclick="location.href='month_sales.php?header=header'"> <i class="bi bi-file-earmark-ruled"></i> 판매일괄회계</button>
+            <button type="button" class="btn btn-primary btn-sm me-1" onclick="saveBalance();"> <i class="bi bi-floppy"></i> 차기월 이월금확정</button>
         
         <div class="inputWrap">
-                <input type="text" id="search" name="search" value="<?=$search?>" onkeydown="if(event.key === 'Enter') submitForm();" autocomplete="off" class="form-control" style="width:150px;"> &nbsp;           
+                <input type="text" id="search" name="search" value="<?=$search?>" onkeydown="if(event.key === 'Enter') submitForm();" autocomplete="off" class="form-control mx-1" style="width:150px;"> &nbsp;           
                 <button class="btnClear"></button>
         </div>              
           
         <div id="autocomplete-list">                       
-        </div>  
+        </div>   
           &nbsp; 
             <button id="searchBtn" type="button" class="btn btn-dark btn-sm me-2" onclick="submitForm()"> <i class="bi bi-search"></i> </button>                              
 			* 출고예정일 기준입니다. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-			<button type="button" class="btn btn-dark btn-sm me-2" onclick="location.href='../getmoney/list.php?header=header'"><i class="bi bi-journal-x"></i> 수금 </button>    
-			<button type="button" class="btn btn-dark btn-sm me-1" onclick="location.href='month_sales.php?header=header'"> <i class="bi bi-file-earmark-ruled"></i> 판매일괄회계</button>
-			<button type="button" class="btn btn-primary btn-sm me-1" onclick="saveBalance();"> <i class="bi bi-floppy"></i> 차기월 이월금확정</button>
-			<button type="button" class="btn btn-danger btn-sm me-2" onclick="location.href='../motor/receivable.php?header=header'"> <i class="bi bi-journal-x"></i> 미수금 </button>    
-			<button type="button" class="btn btn-dark btn-sm me-2" onclick="generateExcel();" > <i class="bi bi-file-earmark-spreadsheet"></i> </button>
+			<button type="button" class="btn btn-danger btn-sm me-2" onclick="location.href='../motor/receivable.php?header=header'"> <i class="bi bi-journal-x"></i> 미수금 </button>
+			<button type="button" class="btn btn-info btn-sm me-2" data-bs-toggle="modal" data-bs-target="#chargePersonModal" onclick="loadChargePerson()"> <i class="bi bi-person-check"></i> 담당자 설정 </button>
+			<!-- <button type="button" class="btn btn-dark btn-sm me-2" onclick="generateExcel();" > <i class="bi bi-file-earmark-spreadsheet"></i> </button> -->
          </div> 
 		
     <div class="d-flex p-1 m-1 mb-1 justify-content-center align-items-center">     
@@ -400,10 +401,9 @@ $allResults = array_values($allResults);
          <tbody>                			
 <?php  
 try {	
-	$start_num = 1;	
-		
-	foreach ($allResults as $initnum) {
-		
+	$start_num = 1;			
+    
+	foreach ($allResults as $initnum) {		
 		// echo 'second ord num '. $initnum . '<br>';
         // 이월잔액 설정
         $initialReceivable = isset($initialBalances[$initnum]) ? intval($initialBalances[$initnum]) : 0;
@@ -509,6 +509,31 @@ try {
     </div>
 </div>
 </form>
+
+<!-- 담당자 설정 모달 -->
+<div class="modal fade" id="chargePersonModal" tabindex="-1" aria-labelledby="chargePersonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="chargePersonModalLabel">담당자 설정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="chargePersonForm">
+                    <div class="mb-3">
+                        <label for="chargePerson" class="form-label">담당자명</label>
+                        <input type="text" class="form-control" id="chargePerson" name="chargePerson" placeholder="담당자명을 입력하세요" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary" onclick="saveChargePerson()">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php
 } catch (PDOException $Exception) {
     print "오류: ".$Exception->getMessage();
@@ -752,8 +777,61 @@ function generateExcel() {
 }
 
 $(document).ready(function(){
-	saveLogData('거래처 원장'); 
+	saveLogData('거래처 원장');
 });
-</script>
+
+// 담당자 정보 불러오기
+function loadChargePerson() {
+	$.ajax({
+		url: 'load_charge_person.php',
+		type: 'GET',
+		dataType: 'json',
+		success: function(data) {
+			console.log('Load response:', data); // 임시 디버그 로그
+			if (data.status === 'success' && data.chargePerson && data.chargePerson.trim() !== '') {
+				$('#chargePerson').val(data.chargePerson);
+			}
+		},
+		error: function() {
+			console.log('Ajax error'); // 임시 디버그 로그
+		}
+	});
+}
+
+// 담당자 저장 함수
+function saveChargePerson() {
+	var chargePerson = $('#chargePerson').val().trim();
+
+	if (chargePerson === '') {
+		alert('담당자명을 입력하세요.');
+		return;
+	}
+
+	$.ajax({
+		url: 'save_charge_person.php',
+		type: 'POST',
+		data: {
+			chargePerson: chargePerson
+		},
+		success: function(response) {
+			try {
+				var data = JSON.parse(response);
+				if (data.status === 'success') {
+					alert('담당자가 성공적으로 저장되었습니다.');
+					$('#chargePersonModal').modal('hide');
+				} else {
+					alert('오류 발생: ' + data.message);
+				}
+			} catch (e) {
+				alert('응답 처리 중 오류가 발생했습니다.');
+			}
+		},
+		error: function() {
+			alert('서버 오류가 발생했습니다.');
+		}
+	});
+}
+</script> 
 </body>
 </html>
+ 

@@ -8,7 +8,7 @@ $tablename = 'm_order';
 header("Content-Type: application/json");
 
 include '_request.php';
- 
+
 // Fetch JSON data from POST request
 $orderlist_jsondata = isset($_POST['orderlist']) ? json_decode($_POST['orderlist'], true) : null;
 
@@ -24,20 +24,17 @@ $pdo = db_connect();
 if ($mode == "modify") {
     $update_log = date("Y-m-d H:i:s") . " - " . $_SESSION["name"] . " " . $update_log . "&#10";
 
-    // 검색태그 생성 (발주처 정보 포함)
-    $searchtag = $orderDate . " " . $vendor_name . " " . $memo . " " . $totalsurang . " " . $totalamount;
-
     try {
         $pdo->beginTransaction();
-        $sql = "UPDATE m_order SET
-            orderDate=?, vendor_code=?, vendor_name=?, china_item=?, memo=?, orderlist=?, update_log=?, first_writer=?,
+        $sql = "UPDATE m_order SET 
+            orderDate=?, memo=?, orderlist=?, update_log=?, first_writer=?, 
             totalsurang=?, totalamount=?
             WHERE num=? LIMIT 1";
 
         $stmh = $pdo->prepare($sql);
 
         $params = [
-            $orderDate, $vendor_code, $vendor_name, $china_item, $memo, json_encode($orderlist_jsondata), $update_log, $first_writer,
+            $orderDate, $memo, json_encode($orderlist_jsondata), $update_log, $first_writer,
             $totalsurang, $totalamount,
             $num
         ];
@@ -54,22 +51,19 @@ if ($mode == "insert" || $mode == "copy") {
     $update_log = '';
     $first_writer = $_SESSION["name"];
 
-    // 검색태그 생성 (발주처 정보 포함)
-    $searchtag = $orderDate . " " . $vendor_name . " " . $memo . " " . $totalsurang . " " . $totalamount;
-
     try {
         $pdo->beginTransaction();
 
         $sql = "INSERT INTO m_order (
-            orderDate, vendor_code, vendor_name, china_item, memo, orderlist, update_log, first_writer, totalsurang, totalamount
+            orderDate, memo, orderlist, update_log, first_writer, totalsurang, totalamount            
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-        )";  // 10개 컬럼
+            ?, ?, ?, ?, ?, ?, ?
+        )";  // 7개 컬럼
 
         $stmh = $pdo->prepare($sql);
 
         $params = [
-            $orderDate, $vendor_code, $vendor_name, $china_item, $memo, json_encode($orderlist_jsondata), $update_log, $first_writer, $totalsurang, $totalamount
+            $orderDate, $memo, json_encode($orderlist_jsondata), $update_log, $first_writer, $totalsurang, $totalamount
         ];
 
         $stmh->execute($params);

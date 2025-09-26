@@ -166,6 +166,15 @@ if($num > 0) {
                                     <input type="checkbox" id="is_china_vendor_chk" <?= (isset($is_china_vendor) && (int)$is_china_vendor === 1) ? 'checked' : '' ?>>
                                     <input type="hidden" id="is_china_vendor" name="is_china_vendor" value="<?= (isset($is_china_vendor) && (int)$is_china_vendor === 1) ? 1 : 0 ?>">
                                 </td>
+                                <td class="text-center fw-bold">중국업체 순서</td>
+                                <td class="text-center">
+                                    <input type="number" class="form-control" id="china_sort_order" name="china_sort_order"
+                                           value="<?= $china_sort_order ?>" min="1" max="999"
+                                           title="낮을수록 단가표에서 먼저 표시됩니다" style="width:120px;">
+                                    <small class="text-muted">낮을수록 우선</small>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td class="text-center fw-bold">이미지(썸네일)</td>
                                 <td class="text-center">
                                     <div class="d-flex align-items-center justify-content-center">

@@ -401,10 +401,10 @@ $(document).ready(function(){
 
 $(document).ready(function(){
 	 $("#saveBtn").click(function(){
-		if($("#mytitle").val() === '' || $("#content").val() === '' || $("#content_reason").val() === '' ) {
+		if($("#mytitle").val() === '' || $("#content").val() === '' ) {
 			Swal.fire({
 				title: '등록 오류 알림',
-				text: '제목, 내용, 사유는 필수입력 요소입니다.',
+				text: '제목, 내용는 필수입력 요소입니다.',
 				icon: 'warning'
 			});
 		} else {

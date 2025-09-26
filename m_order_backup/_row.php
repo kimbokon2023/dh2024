@@ -1,9 +1,6 @@
-<?php
+<?php 
 $num = isset($row['num']) ? $row['num'] : '';
 $orderDate = isset($row['orderDate']) ? $row['orderDate'] : '';
-$vendor_code = isset($row['vendor_code']) ? $row['vendor_code'] : '';
-$vendor_name = isset($row['vendor_name']) ? $row['vendor_name'] : '';
-$china_item = isset($row['china_item']) ? $row['china_item'] : '';
 $orderlist = isset($row['orderlist']) ? json_decode($row['orderlist'], true) : [];
 $memo = isset($row['memo']) ? $row['memo'] : '';
 $is_deleted = isset($row['is_deleted']) ? $row['is_deleted'] : null;
@@ -11,7 +8,7 @@ $first_writer = isset($row['first_writer']) ? $row['first_writer'] : null;
 $update_log = isset($row['update_log']) ? $row['update_log'] : null;
 $totalsurang = $row['totalsurang'] ?? '';
 $totalamount = $row['totalamount'] ?? '';
- 
+
 // 추가된 8개의 컬럼
 $inputSum1 = $row['inputSum1'] ?? '';
 $inputSum2 = $row['inputSum2'] ?? '';

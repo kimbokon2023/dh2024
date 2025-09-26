@@ -20,7 +20,7 @@ if ($mode === 'copy') {
     $title_message = "구매 발주서";
 }
 
-$tablename = 'm_order'; 
+$tablename = 'm_order';
 ?> 
 
 <link href="css/style.css" rel="stylesheet">    
@@ -28,7 +28,7 @@ $tablename = 'm_order';
 
 <style>
 .hidden {
-    display: none;  
+    display: none;
 }
 .scrollable-modal-body {
     max-height: 500px;
@@ -144,112 +144,9 @@ if ($mode == "copy" || $mode == 'split') {
                                             <input type="date" name="orderDate" id="orderDate" value="<?=$orderDate?>" class="form-control" style="width:100px;">
                                         </div>
                                     </td>
-                                    <td class="text-end" style="width:80px;"> 발주처 </td>
-                                    <td colspan="3">
-                                        <div class="d-flex flex-wrap align-items-center">
-                                            <?php
-                                            // 중국발주 업체 목록 조회 - china_sort_order 순서로 정렬
-                                            $vendor_sql = "SELECT num, vendor_name, image_base64, item FROM {$DB}.phonebook_buy WHERE is_china_vendor = 1 AND is_deleted IS NULL ORDER BY china_sort_order ASC, vendor_name ASC";
-                                            $vendor_list = [];
-                                            try {
-                                                $vendor_stmh = $pdo->query($vendor_sql);
-                                                $vendor_list = $vendor_stmh->fetchAll(PDO::FETCH_ASSOC);
-                                            } catch (PDOException $Exception) {
-                                                echo '<span class="text-danger">업체 목록을 불러올 수 없습니다</span>';
-                                            }
-
-                                            if (!empty($vendor_list)) {
-                                                foreach ($vendor_list as $vendor_row) {
-                                                    $vendor_id = "vendor_" . $vendor_row['num'];
-                                                    $image_src = '';
-                                                    if (!empty($vendor_row['image_base64'])) {
-                                                        $image_src = (strpos($vendor_row['image_base64'], 'data:') === 0) ?
-                                                                    $vendor_row['image_base64'] :
-                                                                    'data:image/png;base64,' . $vendor_row['image_base64'];
-                                                    }
-                                                    $checked = (isset($vendor_code) && $vendor_code == $vendor_row['num']) ? 'checked' : '';
-                                            ?>
-                                            <div class="form-check form-check-inline me-3 mb-2">
-                                                <input class="form-check-input" type="radio" name="vendor_code" id="<?=$vendor_id?>" value="<?=$vendor_row['num']?>" <?=$checked?> required>
-                                                <label class="form-check-label" for="<?=$vendor_id?>" style="cursor: pointer;">
-                                                    <div class="d-flex align-items-center vendor-option-form" data-vendor-name="<?=htmlspecialchars($vendor_row['vendor_name'])?>" data-china-item="<?=htmlspecialchars($vendor_row['item'] ?? '')?>">
-                                                        <div class="vendor-image me-2">
-                                                            <?php if (!empty($image_src)) : ?>
-                                                                <img src="<?=$image_src?>" style="width: 30px; height: 30px; object-fit: contain; border: 1px solid #ddd; border-radius: 5px;" alt="<?=htmlspecialchars($vendor_row['vendor_name'])?>" />
-                                                            <?php else : ?>
-                                                                <div style="width: 30px; height: 30px; border: 1px solid #ddd; border-radius: 5px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                                                                    <i class="bi bi-building text-muted" style="font-size: 14px;"></i>
-                                                                </div>
-                                                            <?php endif; ?>
-                                                        </div>
-                                                        <span class="vendor-name" style="font-size: 0.9rem; white-space: nowrap;"><?=htmlspecialchars($vendor_row['item'] ?? $vendor_row['vendor_name'])?></span>
-                                                    </div>
-                                                </label>
-                                            </div>
-                                            <?php
-                                                }
-                                            }
-                                            ?>
-                                        </div>
-                                        <input type="hidden" name="vendor_name" id="vendor_name" value="<?= isset($vendor_name) ? htmlspecialchars($vendor_name) : '' ?>">
-                                        <input type="hidden" name="china_item" id="china_item" value="<?= isset($china_item) ? htmlspecialchars($china_item) : '' ?>">
-
-                                        <style>
-                                        .vendor-option-form:hover {
-                                            background-color: #f8f9fa;
-                                            border-radius: 5px;
-                                            padding: 2px 5px;
-                                            transition: background-color 0.2s ease;
-                                        }
-
-                                        .form-check-input:checked + .form-check-label .vendor-option-form {
-                                            background-color: #e3f2fd;
-                                            border-radius: 5px;
-                                            padding: 2px 5px;
-                                            border: 1px solid #2196f3;
-                                        }
-
-                                        /* 라디오 버튼과 내용의 세로 가운데 정렬 */
-                                        .form-check-inline {
-                                            display: flex;
-                                            align-items: center;
-                                        }
-
-                                        .form-check-input {
-                                            margin-right: 8px;
-                                            margin-top: 0;
-                                            vertical-align: middle;
-                                        }
-
-                                        .form-check-label {
-                                            display: flex;
-                                            align-items: center;
-                                            margin-bottom: 0;
-                                            padding-top: 0;
-                                        }
-
-                                        .vendor-option-form {
-                                            display: flex;
-                                            align-items: center;
-                                        }
-
-                                        .vendor-image {
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                        }
-
-                                        .vendor-name {
-                                            display: flex;
-                                            align-items: center;
-                                        }
-                                        </style>
-                                    </td>
-                                </tr>
-                                <tr>
 									<td class="text-end" style="width:80px;"> 비고 </td>
-                                    <td colspan="3">
-                                        <textarea name="memo" id="memo" class="form-control text-start" style="height:20px;"><?=$memo?></textarea>
+                                    <td>                                       
+                                        <textarea name="memo" id="memo" class="form-control text-start" style="height:20px;"><?=$memo?></textarea>                                        
                                     </td>
                                 </tr>
                             </tbody>
@@ -388,12 +285,11 @@ function initializeAutocomplete($input) {
 
 // 문서 로드 시 품목 데이터를 먼저 로드합니다.
 
-$(document).ready(function() {
+$(document).ready(function() {		
 
-	loadItemData();
-	loadVendorCategories(); // JSON에서 카테고리 데이터 로드
+	loadItemData();  		
 	initializePage();
-	bindEventHandlers();
+	bindEventHandlers();			
     updateTotalSummary(); // 페이지 로드 후 최초 계산	
 
 	$("#showlogBtn").click(function() {
@@ -528,10 +424,13 @@ function addRow(tableBody, rowData, typebutton) {
             '<button type="button" class="btn btn-dark btn-sm viewNoBtn add-row_new me-2" data-table="orderlistTable" >+</button> <button type="button" class="btn btn-danger btn-sm remove-row viewNoBtn">-</button>' +
             '</div></td>');
 
-        // 카테고리 선택 필드 추가 - 현재 구매처에 맞는 카테고리 사용
-        var categoryValue = rowData.col0 || currentCategories[0]; // 기본값은 현재 카테고리의 첫 번째 값
+        // 카테고리 선택 필드 추가
+        var categoryValue = rowData.col0 || '모터'; // 기본값은 '모터'
         var categorySelect = '<select name="col0[]" class="form-select w-auto item-category" style="font-size: 0.7rem;">' +
-            createCategoryOptions(currentCategories, categoryValue) +
+            '<option value="모터" ' + (categoryValue === '모터' ? 'selected' : '') + '>모터</option>' +
+            '<option value="연동제어기" ' + (categoryValue === '연동제어기' ? 'selected' : '') + '>연동제어기</option>' +
+            '<option value="운송비" ' + (categoryValue === '운송비' ? 'selected' : '') + '>운송비</option>' +
+            '<option value="부속자재" ' + (categoryValue === '부속자재' ? 'selected' : '') + '>부속자재</option>' +
             '</select>';
         newRow.append('<td class="text-center ' + (showInout ? '' : 'expanded') + '">' + categorySelect + '</td>');
 
@@ -926,204 +825,7 @@ function inputNumber(input) {
     input.setSelectionRange(cursorPosition, cursorPosition);
 }
 
-// 구매처별 카테고리 정의 (JSON에서 로드)
-var vendorCategories = {};
-
-// 카테고리 옵션을 동적으로 생성하는 함수
-function createCategoryOptions(categories, selectedValue) {
-    var options = '';
-    categories.forEach(function(category) {
-        var selected = (selectedValue === category) ? 'selected' : '';
-        options += '<option value="' + category + '" ' + selected + '>' + category + '</option>';
-    });
-    return options;
-}
-
-// 테이블의 모든 카테고리 select를 업데이트하는 함수
-function updateAllCategorySelects(categories) {
-    $('#orderlistTable tbody tr').each(function() {
-        var $categorySelect = $(this).find('select.item-category');
-        var currentValue = $categorySelect.val();
-        var newOptions = createCategoryOptions(categories, currentValue);
-
-        // 현재 선택값이 새로운 카테고리 목록에 없으면 첫 번째 카테고리로 설정
-        if (!categories.includes(currentValue)) {
-            currentValue = categories[0];
-        }
-
-        $categorySelect.html(newOptions).val(currentValue);
-    });
-}
-
-// 새로운 행 추가 시 사용할 카테고리 목록을 저장할 전역 변수
-var currentCategories = [];
-
-// JSON에서 카테고리 데이터 로드하는 함수
-function loadVendorCategories() {
-    $.ajax({
-        url: "/m_order/category_api.php",
-        type: "GET",
-        dataType: "json",
-        success: function(data) {
-            console.log('카테고리 데이터 로드:', data);
-
-            // JSON 데이터를 기존 형식으로 변환
-            var convertedData = {};
-            Object.keys(data).forEach(function(key) {
-                if (key === 'default') {
-                    convertedData['default'] = data[key].categories;
-                } else {
-                    convertedData[key] = data[key].categories;
-                }
-            });
-
-            vendorCategories = convertedData;
-            currentCategories = vendorCategories.default || [];
-
-            // 페이지 로드 시 이미 선택된 vendor에 따른 카테고리 초기화
-            initializeVendorCategories();
-        },
-        error: function(xhr, status, error) {
-            console.error("카테고리 데이터 로드 에러:", error);
-            // 에러 시 기본 카테고리 사용
-            vendorCategories = {
-                'default': ['모터', '연동제어기', '원단', '부속자재', '운송비']
-            };
-            currentCategories = vendorCategories.default;
-            initializeVendorCategories();
-        }
-    });
-}
-
-// 페이지 로드 시 선택된 vendor에 따른 카테고리 초기화
-function initializeVendorCategories() {
-    var selectedVendor = $('input[name="vendor_code"]:checked');
-    if (selectedVendor.length > 0) {
-        // 현재 선택된 vendor를 이전 선택으로 기록
-        selectedVendor.data('previous-selected', true);
-
-        var selectedVendorName = selectedVendor.closest('.form-check').find('.vendor-option-form').data('vendor-name');
-        var selectedChinaItem = selectedVendor.closest('.form-check').find('.vendor-option-form').data('china-item');
-
-        var categories = vendorCategories.default;
-
-        // 구매처별 카테고리 매핑 - JSON에서 로드한 키 사용
-        var searchText = selectedChinaItem || selectedVendorName || '';
-
-        // 정확한 키 매칭 먼저 시도
-        if (vendorCategories[searchText]) {
-            categories = vendorCategories[searchText];
-        } else {
-            // 부분 매칭으로 검색
-            Object.keys(vendorCategories).forEach(function(key) {
-                if (key !== 'default' && searchText.includes(key)) {
-                    categories = vendorCategories[key];
-                }
-            });
-        }
-
-        currentCategories = categories;
-        updateAllCategorySelects(categories);
-    } else {
-        // 선택된 vendor가 없으면 첫 번째 vendor를 이전 선택으로 기록
-        $('input[name="vendor_code"]:first').data('previous-selected', true);
-    }
-}
-
 $(document).ready(function() {
-    // 발주처 라디오 버튼 선택 시 vendor_name과 china_item hidden 필드 업데이트 및 카테고리 변경
-    $('input[name="vendor_code"]').on('change', function() {
-        var $this = $(this);
-        var hasExistingData = $('#orderlistTable tbody tr').length > 0;
-
-        // 기존 데이터가 있으면 확인 대화상자 표시
-        if (hasExistingData) {
-            Swal.fire({
-                title: '발주처 변경 확인',
-                html: '발주처를 변경하면 <strong>카테고리가 수정</strong>되어<br>기존 데이터가 손상될 수 있습니다.<br><br>정말 변경하시겠습니까?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: '변경',
-                cancelButtonText: '취소',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // 확인한 경우 발주처 변경 진행
-                    proceedVendorChange($this);
-                } else {
-                    // 취소한 경우 이전 선택으로 복원
-                    restorePreviousVendorSelection();
-                }
-            });
-            return false; // 기본 change 이벤트 중단
-        }
-
-        // 데이터가 없으면 바로 변경 진행
-        proceedVendorChange($this);
-    });
-
-    // 발주처 변경 진행 함수
-    function proceedVendorChange($selectedVendor) {
-        // 이전 선택 상태 업데이트
-        $('input[name="vendor_code"]').data('previous-selected', false);
-        $selectedVendor.data('previous-selected', true);
-
-        var selectedVendorName = $selectedVendor.closest('.form-check').find('.vendor-option-form').data('vendor-name');
-        var selectedChinaItem = $selectedVendor.closest('.form-check').find('.vendor-option-form').data('china-item');
-
-        if (selectedVendorName) {
-            $('#vendor_name').val(selectedVendorName);
-            $('#china_item').val(selectedChinaItem || '');
-
-            // 구매처에 따른 카테고리 변경
-            var categories = vendorCategories.default; // 기본값
-
-            // 구매처별 카테고리 매핑 - JSON에서 로드한 키 사용
-            var searchText = selectedChinaItem || selectedVendorName || '';
-
-            // 정확한 키 매칭 먼저 시도
-            if (vendorCategories[searchText]) {
-                categories = vendorCategories[searchText];
-            } else {
-                // 부분 매칭으로 검색
-                Object.keys(vendorCategories).forEach(function(key) {
-                    if (key !== 'default' && searchText.includes(key)) {
-                        categories = vendorCategories[key];
-                    }
-                });
-            }
-
-            // 전역 변수 업데이트
-            currentCategories = categories;
-
-            // 기존 테이블의 모든 카테고리 select 업데이트
-            updateAllCategorySelects(categories);
-
-        } else {
-            $('#vendor_name').val('');
-            $('#china_item').val('');
-            // 기본 카테고리로 복원
-            currentCategories = vendorCategories.default;
-            updateAllCategorySelects(vendorCategories.default);
-        }
-    }
-
-    // 이전 선택으로 복원하는 함수
-    function restorePreviousVendorSelection() {
-        var previousSelected = $('input[name="vendor_code"]').filter(function() {
-            return $(this).data('previous-selected') === true;
-        });
-
-        if (previousSelected.length > 0) {
-            previousSelected.prop('checked', true);
-        } else {
-            // 이전 선택이 없으면 첫 번째 항목 선택
-            $('input[name="vendor_code"]:first').prop('checked', true);
-        }
-    }
-
 	$('#removeNoitem').click(function(){
 		// 대상 테이블 ID 목록
 		var tableIds = [
@@ -1224,4 +926,4 @@ function generateExcel() {
 
 </script>
 </body>
-</html> 
+</html>

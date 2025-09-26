@@ -28,6 +28,7 @@ $searchtag = $vendor_name . ' ' .
               $is_deleted . ' ' .
               $item . ' ' .
               $is_china_vendor . ' ' .
+              $china_sort_order . ' ' .
               $update_log;
 
 if ($mode == "update")  {
@@ -39,7 +40,7 @@ if ($mode == "update")  {
         $sql .= "vendor_code = ?, vendor_name = ?, representative_name = ?, address = ?, ";
         $sql .= "business_type = ?, item_type = ?, phone = ?, mobile = ?, email = ?, ";
         $sql .= "fax = ?, manager_name = ?, contact_info = ?, note = ?, category = ?, searchtag = ?, update_log = ?, item = ?, ";
-        $sql .= "is_china_vendor = ?, image_base64 = ? ";
+        $sql .= "is_china_vendor = ?, china_sort_order = ?, image_base64 = ? ";
         $sql .= " WHERE num = ? LIMIT 1"; // Update only one record matching the 'num'
 
         $stmh = $pdo->prepare($sql);
@@ -63,8 +64,9 @@ if ($mode == "update")  {
         $stmh->bindValue(16, $update_log, PDO::PARAM_STR);
         $stmh->bindValue(17, $item, PDO::PARAM_STR);
         $stmh->bindValue(18, $is_china_vendor, PDO::PARAM_INT);
-        $stmh->bindValue(19, $image_base64, PDO::PARAM_STR);
-        $stmh->bindValue(20, $num, PDO::PARAM_INT);
+        $stmh->bindValue(19, $china_sort_order, PDO::PARAM_INT);
+        $stmh->bindValue(20, $image_base64, PDO::PARAM_STR);
+        $stmh->bindValue(21, $num, PDO::PARAM_INT);
 
         // Execute the statement
         $stmh->execute();
@@ -83,8 +85,8 @@ if ($mode == "update")  {
         $sql = "INSERT INTO " . $DB . "." . $tablename . " (";
         $sql .= "vendor_code, vendor_name, representative_name, address, ";
         $sql .= "business_type, item_type, phone, mobile, email, ";
-        $sql .= "fax, manager_name, contact_info, note, category, searchtag, update_log, item, is_china_vendor, image_base64 ";
-        $sql .= ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql .= "fax, manager_name, contact_info, note, category, searchtag, update_log, item, is_china_vendor, china_sort_order, image_base64 ";
+        $sql .= ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmh = $pdo->prepare($sql);
 
@@ -107,7 +109,8 @@ if ($mode == "update")  {
         $stmh->bindValue(16, $update_log, PDO::PARAM_STR);
         $stmh->bindValue(17, $item, PDO::PARAM_STR);
         $stmh->bindValue(18, $is_china_vendor, PDO::PARAM_INT);
-        $stmh->bindValue(19, $image_base64, PDO::PARAM_STR);
+        $stmh->bindValue(19, $china_sort_order, PDO::PARAM_INT);
+        $stmh->bindValue(20, $image_base64, PDO::PARAM_STR);
 
         // Execute the statement
         $stmh->execute();
@@ -126,8 +129,8 @@ if ($mode == "update")  {
         $sql = "INSERT INTO " . $DB . "." . $tablename . " (";
         $sql .= "vendor_code, vendor_name, representative_name, address, ";
         $sql .= "business_type, item_type, phone, mobile, email, ";
-        $sql .= "fax, manager_name, contact_info, note, category, searchtag, update_log, item, is_china_vendor, image_base64 ";
-        $sql .= ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql .= "fax, manager_name, contact_info, note, category, searchtag, update_log, item, is_china_vendor, china_sort_order, image_base64 ";
+        $sql .= ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmh = $pdo->prepare($sql);
 
@@ -149,7 +152,8 @@ if ($mode == "update")  {
         $stmh->bindValue(16, $update_log, PDO::PARAM_STR);
         $stmh->bindValue(17, $item, PDO::PARAM_STR);
         $stmh->bindValue(18, $is_china_vendor, PDO::PARAM_INT);
-        $stmh->bindValue(19, $image_base64, PDO::PARAM_STR);
+        $stmh->bindValue(19, $china_sort_order, PDO::PARAM_INT);
+        $stmh->bindValue(20, $image_base64, PDO::PARAM_STR);
 
         $stmh->execute();
         $pdo->commit();

@@ -1,13 +1,14 @@
-<?php 
-require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");  
+<?php
+require_once($_SERVER['DOCUMENT_ROOT'] . "/session.php");
 
-$title_message = '구매 발주(중국) 리스트'; 
+$title_message = '구매 발주(중국) 리스트';
 
+// 권한 체크 - session.php에서 $WebSite 변수가 정의된 후 실행
 if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
     sleep(1);
-    header("Location:" . $WebSite . "login/login_form.php"); 
+    header("Location: " . ($WebSite ?? '/') . "login/login_form.php");
     exit;
-}    
+}
 include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';   
 ?>
 <title> <?=$title_message?> </title>
@@ -42,21 +43,68 @@ include $_SERVER['DOCUMENT_ROOT'] . '/load_header.php';
 <?php
 $tablename = 'm_order'; 
 
-$search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';  
-$fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';  
-$todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';  
-$mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';  
-   
-function decodeList($jsonData) {
+$search = isset($_REQUEST['search']) ? $_REQUEST['search'] : '';
+$fromdate = isset($_REQUEST['fromdate']) ? $_REQUEST['fromdate'] : '';
+$todate = isset($_REQUEST['todate']) ? $_REQUEST['todate'] : '';
+$mode = isset($_REQUEST['mode']) ? $_REQUEST['mode'] : '';
+$china_vendor = isset($_REQUEST['china_vendor']) ? $_REQUEST['china_vendor'] : '';
+
+// JSON에서 카테고리 데이터 로드하는 함수
+function loadVendorCategories() {
+    $jsonFilePath = __DIR__ . '/vendor_categories.json';
+
+    if (file_exists($jsonFilePath)) {
+        $content = file_get_contents($jsonFilePath);
+        $data = json_decode($content, true);
+
+        if ($data !== null) {
+            return $data;
+        }
+    }
+
+    // 기본 카테고리 반환
+    return [
+        "default" => [
+            "name" => "기본",
+            "categories" => ["모터", "연동제어기", "원단", "부속자재", "운송비"]
+        ]
+    ];
+}
+
+// 구매처에 맞는 카테고리 목록 가져오기
+function getCategoriesForVendor($vendorName, $chinaItem) {
+    $vendorCategories = loadVendorCategories();
+    $searchText = $chinaItem ?: $vendorName;
+
+    // 정확한 키 매칭 먼저 시도
+    if (isset($vendorCategories[$searchText])) {
+        return $vendorCategories[$searchText]['categories'];
+    }
+
+    // 부분 매칭으로 검색
+    foreach ($vendorCategories as $key => $vendor) {
+        if ($key !== 'default' && strpos($searchText, $key) !== false) {
+            return $vendor['categories'];
+        }
+    }
+
+    // 기본 카테고리 반환
+    return $vendorCategories['default']['categories'];
+}
+
+function decodeList($jsonData, $categoryList = null) {
     $decoded = json_decode($jsonData, true);
     if (is_array($decoded)) {
-        // 카테고리별 데이터 그룹화
-        $categories = [
-            '모터' => ['items' => [], 'totalQty' => 0, 'totalAmount' => 0],
-            '연동제어기' => ['items' => [], 'totalQty' => 0, 'totalAmount' => 0],
-            '운송비' => ['items' => [], 'totalQty' => 0, 'totalAmount' => 0],
-            '부속자재' => ['items' => [], 'totalQty' => 0, 'totalAmount' => 0]
-        ];
+        // 카테고리 목록이 제공되지 않으면 기본 카테고리 사용
+        if ($categoryList === null) {
+            $categoryList = ["모터", "연동제어기", "원단", "부속자재", "운송비"];
+        }
+
+        // 동적 카테고리별 데이터 그룹화
+        $categories = [];
+        foreach ($categoryList as $cat) {
+            $categories[$cat] = ['items' => [], 'totalQty' => 0, 'totalAmount' => 0];
+        }
         
         $totalQuantity = 0;
         $totalAmount = 0;
@@ -79,9 +127,9 @@ function decodeList($jsonData) {
             $quantity = is_numeric($col3_clean) ? (float)$col3_clean : 0;
             $amount = is_numeric($col6_clean) ? (float)$col6_clean : 0;
             
-            // 카테고리가 정의되지 않은 경우 '부속자재'로 분류
+            // 카테고리가 정의되지 않은 경우 첫 번째 카테고리로 분류
             if (!isset($categories[$category])) {
-                $category = '부속자재';
+                $category = $categoryList[0];
             }
             
             $categories[$category]['items'][] = [
@@ -205,22 +253,36 @@ $attached='';
 $whereattached = '';
 $titletag = '';
         
-$SettingDate=" orderDate "; 
-$common= $SettingDate . " BETWEEN '$fromdate' AND '$Transtodate' AND is_deleted IS NULL ";
-$andPhrase= " AND " . $common  . $orderby ;
-$wherePhrase= " WHERE " . $common  . $orderby ;
+$SettingDate=" m.orderDate ";
+$common= $SettingDate . " BETWEEN '$fromdate' AND '$Transtodate' AND m.is_deleted IS NULL ";
+$andPhrase= " AND " . $common;
+$wherePhrase= " WHERE " . $common;
 
 // 검색을 위해 모든 검색변수 공백제거
-$search = str_replace(' ', '', $search);  
+$search = str_replace(' ', '', $search);
+
+// 중국 발주업체 필터링 추가
+$vendor_filter = '';
+if (!empty($china_vendor)) {
+    // 업체명으로 직접 필터링 (새 컬럼 사용)
+    $vendor_filter = " AND m.vendor_name = '" . addslashes($china_vendor) . "' ";
+}
 
 if($search==""){
     if($whereattached!=='')
-        $sql="SELECT * FROM " . $tablename . " " .  $whereattached . $andPhrase;                                          
+        $sql="SELECT m.*, p.image_base64 as pb_image_base64
+              FROM " . $tablename . " m
+              LEFT JOIN {$DB}.phonebook_buy p ON m.vendor_code = p.num " . $whereattached . $andPhrase . $vendor_filter . $orderby;
     else
-        $sql="SELECT * FROM  " . $tablename . " " .  $wherePhrase ;                                         
-}                 
+        $sql="SELECT m.*, p.image_base64 as pb_image_base64
+              FROM " . $tablename . " m
+              LEFT JOIN {$DB}.phonebook_buy p ON m.vendor_code = p.num " . $wherePhrase . $vendor_filter . $orderby;
+}
 else {
-    $sql ="SELECT * FROM  " . $tablename . " WHERE (REPLACE(searchtag,' ','') LIKE '%$search%' ) " . $attached . " AND is_deleted IS NULL " . $orderby;                       
+    $sql ="SELECT m.*, p.image_base64 as pb_image_base64
+           FROM " . $tablename . " m
+           LEFT JOIN {$DB}.phonebook_buy p ON m.vendor_code = p.num
+           WHERE (REPLACE(m.searchtag,' ','') LIKE '%$search%' ) " . $attached . " AND m.is_deleted IS NULL " . $vendor_filter . $orderby;
 }
 
 try {
@@ -233,8 +295,9 @@ try {
 }
 ?>
 
-<form id="board_form" name="board_form" method="post" >     
-<div class="container">  
+<form id="board_form" name="board_form" method="get">
+    <input type="hidden" name="china_vendor" id="selected_china_vendor" value="<?=htmlspecialchars($china_vendor)?>">
+<div class="container">
     <div class="d-flex justify-content-center">
     <div class="card mb-2 mt-2 w-75">
         <div class="card-body">
@@ -242,21 +305,141 @@ try {
                 <span class="text-center fs-5">  <?=$title_message?>   </span>     
 				<button type="button" class="btn btn-dark btn-sm mx-1" onclick='location.reload()'>  <i class="bi bi-arrow-clockwise"></i> </button>      						 
 				<small class="ms-5 text-muted"> 중국측 구매를 위한 발주서 (발주서 작성 후 중국측 발송)</small>              
-				<button type="button" class="btn btn-primary btn-sm mx-3"  onclick='location.href="list_input.php";' title="발주 입고창 이동" >  <i class="bi bi-list-columns"></i> </button>  	   		  						
+				<button type="button" class="btn btn-primary btn-sm mx-1"  onclick='location.href="list_input.php";' title="발주 입고창 이동" >  <i class="bi bi-list-columns"></i> </button>
 				<?php if(intval($level) === 1) : ?>
-					<button type="button" class="btn btn-danger btn-sm "  onclick='location.href="list_account.php";' title="송금액 이동" >  <i class="bi bi-currency-dollar"></i> </button>  	   		  										
+					<button type="button" class="btn btn-danger btn-sm mx-1"  onclick='location.href="list_account.php";' title="송금액 이동" >  <i class="bi bi-currency-dollar"></i> </button>
+					<button type="button" class="btn btn-success btn-sm mx-1"  onclick='openCategoryMapping();' title="카테고리 연결 관리" >  <i class="bi bi-link-45deg"></i> 카테고리 연결 </button>
 				<?php endif; ?>					
-            </div>    
-            <div class="d-flex mt-1 mb-1 justify-content-center align-items-center">       
-                ▷  <?= $total_row ?> &nbsp;                           
+            </div>
+
+            <!-- 중국 발주업체 선택 라디오 버튼 -->
+            <?php
+            // 중국발주 업체 목록 조회 - china_sort_order 순서로 정렬
+            $china_vendors_sql = "SELECT num, vendor_name, image_base64, item FROM {$DB}.phonebook_buy WHERE is_china_vendor = 1 AND is_deleted IS NULL ORDER BY china_sort_order ASC, vendor_name ASC";
+            $china_vendors = [];
+            try {
+                $china_stmh = $pdo->query($china_vendors_sql);
+                $china_vendors = $china_stmh->fetchAll(PDO::FETCH_ASSOC);
+            } catch (PDOException $Exception) {
+                echo "중국업체 조회 오류: " . $Exception->getMessage();
+            }
+
+            if (!empty($china_vendors)) :
+            ?>
+            <div class="d-flex mt-2 mb-3 justify-content-center align-items-center flex-wrap">
+                <span class="me-3 fw-bold text-primary">중국 발주업체:</span>
+
+                <!-- 전체 라디오 버튼 -->
+                <div class="form-check form-check-inline me-3">
+                    <input class="form-check-input" type="radio" name="china_vendor" id="vendor_all" value="" <?= empty($china_vendor) ? 'checked' : '' ?>>
+                    <label class="form-check-label fw-bold text-secondary" for="vendor_all">
+                        <div class="d-flex align-items-center">
+                            <div class="vendor-image-placeholder me-2">
+                                <i class="bi bi-building text-muted" style="font-size: 20px;"></i>
+                            </div>
+                            <span>전체</span>
+                        </div>
+                    </label>
+                </div>
+ 
+                <?php foreach ($china_vendors as $vendor) :
+                    $vendor_id = "vendor_" . $vendor['num'];
+                    $image_src = '';
+                    if (!empty($vendor['image_base64'])) {
+                        $image_src = (strpos($vendor['image_base64'], 'data:') === 0) ?
+                                    $vendor['image_base64'] :
+                                    'data:image/png;base64,' . $vendor['image_base64'];
+                    }
+                ?>
+                <div class="form-check form-check-inline me-3 mb-2">
+                    <input class="form-check-input" type="radio" name="china_vendor" id="<?=$vendor_id?>" value="<?=htmlspecialchars($vendor['vendor_name'])?>" <?= $china_vendor === $vendor['vendor_name'] ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="<?=$vendor_id?>" style="cursor: pointer;">
+                        <div class="d-flex align-items-center vendor-option" data-vendor="<?=htmlspecialchars($vendor['vendor_name'])?>">
+                            <div class="vendor-image me-2">
+                                <?php if (!empty($image_src)) : ?>
+                                    <img src="<?=$image_src?>" style="width: 25px; height: 25px; object-fit: contain; border: 1px solid #ddd; border-radius: 3px;" alt="<?=htmlspecialchars($vendor['vendor_name'])?>" />
+                                <?php else : ?>
+                                    <div style="width: 25px; height: 25px; border: 1px solid #ddd; border-radius: 3px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                                        <i class="bi bi-building text-muted" style="font-size: 12px;"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <span class="vendor-name" style="font-size: 0.9rem; white-space: nowrap;"><?=htmlspecialchars($vendor['item'] ?? $vendor['vendor_name'])?></span>
+                        </div>
+                    </label>
+                </div>
+                <?php endforeach; ?> 
+            </div>
+
+            <style>
+            .vendor-option:hover {
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                padding: 2px 5px;
+                transition: background-color 0.2s ease;
+            }
+
+            .form-check-input:checked + .form-check-label .vendor-option {
+                background-color: #e3f2fd;
+                border-radius: 5px;
+                padding: 2px 5px;
+                border: 1px solid #2196f3;
+            }
+
+            .vendor-image-placeholder {
+                width: 25px;
+                height: 25px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 라디오 버튼과 내용의 세로 가운데 정렬 */
+            .form-check-inline {
+                display: flex;
+                align-items: center;
+            }
+
+            .form-check-input {
+                margin-right: 8px;
+                margin-top: 0;
+                vertical-align: middle;
+            }
+
+            .form-check-label {
+                display: flex;
+                align-items: center;
+                margin-bottom: 0;
+                padding-top: 0;
+            }
+
+            .vendor-option {
+                display: flex;
+                align-items: center;
+            }
+
+            .vendor-image {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .vendor-name {
+                display: flex;
+                align-items: center;
+            }
+            </style>
+            <?php endif; ?>
+
+            <div class="d-flex mt-1 mb-1 justify-content-center align-items-center">
+                ▷  <?= $total_row ?> &nbsp;
                 <input type="date" id="fromdate" name="fromdate" class="form-control" style="width:100px;" value="<?=$fromdate?>">  &nbsp;   ~ &nbsp;  
                 <input type="date" id="todate" name="todate" class="form-control me-1" style="width:100px;" value="<?=$todate?>">  &nbsp;  
             
                 <div class="inputWrap">
                     <input type="text" id="search" name="search" value="<?=$search?>" onkeydown="JavaScript:SearchEnter();" autocomplete="off" class="form-control" style="width:150px;"> &nbsp;            
                     <button class="btnClear"></button>
-                </div>                
-                <div id="autocomplete-list"></div>    
+                </div>                                
                 &nbsp;
                 <button id="searchBtn" type="button" class="btn btn-dark  btn-sm"> <i class="bi bi-search"></i> 검색 </button>          
                 &nbsp;&nbsp;&nbsp;                        
@@ -266,135 +449,136 @@ try {
     </div> <!--card -->   
     </div> <!--d-flex justify-content-center-->
 </div> <!--container-fluid -->   
-</form>    
+</form>     
 
-<div class="container mt-1 mb-3">    
-<div class="table-responsive">     
-<table class="table table-bordered table-hover w-75" id="myTable" style="border-collapse:collapse;">
-    <thead class="table-info">
-    <tr>
-        <th class="text-center">발주일자</th>
-        <th class="text-center">품목</th>
-        <th class="text-center">발주수량</th>
-        <th class="text-center">발주금액(CNY)</th>
-        <th class="text-center">누적금액(CNY)</th>
-    </tr>
-    </thead>
-    <tbody>
-<?php
-$categoryList = ['모터', '연동제어기', '운송비', '부속자재'];
-foreach ($rows as $row) {
-    $orderDate = $row['orderDate'];
-    $orderlist = json_decode($row['orderlist'], true);
-    $num = $row['num'];
-    $catSum = [];
-    foreach ($categoryList as $cat) {
-        $catSum[$cat] = ['qty' => 0, 'amount' => 0];
-    }
-    if (is_array($orderlist)) {
-        foreach ($orderlist as $item) {
-            $cat = isset($item['col0']) ? $item['col0'] : '부속자재';
-            $qty = isset($item['col3']) ? floatval(str_replace(',', '', $item['col3'])) : 0;
-            $amt = isset($item['col6']) ? floatval(str_replace(',', '', $item['col6'])) : 0;
-            if (!isset($catSum[$cat])) $cat = '부속자재';
-            $catSum[$cat]['qty'] += $qty;
-            $catSum[$cat]['amount'] += $amt;
-        }
-    }
-    // 발주일자별 누적합
-    $rowCumulative = 0;
-    $first = true;
-    foreach ($categoryList as $cat) {
-        $rowCumulative += $catSum[$cat]['amount'];
-        echo '<tr onclick="redirectToView(\'' . $num . '\', \'$tablename\')">';
-        if ($first) {
-            echo '<td rowspan="4" class="text-center" style="vertical-align:middle;">' . htmlspecialchars($orderDate) . '</td>';
-            $first = false;
-        }
-        echo '<td class="text-center">' . $cat . '</td>';
-        echo '<td class="text-end">' . ($catSum[$cat]['qty'] ? number_format($catSum[$cat]['qty']) : '') . '</td>';
-        echo '<td class="text-end">' . ($catSum[$cat]['amount'] ? number_format($catSum[$cat]['amount'], 2) : '') . '</td>';
-        echo '<td class="text-end fw-bold">' . ($rowCumulative ? number_format($rowCumulative, 2) : '') . '</td>';
-        echo '</tr>';
+<!-- 테이블을 화면 중앙에 정렬하기 위한 스타일 추가 -->
+<style>
+.center-table-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 420px; /* 필요시 높이 조정 */
+    width: 100%;
+} 
+@media (max-width: 991px) {
+    .center-table-wrap {
+        min-height: unset;
+        padding: 0 5px;
     }
 }
-?>
-  </tbody>
-</table>
+</style>
+<div class="container mt-1 mb-3">
+    <div class="center-table-wrap">
+        <div class="table-responsive" style="width: 100%; max-width: 1100px;">
+            <table class="table table-bordered table-hover mx-auto" id="myTable" style="border-collapse:collapse;">
+                <thead class="table-info">
+                <tr>
+                    <th class="text-center">발주일자</th>
+                    <th class="text-center">중국회사</th>
+                    <th class="text-center">품목</th>
+                    <th class="text-center">발주수량</th>
+                    <th class="text-center">발주금액(CNY)</th>
+                    <th class="text-center">누적금액(CNY)</th>
+                    <th class="text-center">비고</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php
+                foreach ($rows as $row) {
+                    $orderDate = $row['orderDate'];
+                    $orderlist = json_decode($row['orderlist'], true);
+                    $num = $row['num'];
+
+                    // 중국회사 정보
+                    $vendor_name = $row['vendor_name'] ?? '';
+                    $vendor_image = $row['pb_image_base64'] ?? '';
+                    $vendor_item = $row['china_item'] ?? $vendor_name;  // 중국 품목명이 없으면 업체명 사용
+                    $memo = $row['memo'] ?? '';
+
+                    // 해당 구매처에 맞는 카테고리 목록 가져오기
+                    $categoryList = getCategoriesForVendor($vendor_name, $vendor_item);
+
+                    $catSum = [];
+                    foreach ($categoryList as $cat) {
+                        $catSum[$cat] = ['qty' => 0, 'amount' => 0];
+                    }
+                    if (is_array($orderlist)) {
+                        foreach ($orderlist as $item) {
+                            $cat = isset($item['col0']) ? $item['col0'] : $categoryList[0];
+                            $qty = isset($item['col3']) ? floatval(str_replace(',', '', $item['col3'])) : 0;
+                            $amt = isset($item['col6']) ? floatval(str_replace(',', '', $item['col6'])) : 0;
+                            if (!isset($catSum[$cat])) $cat = $categoryList[0];
+                            $catSum[$cat]['qty'] += $qty;
+                            $catSum[$cat]['amount'] += $amt;
+                        }
+                    }
+                    // 발주일자별 누적합
+                    $rowCumulative = 0;
+                    $first = true;
+                    $index = 0; // $index 선언 및 초기화
+                    $rowspan = count($categoryList); // 동적 rowspan 계산
+                    foreach ($categoryList as $cat) {
+                        $rowCumulative += $catSum[$cat]['amount'];
+                        echo '<tr onclick="redirectToView(\'' . $num . '\', \'$tablename\')">';
+                        if ($first) {
+                            echo '<td rowspan="' . $rowspan . '" class="text-center" style="vertical-align:middle;">' . htmlspecialchars($orderDate) . '</td>';
+
+                            // 중국회사 열 추가
+                            echo '<td rowspan="' . $rowspan . '" class="text-center" style="vertical-align:middle;">';
+                            if (!empty($vendor_image)) {
+                                $image_src = (strpos($vendor_image, 'data:') === 0) ?
+                                            $vendor_image :
+                                            'data:image/png;base64,' . $vendor_image;
+                                echo '<div class="d-flex flex-column align-items-center">';
+                                echo '<img src="' . $image_src . '" style="width: 30px; height: 30px; object-fit: contain; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 3px;" alt="' . htmlspecialchars($vendor_item) . '" />';
+                                echo '<small class="text-muted" style="font-size: 0.75rem;">' . htmlspecialchars($vendor_item) . '</small>';
+                                echo '</div>';
+                            } else if (!empty($vendor_item)) {
+                                echo '<div class="d-flex flex-column align-items-center">';
+                                echo '<div style="width: 30px; height: 30px; border: 1px solid #ddd; border-radius: 5px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; margin-bottom: 3px;">';
+                                echo '<i class="bi bi-building text-muted" style="font-size: 14px;"></i>';
+                                echo '</div>';
+                                echo '<small class="text-muted" style="font-size: 0.75rem;">' . htmlspecialchars($vendor_item) . '</small>';
+                                echo '</div>';
+                            } else {
+                                echo '<span class="text-muted">-</span>';
+                            }
+                            echo '</td>';
+
+                            $first = false;
+                        }
+                        echo '<td class="text-center">' . $cat . '</td>';
+                        echo '<td class="text-end">' . ($catSum[$cat]['qty'] ? number_format($catSum[$cat]['qty']) : '') . '</td>';
+                        echo '<td class="text-end">' . ($catSum[$cat]['amount'] ? number_format($catSum[$cat]['amount'], 2) : '') . '</td>';
+                        echo '<td class="text-end fw-bold">' . ($rowCumulative ? number_format($rowCumulative, 2) : '') . '</td>';
+                        if($index == 0) {
+                            echo '<td rowspan="' . $rowspan . '" class="text-start">' . (isset($memo) ? $memo : '') . '</td>';
+                        }
+                        echo '</tr>';
+                        $index++; // $index 증가
+                    }
+                }
+                ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-</div>
-<div class="container-fluid mt-3 mb-3">
+
+<div class="container mt-3 mb-3">
     <? include '../footer_sub.php'; ?>
 </div>
 
 <script>
-// 페이지 로딩
-$(document).ready(function(){    
-    var loader = document.getElementById('loadingOverlay');
-	if(loader)
-		loader.style.display = 'none';
-});
-
-var dataTable; // DataTables 인스턴스 전역 변수
-var orderpageNumber; // 현재 페이지 번호 저장을 위한 전역 변수
-
-$(document).ready(function() {            
-    // DataTables 초기 설정
-    dataTable = $('#myTable').DataTable({
-        "paging": true,
-        "ordering": true,
-        "searching": true,
-        "pageLength": 50,
-        "lengthMenu": [50, 100, 200, 500, 1000],
-        "language": {
-            "lengthMenu": "Show _MENU_ entries",
-            "search": "Live Search:"
-        },
-        "order": [[0, 'desc']] 
-    });
-
-    // 페이지 번호 복원 (초기 로드 시)
-    var savedPageNumber = getCookie('orderpageNumber');
-    if (savedPageNumber) {
-        dataTable.page(parseInt(savedPageNumber) - 1).draw(false);
-    }
-
-    // 페이지 변경 이벤트 리스너
-    dataTable.on('page.dt', function() {
-        var orderpageNumber = dataTable.page.info().page + 1;
-        setCookie('orderpageNumber', orderpageNumber, 10); // 쿠키에 페이지 번호 저장
-    });
-
-    // 페이지 길이 셀렉트 박스 변경 이벤트 처리
-    $('#myTable_length select').on('change', function() {
-        var selectedValue = $(this).val();
-        dataTable.page.len(selectedValue).draw(); // 페이지 길이 변경 (DataTable 파괴 및 재초기화 없이)
-
-        // 변경 후 현재 페이지 번호 복원
-        savedPageNumber = getCookie('orderpageNumber');
-        if (savedPageNumber) { 
-            dataTable.page(parseInt(savedPageNumber) - 1).draw(false);
-        }
-    });
-});
-
-function restorePageNumber() {
-    var savedPageNumber = getCookie('orderpageNumber');
-    location.reload(true);
+function redirectToView(num, tablename) {
+    var url = "write_form.php?mode=view&num=" + num + "&tablename=" + tablename;
+    customPopup(url, '', 1850, 900);
 }
 
-function redirectToView(num, tablename) {    
-    var url = "write_form.php?mode=view&num=" + num + "&tablename=" + tablename;          
-    customPopup(url, '', 1850, 900);             
-}
-
-$(document).ready(function(){    
-    $("#writeBtn").click(function(){         
-        var tablename = '<?php echo $tablename; ?>';        
-        var url = "write_form.php?tablename=" + tablename;                 
-        customPopup(url, '', 1850, 900);       
-     });             
-});    
+function openCategoryMapping() {
+    var url = "category_mapping.php";
+    customPopup(url, '카테고리 연결 관리', 1200, 800);
+}    
 
 function SearchEnter(){
     if(event.keyCode == 13){        
@@ -402,157 +586,11 @@ function SearchEnter(){
     }
 }
 
-function saveSearch() {
-    let searchInput = document.getElementById('search');
-    let searchValue = searchInput.value;
-
-    if (searchValue === "") {        
-        document.getElementById('board_form').submit();
-    } else {
-        let now = new Date();
-        let timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
-
-        let searches = getSearches();
-        searches = searches.filter(search => search.keyword !== searchValue);
-        searches.unshift({ keyword: searchValue, time: timestamp });
-        searches = searches.slice(0, 15);
-
-        document.cookie = "searches=" + JSON.stringify(searches) + "; max-age=31536000";
-        
-        var orderpageNumber = 1;
-        setCookie('orderpageNumber', orderpageNumber, 10);         
-        $('#dateRange').val('전체').change();
-        document.getElementById('board_form').submit();
-    }
+function saveSearch() {    
+    $('#board_form').submit();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('search');
-    const autocompleteList = document.getElementById('autocomplete-list');  
 
-    searchInput.addEventListener('input', function() {
-        const val = this.value;
-        let searches = getSearches();
-        let matches = searches.filter(s => {
-            if (typeof s.keyword === 'string') {
-                return s.keyword.toLowerCase().includes(val.toLowerCase());
-            }
-            return false;
-        });            
-        renderAutocomplete(matches);               
-    });
-    
-    searchInput.addEventListener('focus', function() {
-        let searches = getSearches();
-        renderAutocomplete(searches);   
-
-        console.log(searches);                
-    });
-});
-
-var isMouseOverSearch = false;
-var isMouseOverAutocomplete = false;
-
-document.getElementById('search').addEventListener('focus', function() {
-    isMouseOverSearch = true;
-    showAutocomplete();
-});
-
-document.getElementById('search').addEventListener('blur', function() {        
-    setTimeout(function() {
-        if (!isMouseOverAutocomplete) {
-            hideAutocomplete();
-        }
-    }, 100); 
-});
-
-function hideAutocomplete() {
-    document.getElementById('autocomplete-list').style.display = 'none';
-}
-
-function showAutocomplete() {
-    document.getElementById('autocomplete-list').style.display = 'block';
-}
-
-function renderAutocomplete(matches) {
-    const autocompleteList = document.getElementById('autocomplete-list');    
-
-    const items = autocompleteList.getElementsByClassName('autocomplete-item');
-    while(items.length > 0){
-        items[0].parentNode.removeChild(items[0]);
-    }
-
-    matches.forEach(function(match) {
-        let div = document.createElement('div');
-        div.className = 'autocomplete-item';
-        div.innerHTML =  '<span class="text-primary">' + match.keyword + ' </span>';
-        div.addEventListener('click', function() {
-            document.getElementById('search').value = match.keyword;
-            autocompleteList.innerHTML = '';            
-            document.getElementById('board_form').submit();    
-        });
-        autocompleteList.appendChild(div);
-    });
-}
-
-function getSearches() {
-    let cookies = document.cookie.split('; ');
-    for (let cookie of cookies) {
-        if (cookie.startsWith('searches=')) {
-            try {
-                let searches = JSON.parse(cookie.substring(9));
-                if (searches.length > 15) {
-                    return searches.slice(0, 15);
-                }
-                return searches;
-            } catch (e) {
-                console.error('Error parsing JSON from cookies', e);
-                return []; 
-            }
-        }
-    }
-    return []; 
-}
-
-$(document).ready(function(){    
-
-    $("#searchBtn").click(function(){     
-        saveSearch(); 
-    });        
-
-});
-
-$(document).ready(function(){    
-    var showstatus = document.getElementById('showstatus');
-    var showstatusframe = document.getElementById('showstatusframe');
-    
-    if (!showstatus || !showstatusframe) {
-        return;
-    }
-
-    var hideTimeoutstatus; 
-
-    showstatus.addEventListener('mouseenter', function(event) {
-        clearTimeout(hideTimeoutstatus);  
-        showstatusframe.style.top = (showstatus.offsetTop + showstatus.offsetHeight) + 'px';
-        showstatusframe.style.left = showstatus.offsetLeft + 'px';
-        showstatusframe.style.display = 'block';
-    });
-
-    showstatus.addEventListener('mouseleave', startstatusHideTimer);
-
-    showstatusframe.addEventListener('mouseenter', function() {
-        clearTimeout(hideTimeoutstatus);  
-    });
-
-    showstatusframe.addEventListener('mouseleave', startstatusHideTimer);
-
-    function startstatusHideTimer() {
-        hideTimeoutstatus = setTimeout(function() {
-            showstatusframe.style.display = 'none';
-        }, 50);  
-    }
-});
 
 // 숫자를 콤마 형식으로 변환하는 함수
 function formatNumber(num) {
@@ -560,18 +598,61 @@ function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-$(document).ready(function(){  
-    // 모든 필요한 셀을 선택하여 콤마 형식으로 변환
-    document.querySelectorAll('.number-format').forEach(function(element) {
-        var value = element.innerText;
-        element.innerText = formatNumber(value);
-    });
-});
 
+// Document ready - consolidated initialization
 $(document).ready(function(){
-	saveLogData('구매서 작성 리스트'); 
-});
+    // Hide loading overlay
+    var loader = document.getElementById('loadingOverlay');
+    if(loader) loader.style.display = 'none';
+
+    // Button event handlers
+    $("#writeBtn").click(function(){
+        var tablename = '<?php echo $tablename; ?>';
+        var url = "write_form.php?tablename=" + tablename;
+        customPopup(url, '', 1850, 900);
+    }); 
+  
+    $("#searchBtn").off('click').on('click', function(){
+        saveSearch();
+    });
+
+    // Analytics logging
+    saveLogData('구매서 작성 리스트');
+
+    // China vendor radio button auto-search - GET 방식으로 변경
+    $('input[name="china_vendor"]').off('change').on('change', function() {
+        // try {
+        //     var selectedVendor = $(this).val();
+        //     console.log('라디오 버튼 변경됨:', selectedVendor);
+
+        //     // 현재 URL 파라미터들을 유지하면서 china_vendor 추가/변경
+        //     var url = new URL(window.location);
+        //     if (selectedVendor) {
+        //         url.searchParams.set('china_vendor', selectedVendor);
+        //     } else {
+        //         url.searchParams.delete('china_vendor');
+        //     }
+          // $('#board_form').submit();
+        // } catch (error) {
+        //     console.error('라디오 버튼 변경 오류:', error);            
+        // }
+        var selectedVendor = $(this).val();
+        try {
+            var url = new URL(window.location.href);
+            if (selectedVendor) {
+                url.searchParams.set('china_vendor', selectedVendor);
+            } else {
+                url.searchParams.delete('china_vendor');
+            }
+            window.location.href = url.toString();
+        } catch (error) {
+            console.error('라디오 버튼 변경 오류:', error);
+            $("#selected_china_vendor").val(selectedVendor);
+            $("#board_form").attr('method', 'get').submit();
+        }
+    });
+}); 
 
 </script>
 </body>
-</html>
+</html> 

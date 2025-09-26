@@ -13,7 +13,7 @@ $title_message = '매입처 주소록';
 <link href="css/style.css" rel="stylesheet" >   
 <title> <?=$title_message?> </title>
 </head>
-<body>		 
+<body>		  
 <?php
 
 // 메뉴를 표현할지 판단하는 header
@@ -44,7 +44,8 @@ $tablename = 'phonebook_buy';
 require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect();
  
-$a=" order by num desc";
+// 중국발주업체 우선 정렬, 그 다음 번호 역순
+$a=" order by is_china_vendor DESC, china_sort_order ASC, num desc";
 	
 if(checkNull($search))
 {
@@ -113,6 +114,7 @@ else
 				 <th class="text-center" >회사</th>
 				 <th class="text-center" >카테고리</th>
 				 <th class="text-center" >중국발주업체 체크</th>
+				 <th class="text-center" >중국업체 순서</th>
 				 <th class="text-center" >이미지</th>
 				 <th class="text-center" >대상품목</th>
 				 <th class="text-center" >대표자</th>
@@ -133,6 +135,7 @@ else
 				<td title="<?=$vendor_name?>"><?= $vendor_name ?></td>
 				<td class="text-center" title="<?=$category?>"><?= $category ?></td>
 				<td class="text-center"><?= ((int)$is_china_vendor===1)?'해당':'' ?></td>
+				<td class="text-center"><?= ((int)$is_china_vendor===1)?$china_sort_order:'' ?></td>
 				<td class="text-center">
 					<?php if(!empty($image_base64)) { 
 						$src = (strpos($image_base64,'data:')===0)? $image_base64 : 'data:image/png;base64,'.$image_base64; ?>

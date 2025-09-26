@@ -22,5 +22,8 @@ $is_china_vendor = isset($_REQUEST['is_china_vendor']) ? (int)$_REQUEST['is_chin
 $image_base64 = isset($_REQUEST['image_base64']) ? $_REQUEST['image_base64'] : '';
 // 새 필드: 카테고리(콤마 구분 문자열)
 $category = isset($_REQUEST['category']) ? $_REQUEST['category'] : '';
+// 새 필드: 중국발주업체 순서
+$china_sort_order = isset($_REQUEST['china_sort_order']) ? (int)$_REQUEST['china_sort_order'] : 999;
 
 ?>
+ 

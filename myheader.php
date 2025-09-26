@@ -152,7 +152,7 @@
 			<div class="nav-item dropdown flex-fill me-2">			 
                 <!-- 드롭다운 메뉴-->				
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-                    구매 관리
+                    구매 관리 
                 </a>								
 				<div class="dropdown-menu">
 					<a class="dropdown-item" href="<?=$root_dir?>/material/list.php?header=header">
@@ -162,6 +162,9 @@
 					<a class="dropdown-item" href="<?=$root_dir?>/material_lot/list.php?header=header">
 						<i class="bi bi-upc"></i> 로트번호
 					</a>					
+					<a class="dropdown-item" href="<?=$root_dir?>/m_order/unitprice_list.php?header=header">
+						<i class="bi bi-currency-exchange"></i> 구매(중국) 원단가
+					</a>			 		
 					<a class="dropdown-item" href="<?=$root_dir?>/m_order/list.php?header=header">
 						<i class="bi bi-list-ul"></i> 구매(중국)발주서
 					</a>					

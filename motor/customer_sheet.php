@@ -16,8 +16,7 @@ table, th, td {
 	border: 1px solid black !important; /* Bold border */
 	font-size: 12px !important;
 	white-space: nowrap;
-}
-
+}  
 /* Add background color for date rows */
 .date-row {
 	background-color: #f0f0f0!important; /* Light gray background */        
@@ -217,10 +216,21 @@ try {
                 <h5>(거래명세서별)</h5>
             </div>
             <div class="row align-items-center justify-content-center mb-1 mt-2">
-                <div class="col-sm-6 text-start"> 
-                    회사명 : 주식회사 대한 / 담당 : 최정인 과장  
+                <div class="col-sm-6 text-start">
+                    <?php
+                    // 저장된 담당자 정보 불러오기
+                    $chargePerson = '최정인 과장'; // 기본값
+                    $accountChargedFile = __DIR__ . '/accountCharged.txt';
+                    if (file_exists($accountChargedFile)) {
+                        $savedChargePerson = trim(file_get_contents($accountChargedFile));
+                        if (!empty($savedChargePerson)) {
+                            $chargePerson = $savedChargePerson;
+                        }
+                    }
+                    ?>
+                    회사명 : 주식회사 대한 / 담당 : <?= $chargePerson ?>
                 </div>
-                <div class="col-sm-6 text-end"> 
+                <div class="col-sm-6 text-end">
                     <?= $fromdate ?> ~ <?= $todate ?>
                 </div>
             </div>

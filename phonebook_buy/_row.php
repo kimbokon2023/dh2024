@@ -22,4 +22,6 @@ $is_china_vendor = isset($row['is_china_vendor']) ? (int)$row['is_china_vendor']
 $image_base64 = isset($row['image_base64']) ? $row['image_base64'] : '';
 // 새 컬럼: 카테고리
 $category = isset($row['category']) ? $row['category'] : '';
-?>
+// 새 컬럼: 중국발주업체 순서
+$china_sort_order = isset($row['china_sort_order']) ? (int)$row['china_sort_order'] : 999;
+?> 

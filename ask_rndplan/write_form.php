@@ -347,10 +347,10 @@ $sql=" select * from ".$DB.".fileuploads where tablename ='$tablename' and item 
 		</tr>
 		<tr>
 		  <td class="text-center fw-bold">
-			<label for="content_reason">작성 이유</label>
+			<label for="content_reason">개발 목적</label>
 		  </td>
 		 <td>
-			<textarea class="form-control viewNoBtn" id="content_reason" name="content_reason" rows="5" placeholder="작성 이유를 입력하세요"><?php echo $content_reason; ?></textarea>
+			<textarea class="form-control viewNoBtn" id="content_reason" name="content_reason" rows="5" placeholder="개발 목적을 입력하세요"><?php echo $content_reason; ?></textarea>
 		  </td>
 		</tr>
     </table>
@@ -403,7 +403,7 @@ $(document).ready(function(){
 		if($("#mytitle").val() === '' || $("#content").val() === '' || $("#content_reason").val() === '' ) {
 			Swal.fire({
 				title: '등록 오류 알림',
-				text: '제목, 내용, 사유는 필수입력 요소입니다.',
+				text: '제목, 내용, 개발 목적은 필수입력 요소입니다.',
 				icon: 'warning'
 			});
 		} else {

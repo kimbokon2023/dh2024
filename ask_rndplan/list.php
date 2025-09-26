@@ -69,8 +69,7 @@ if ($chkMobile) {
         font-size: 30px;
 		}
     </style>';
-}
- 
+} 
  
 include $_SERVER['DOCUMENT_ROOT'] .'/eworks/_request.php'; 
 	  
@@ -116,17 +115,17 @@ $sql="select * from ".$DB.".eworks " . $a;
 $search = str_replace(' ', '', $search);
 
 if($mode=="search"){
-	  if($search==""){			  
-				$sql="select * from {$DB}.eworks " . $a; 										
-			   }
-		 elseif($search!="") { 			    
-			  $sql ="select * from {$DB}.eworks where ((outdate like '%$search%')  or (replace(outworkplace,' ','') like '%$search%' ) ";
-			  $sql .="or (steel_item like '%$search%') or (spec like '%$search%') or (company like '%$search%')  or (first_writer like '%$search%') or (payment like '%$search%')   or (supplier like '%$search%') or (request_comment like '%$search%') )  " . $Andis_deleted . " order by num desc  ";										 								
-			}
-	   }
+    if($search==""){			  
+            $sql="select * from {$DB}.eworks " . $a; 										
+            }
+        elseif($search!="") { 			    
+            $sql ="select * from {$DB}.eworks where ((outdate like '%$search%')  or (replace(outworkplace,' ','') like '%$search%' ) ";
+            $sql .="or (steel_item like '%$search%') or (spec like '%$search%') or (company like '%$search%')  or (first_writer like '%$search%') or (payment like '%$search%')   or (supplier like '%$search%') or (request_comment like '%$search%') )  " . $Andis_deleted . " order by num desc  ";										 								
+        }
+}
 if($mode=="") {
-				$sql="select * from {$DB}.eworks " . $a; 						                         
-			}		
+        $sql="select * from {$DB}.eworks " . $a; 						                         
+    }		
 				            
 $nowday=date("Y-m-d");   // 현재일자 변수지정   
 
@@ -176,14 +175,11 @@ try{
 			</div>		
 			   <input type="date" id="fromdate" name="fromdate" size="12"  class="form-control"   style="width:100px;" value="<?=$fromdate?>" placeholder="기간 시작일">  &nbsp;   ~ &nbsp;  
 			   <input type="date" id="todate" name="todate" size="12"   class="form-control"   style="width:100px;" value="<?=$todate?>" placeholder="기간 끝">  &nbsp;     </span> 
-			   &nbsp;&nbsp;
-				   
+			   &nbsp;&nbsp;				   
 				<?php if($chkMobile) { ?>
 						</div>
 					<div class="d-flex justify-content-center align-items-center">  	
-				<?php } ?>		
-	 		   
-	   				   
+				<?php } ?>
 				   &nbsp;				
 			<div class="inputWrap">
 				<input type="text" id="search" name="search" value="<?=$search?>" autocomplete="off"  class="form-control w-auto mx-1" > &nbsp;			

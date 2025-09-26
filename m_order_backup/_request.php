@@ -1,9 +1,6 @@
 <?php 
 $num = isset($_REQUEST['num']) ? $_REQUEST['num'] : '';
 $orderDate = isset($_REQUEST['orderDate']) ? $_REQUEST['orderDate'] : '';
-$vendor_code = isset($_REQUEST['vendor_code']) ? $_REQUEST['vendor_code'] : '';
-$vendor_name = isset($_REQUEST['vendor_name']) ? $_REQUEST['vendor_name'] : '';
-$china_item = isset($_REQUEST['china_item']) ? $_REQUEST['china_item'] : '';
 $orderlist = isset($_REQUEST['orderlist']) ? $_REQUEST['orderlist'] : [];
 $memo = isset($_REQUEST['memo']) ? $_REQUEST['memo'] : '';
 $is_deleted = isset($_REQUEST['is_deleted']) ? $_REQUEST['is_deleted'] : null;
@@ -15,7 +12,7 @@ $totalamount = $_REQUEST['totalamount'] ?? '';
 // 차수는 7차까지 확대
 $inputSum1 = $_REQUEST['inputSum1'] ?? '';
 $inputSum2 = $_REQUEST['inputSum2'] ?? '';
-$inputSum3 = $_REQUEST['inputSum3'] ?? ''; 
+$inputSum3 = $_REQUEST['inputSum3'] ?? '';
 $inputSum4 = $_REQUEST['inputSum4'] ?? '';
 $inputSum5 = $_REQUEST['inputSum5'] ?? '';
 $inputSum6 = $_REQUEST['inputSum6'] ?? '';
