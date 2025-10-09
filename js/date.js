@@ -653,6 +653,49 @@ function this_today() { // 오늘
     document.getElementById('board_form').submit(); 
 }
 
+// 월별 기간 선택 함수들
+function twoMonthsAgo() { // 전전달
+    var today = new Date();
+    var twoMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+    var lastDayOfTwoMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 1, 0);
+    
+    var fromDate = formatDate(twoMonthsAgo);
+    var toDate = formatDate(lastDayOfTwoMonthsAgo);
+    
+    document.getElementById("fromdate").value = fromDate;
+    document.getElementById("todate").value = toDate;
+    
+    document.getElementById('board_form').submit();
+}
+
+function lastMonth() { // 전달
+    var today = new Date();
+    var lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    var lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    
+    var fromDate = formatDate(lastMonth);
+    var toDate = formatDate(lastDayOfLastMonth);
+    
+    document.getElementById("fromdate").value = fromDate;
+    document.getElementById("todate").value = toDate;
+    
+    document.getElementById('board_form').submit();
+}
+
+function thisMonth() { // 이번달
+    var today = new Date();
+    var thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    var todayDate = new Date();
+    
+    var fromDate = formatDate(thisMonth);
+    var toDate = formatDate(todayDate);
+    
+    document.getElementById("fromdate").value = fromDate;
+    document.getElementById("todate").value = toDate;
+    
+    document.getElementById('board_form').submit();
+}
+
 function twoDaysLater() { // 다다음날
     var today = new Date();
     today.setDate(today.getDate() + 2);

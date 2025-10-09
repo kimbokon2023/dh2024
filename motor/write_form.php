@@ -1277,7 +1277,7 @@ if ($returndue == '회수예정') {
             </td>
             <td>포장수량</td>
             <td><input type="text" id="cargo_delwrapsu" name="cargo_delwrapsu" autocomplete="off"  class="form-control" value="<?= $cargo_delwrapsu ?>" onkeyup="inputNumberFormat(this)"></td>
-            <td>금액(만원)</td>
+            <td>금액(원)</td>
             <td><input type="text" id="cargo_delwrapamount" name="cargo_delwrapamount" autocomplete="off"  class="form-control text-center" value="<?= $cargo_delwrapamount ?>" onkeyup="inputNumberFormat(this)"></td>
             <td>무게(kg)</td>
             <td><input type="text" id="cargo_delwrapweight" name="cargo_delwrapweight" autocomplete="off"  class="form-control text-center" value="<?= $cargo_delwrapweight ?>" onkeyup="inputNumberFormat(this)"></td>
@@ -1320,7 +1320,7 @@ if ($returndue == '회수예정') {
             </td>
             <td>포장수량</td>
             <td><input type="text" id="delwrapsu" name="delwrapsu" class="form-control" autocomplete="off"  value="<?= $delwrapsu ?>" onkeyup="inputNumberFormat(this)"></td>
-            <td>금액(만원)</td>
+            <td>금액(원)</td>
             <td><input type="text" id="delwrapamount" name="delwrapamount" class="form-control text-center" autocomplete="off"  value="<?= $delwrapamount ?>" onkeyup="inputNumberFormat(this)"></td>
             <td>무게(kg)</td>
             <td><input type="text" id="delwrapweight" name="delwrapweight" class="form-control text-center" autocomplete="off"  value="<?= $delwrapweight ?>" onkeyup="inputNumberFormat(this)"></td>

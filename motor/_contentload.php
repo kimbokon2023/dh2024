@@ -1,5 +1,9 @@
 <?php
-$counter=0;
+if(!isset($counter))
+{
+	$counter=0;
+}
+
 // 배열 변수 초기화
 $num_arr = array();
 $deadline_arr = array();

@@ -107,6 +107,10 @@ foreach ($salesData as $row) {
 
 arsort($salesResults);  // 공급가액 내림차순으로 정렬
 
+// echo "<pre>";
+// print_r($salesResults);
+// echo "</pre>";
+
 // 전월 마지막 날짜 계산
 $lastMonthDate = date("Y-m-t", strtotime($fromdate . " -1 month"));
 
@@ -253,6 +257,10 @@ foreach ($paymentData as $paymentRow) {
             foreach ($salesResults as $secondordnum => $total_sales) {
               if((int)$total_sales!==0 && intval($secondordnum) > 0 )
               {          
+                // 이미 처리된 secondordnum인지 확인
+                if (in_array($secondordnum, $processedSecondOrdnums)) {
+                    continue; // 이미 처리된 경우 건너뛰기
+                }
 				$processedSecondOrdnums[] = $secondordnum;
 				
                 $sql = "SELECT * FROM ".$DB.".".$tablename." 

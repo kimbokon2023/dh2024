@@ -213,7 +213,7 @@ $allResults = array_unique(array_merge(array_keys($initialBalances), array_keys(
 // ksort($allResults);
 
 // echo '<pre>';
-// print_r($allResults[23]);
+// print_r($allResults[69]); // 현대샷다
 // echo '</pre>';	
 
 
@@ -297,11 +297,9 @@ usort($allResults, function($a, $b) use ($vendorNames) {
     return strcmp($vendorNames[$a], $vendorNames[$b]);
 });
 
-
 // echo '<pre>';
 // print_r($receivables);
 // echo '</pre>';
-
 
 ?>
 

@@ -1,5 +1,13 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/session.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/session.php'; // 세션 파일 포함
+
+if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
+    sleep(1);
+    header("Location:" . $WebSite . "login/login_form.php"); 
+    exit;
+} 
+
+require_once($_SERVER['DOCUMENT_ROOT'] . '/lib/mydb.php');
 $title_message = '연구개발보고서'; 
 ?>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/common.php' ?>

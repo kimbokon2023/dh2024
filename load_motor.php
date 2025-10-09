@@ -47,6 +47,7 @@ $motor_outputdonedate = $total_row ;
 			<button type="button" class="btn btn-dark btn-sm me-1" onclick="popupCenter('motor/print_group.php','출고증 묵음',1500,900);">  <i class="bi bi-printer"></i> 출고증 묶음 </button>    							 
 			<!--<button type="button" class="btn btn-dark btn-sm me-1" onclick="popupCenter('motor/plan_making.php','출고예정',1500,900);">  <i class="bi bi-calendar-check"></i> 출고예정 </button>    							 -->
 			<button type="button" class="btn btn-dark btn-sm me-1" onclick="popupCenter('motor/plan_done.php','출고완료',1500,900);">  <i class="bi bi-calendar-check"></i> 출고완료 </button> 
+			<button type="button" class="btn btn-secondary btn-sm me-1" onclick="popupCenter('motor/none_deadline.php','출고일 미지정',1500,900);">  <i class="bi bi-calendar-check"></i> 출고일 미지정 </button> 
         </div>
         <div class="card-body p-2 m-1 mb-3  d-flex justify-content-center">			
 <table class="table table-bordered table-hover table-sm">

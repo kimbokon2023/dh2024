@@ -263,6 +263,9 @@
 						<a class="dropdown-item" href="<?=$root_dir?>/price_motor/list.php?header=header">
 							<i class="bi bi-gear-wide-connected"></i> DH모터 원가산출
 						</a>						
+						<a class="dropdown-item" href="<?=$root_dir?>/motor/delivery_statistics.php">
+							<i class="bi bi-truck"></i> 운송비(택배/화물) 통계
+						</a>						
 					</div>
 				</div>					
 			<?php } ?>	

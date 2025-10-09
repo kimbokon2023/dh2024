@@ -1,4 +1,13 @@
-<?php require_once($_SERVER['DOCUMENT_ROOT'] . '/session.php');
+<?php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/session.php'; // 세션 파일 포함
+
+if(!isset($_SESSION["level"]) || $_SESSION["level"]>5) {
+    sleep(1);
+    header("Location:" . $WebSite . "login/login_form.php"); 
+    exit;
+} 
+
+require_once($_SERVER['DOCUMENT_ROOT'] . '/lib/mydb.php');
 
 $title_message = '직원 연차';
 
@@ -17,7 +26,6 @@ $title_message = '직원 연차';
 
 <?php
 
-require_once($_SERVER['DOCUMENT_ROOT'] . "/lib/mydb.php");
 $pdo = db_connect();
 
 // 배열로 기본정보 불러옴

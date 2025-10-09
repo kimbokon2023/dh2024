@@ -392,13 +392,14 @@ usort($items, 'customSortItemCode');
 
 <div class="container-fluid">     
  <div class="d-flex  p-1 justify-content-center align-items-center ">     
-  <div class="card mb-2 mt-1 text-center justify-content-center  w-50">  
+  <div class="card mb-2 mt-1 text-center justify-content-center  w-75">  
     <div class="card-body">
     <div class="d-flex  p-1 justify-content-center align-items-center ">         
 	   <h5>  <?=$title_message?> </h5>  &nbsp;&nbsp;&nbsp;   
        <small class="ms-5 text-muted"> 품목별 현재 재고현황 (해당품목 클릭시 입고일자, 수량 및 출고현장 확인 가능) </small>  
 		 <button type="button" class="btn btn-dark btn-sm mx-2" onclick="location.reload();"> <i class="bi bi-arrow-clockwise"></i> </button>                     
-           <button type="button" class="btn btn-dark btn-sm " id="showlist" > <i class="bi bi-bar-chart-line-fill"></i> 출고통계 </button>                               
+           <button type="button" class="btn btn-dark btn-sm mx-2" id="showlist" > <i class="bi bi-bar-chart-line-fill"></i> 출고통계 </button>
+           <button type="button" class="btn btn-success btn-sm" id="exportExcel" > <i class="bi bi-file-earmark-excel"></i> Excel 변환 </button>                               
    </div>
    </div>
 </div> 
@@ -735,6 +736,10 @@ $(document).ready(function(){
     $("#showlist").click(function(){        
         var url = "outputstat.php";    
         customPopup(url, '출고통계', 1900, 850);            
+     });
+     
+    $("#exportExcel").click(function(){        
+        window.location.href = 'download_excel_stock.php';            
      });        
 });
 </script>

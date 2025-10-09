@@ -65,10 +65,11 @@ function fetch_balances($DB, $fromdate, $todate) {
     }
 
 	// 당월 매출 내역 가져오기
+    // deadline <> '0000-00-00' 추가 이것때문에 많은 고생함. 추가로 미수금이 나와서..... (2025-09-29 발생)
 	$salesSql = "
 		SELECT secondordnum, totalprice 
 		FROM {$DB}.motor
-		WHERE (deadline BETWEEN date('$fromdate') AND date('$todate')) AND  (is_deleted IS NULL or is_deleted = 0)  
+		WHERE (deadline BETWEEN date('$fromdate') AND date('$todate')) AND  (is_deleted IS NULL or is_deleted = 0) AND deadline <> '0000-00-00' 
 	";
 
 	$salesStmt = $pdo->prepare($salesSql);
