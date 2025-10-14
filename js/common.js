@@ -699,32 +699,46 @@ imageWin = window.open("", "imageWin",
 }
 
 function inputNumberFormat(obj) {
-    // 숫자, 소수점 및 - 이외의 문자는 제거
-    obj.value = obj.value.replace(/[^0-9.-]/g, '');
-
-    // 콤마를 제거하고 숫자를 포맷팅
-    let value = obj.value.replace(/,/g, '');
-
-    // 부호가 앞에 오도록 하고 소수점을 포함한 포맷팅 처리
-    if (value.startsWith('-')) {
-        // 음수일 때의 처리
-        value = '-' + formatNumber(value.slice(1));
-    } else {
-        // 양수일 때의 처리
-        value = formatNumber(value);
+    // 숫자, 콤마, 소수점 및 마이너스 기호만 허용
+    var value = obj.value.replace(/[^0-9.,-]/g, '');
+    
+    // 콤마 제거
+    value = value.replace(/,/g, '');
+    
+    // 마이너스 기호 처리 (맨 앞에만 허용)
+    var isNegative = value.charAt(0) === '-';
+    if (isNegative) {
+        value = value.substring(1);
     }
-
+    
+    // 여러 개의 마이너스 기호 제거
+    value = value.replace(/-/g, '');
+    
+    // 소수점이 있는지 확인
+    var parts = value.split('.');
+    var integerPart = parts[0];
+    var decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+    
+    // 정수 부분에 콤마 추가
+    if (integerPart) {
+        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    // 최종 값 조합
+    value = (isNegative ? '-' : '') + integerPart + decimalPart;
+    
     obj.value = value;
 }
 
 function formatNumber(value) {
-    // 숫자로 변환 (소수점 포함 가능)
-    let num = parseFloat(value);
-
-    // 숫자가 아니면 빈 문자열 반환
+    // 이 함수는 하위 호환성을 위해 유지
+    if (!value) return '';
+    
+    value = String(value).replace(/,/g, '');
+    var num = parseFloat(value);
+    
     if (isNaN(num)) return '';
-
-    // 세 자리마다 콤마 추가 (소수점 포함)
+    
     return num.toLocaleString('en-US');
 }
 

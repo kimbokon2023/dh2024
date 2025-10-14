@@ -692,7 +692,18 @@ imageWin = window.open("", "imageWin",
 }
 
    function inputNumberFormat(obj) { 
-    obj.value = comma(uncomma(obj.value)); 
+    // 마이너스 기호 보존
+    var value = obj.value;
+    var isNegative = value.charAt(0) === '-';
+    
+    // 숫자만 추출
+    var numericValue = uncomma(value);
+    
+    // 콤마 추가
+    var formattedValue = comma(numericValue);
+    
+    // 마이너스 기호 복원
+    obj.value = isNegative ? '-' + formattedValue : formattedValue;
 } 
 function comma(str) { 
     str = String(str); 
@@ -700,7 +711,8 @@ function comma(str) {
 } 
 function uncomma(str) { 
     str = String(str); 
-    return str.replace(/[^\d]+/g, ''); 
+    // 마이너스 기호와 숫자만 남기고 제거
+    return str.replace(/[^\d-]/g, '').replace(/-+/g, '-').replace(/^-+(\d)/, '-$1').replace(/(\d)-+/g, '$1'); 
 }
 
 

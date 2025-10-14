@@ -465,25 +465,21 @@ if ($returndue == '회수예정') {
 	<table class="table table-bordered ">		 
 	  <tbody>
 		<tr>
-		  <td >발주처</td>
-		  <td > 
+		  <td >
 			<div class="d-flex align-items-center justify-content-center"> 
-				    <input type="text" id="secondord" name="secondord" value="<?=$secondord?>" class="form-control"  autocomplete="off"  style="width:70%;"  onkeydown="if(event.keyCode == 13) { phonebookBtn('secondord'); }"  > &nbsp;
+			 <span class="fw-bold w80px me-1">	발주처 </span> 
+				<input type="text" id="secondord" name="secondord" value="<?=$secondord?>" class="form-control w200px"  autocomplete="off"   onkeydown="if(event.keyCode == 13) { phonebookBtn('secondord'); }"  > &nbsp;
 				<button type="button" class="btn btn-dark-outline btn-sm restrictbtn" onclick="phonebookBtn('secondord');">  <i class="bi bi-gear"></i></button>
-			</div>
-		  </td>
-		  <td>
-		  <div class="d-flex align-items-center justify-content-center"> 
-			   담당자 &nbsp;
-			  <input type="text" id="secondordman" name="secondordman" class="form-control"  autocomplete="off"  style="width:50%;" value="<?=$secondordman?>" onkeydown="if(event.keyCode == 13) { phonebookBtn('secondordman'); }">				  
-		  </div>			  
-		  </td>
-		<td>
-		  <div class="d-flex align-items-center justify-content-center"> 
-			 <i class="bi bi-telephone-forward-fill"></i> &nbsp;&nbsp;
-			<input type="text" id="secondordmantel" name="secondordmantel" value="<?=$secondordmantel?>"  autocomplete="off"  class="form-control" style="width:70%;"  onkeydown="if(event.keyCode == 13) { phonebookBtn('secondordmantel'); }">
-		   </div>			
-		</td>			  
+				<span class="fw-bold w80px me-1">	담당자 </span> 
+			<input type="text" id="secondordman" name="secondordman" class="form-control w150px"  autocomplete="off"   value="<?=$secondordman?>" onkeydown="if(event.keyCode == 13) { phonebookBtn('secondordman'); }">				  		
+			<span class="fw-bold w30px me-1">	<i class="bi bi-telephone-forward-fill"></i>  </span> 			 
+			<input type="text" id="secondordmantel" name="secondordmantel" value="<?=$secondordmantel?>"  autocomplete="off"  class="form-control w120px"  onkeydown="if(event.keyCode == 13) { phonebookBtn('secondordmantel'); }">
+
+			<span class="fw-bold text-primary w80px me-1">	인정업체 </span> 
+			<input type="text" id="certified_company" name="certified_company" value="<?=$certified_company?>" class="form-control w200px"  autocomplete="off"   onkeydown="if(event.keyCode == 13) { phonebookBtn('certified_company'); }"  > &nbsp;
+			
+		   </div>				
+		  </td>		  
 		<td style="width:250px;">
 			<div class="d-flex align-items-center justify-content-center"> 
 				<span id="returndueBadge" class="badge <?= $returndue === '회수예정' ? 'bg-danger' : 'bg-primary' ?> fw-bold fs-6 me-1" data-bs-toggle="tooltip" data-bs-placement="right" title="회수예정 체크">
@@ -1717,8 +1713,15 @@ function recaptureReturnKey(e) {
 
 function phonebookBtn(searchfield)
 {	    
-    var search = $("#" + searchfield).val();				
-    href = '../phonebook/list.php?search=' + search ;				
+    var search = $("#" + searchfield).val();		
+	if(searchfield == 'certified_company')
+	{
+		href = '../phonebook/list.php?search=' + search + '&certified_company=certified_company' ;				
+	}
+	else
+	{
+		href = '../phonebook/list.php?search=' + search ;				
+	}    
 	popupCenter(href, '전화번호 검색', 1600, 800);
 }
 

@@ -45,6 +45,12 @@
                     <span class="close">&times;</span>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info alert-dismissible fade show mb-3" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>📅 날짜 입력 안내:</strong> 기준일자는 <span class="badge bg-primary">매월 말일</span>로 입력해 주세요!
+                    <br><small class="text-muted">예: 2024년 10월이면 2024-10-31로 입력</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
                 <table class="table table-hover">
                     <thead class="table-info">
                         <tr>
@@ -53,7 +59,8 @@
                             <th class="text-center" >당월 발생금액</th>
                             <th class="text-center" style="width:140px;"  >계산서 발행</th>
                             <th class="text-center" >적요</th>
-                            <th class="text-center" style="width:80px;" >고유번호</th>
+                            <th class="text-center" style="width:80px;" > NUM </th>
+                            <th class="text-center" >거래처 코드</th>
                         </tr>
                     </thead>
                     <tbody id="monthlysaleModalBody">

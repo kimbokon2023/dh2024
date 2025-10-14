@@ -125,4 +125,6 @@ $statement_sent_at = $row['statement_sent_at'] ??  null;
 
 // 발주처주소록 비고 가져오기
 $custNote = isset($row['custNote']) ? $row['custNote'] : '';
+// 인정업체 추가
+$certified_company = isset($row['certified_company']) ? $row['certified_company'] : '';
 ?>

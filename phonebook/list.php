@@ -25,6 +25,8 @@ $header = isset($_REQUEST['header']) ? $_REQUEST['header'] : '';
 $getmoney = isset($_REQUEST['getmoney']) ? $_REQUEST['getmoney'] : '';  
 // 돌려주는 id를 기록한다.
 $returnID = isset($_REQUEST['returnID']) ? $_REQUEST['returnID'] : '';  
+// 인정업체는 단순히 업체 이름만 돌려준다.
+$certified_company = isset($_REQUEST['certified_company']) ? $_REQUEST['certified_company'] : '';  
 
 if($header == 'header')
 	require_once($_SERVER['DOCUMENT_ROOT'] . '/myheader.php');
@@ -78,7 +80,8 @@ else
 	<input type="hidden" id="header" name="header" value="<?=$header?>" > 				
 	<input type="hidden" id="secondordnum" name="secondordnum" value="<?=$secondordnum?>" > 				
 	<input type="hidden" id="getmoney" name="getmoney" value="<?=$getmoney?>" > 				
-	<input type="hidden" id="returnID" name="returnID" value="<?=$returnID?>" > 				
+	<input type="hidden" id="returnID" name="returnID" value="<?=$returnID?>" > 		
+	<input type="hidden" id="certified_company" name="certified_company" value="<?=$certified_company?>" > 		
 				
 <?php if($header !== 'header') 
 		{
@@ -284,7 +287,14 @@ function enter()
 			note = note.replace(/\n/g, '<br>');
 		}
 
-        console.log(note);
+        // console.log(note);
+        // 인정업체 반환시는 그냥 업체명만 돌려준다.
+        if($("#certified_company").val() == 'certified_company')
+        {
+            $("#certified_company", opener.document).val(vendorName); 
+            self.close();	
+        }
+        
 
 		var managerFieldID = 'secondordman'; // ID of the manager input field in the parent document
 		var repFieldID = 'representative'; // ID of the representative input field in the parent document

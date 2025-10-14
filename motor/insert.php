@@ -133,7 +133,7 @@ if ($mode == "modify") {
 				realscreensu=? ,realsteelsu=? , realprotectsu=? , realsmokesu =?, realexplosionsu = ?, 	delwrapmethod=?,delwrapsu=?,delwrapamount=?,delwrapweight=?,delwrappaymethod=?, delcompany=?, secondordnum=?, registerdate=?, deltime=?,	
 				totalprice=? ,screen_price=? , screen_dcprice=? , screen_dc_type=?, screen_company_dc_value= ?, screen_site_dc_value =?, dcadd=?, notdcprice=?, dctotal=?, secondordmemo=?, sendcheck=?, deldowntime=?, delmemo=?, del_status=?, del_writememo=?, controllerlist=?,  controller_price=?, controller_dcprice=?, controller_dc_type=?, controller_company_dc_value=?, controller_site_dc_value=?, returncheck=?, returndue=?, getdate=?,
 				polesu=? , nopolesu=? , realpolesu=?, fabric_dc_type=? ,fabric_price=? ,fabric_company_dc_value=? ,fabric_site_dc_value=? ,fabric_dcprice=?, fabriclist=?, cargo_delbranchinvoice = ?, cargo_delwrapmethod = ?, cargo_delwrapsu = ?, cargo_delwrapamount = ?, cargo_delwrapweight = ?, cargo_delwrappaymethod = ?, original_num = ?, Deliverymanager = ?  ,
-				custNote=? 
+				custNote=? , certified_company=?
 				WHERE num=? LIMIT 1";			
 
 		$stmh = $pdo->prepare($sql);
@@ -149,7 +149,7 @@ if ($mode == "modify") {
 			$totalprice , $screen_price , $screen_dcprice , $screen_dc_type  , $screen_company_dc_value , $screen_site_dc_value , $dcadd, $notdcprice, $dctotal, $secondordmemo, $sendcheck, $deldowntime, $delmemo, $del_status, $del_writememo, json_encode($controllerlist_jsondata), $controller_price, $controller_dcprice, $controller_dc_type, $controller_company_dc_value, $controller_site_dc_value, $returncheck, 
 			$returndue, $getdate, $polesu , $nopolesu, $realpolesu,
 			$fabric_dc_type, $fabric_price, $fabric_company_dc_value, $fabric_site_dc_value, $fabric_dcprice, json_encode($fabriclist_jsondata), $cargo_delbranchinvoice , $cargo_delwrapmethod , $cargo_delwrapsu , $cargo_delwrapamount , $cargo_delwrapweight , $cargo_delwrappaymethod, $original_num, $Deliverymanager, 
-			$custNote,
+			$custNote, $certified_company,
 			$num
 		];
 
@@ -182,11 +182,11 @@ if($mode=="insert") {
 				delbranch, delbranchaddress, delbranchtel, delbranchinvoice, delcarnumber, delcaritem, delcartel, nosteelsu, noprotectsu, nosmokesu, loadplace, dcprice, dc_type, company_dc_value, site_dc_value,explosionsu , noexplosionsu ,
 				realscreensu  , realsteelsu  ,  realprotectsu  ,  realsmokesu , realexplosionsu, delwrapmethod,delwrapsu,delwrapamount,delwrapweight,delwrappaymethod, delcompany, secondordnum, registerdate, deltime ,totalprice , screen_price , screen_dcprice , screen_dc_type  , screen_company_dc_value, screen_site_dc_value, dcadd, notdcprice, dctotal , secondordmemo, sendcheck, deldowntime, delmemo, del_status, del_writememo, controllerlist, controller_price, controller_dcprice, controller_dc_type, controller_company_dc_value, controller_site_dc_value, returncheck, returndue, getdate, polesu , nopolesu, realpolesu,
 				fabric_dc_type, fabric_price, fabric_company_dc_value, fabric_site_dc_value, fabric_dcprice, fabriclist, cargo_delbranchinvoice , cargo_delwrapmethod , cargo_delwrapsu , cargo_delwrapamount , cargo_delwrapweight , cargo_delwrappaymethod, original_num , Deliverymanager,
-				custNote )
+				custNote, certified_company )
 				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
 				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
 				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
-				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";  
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";  
 
 		$stmh = $pdo->prepare($sql);
 
@@ -200,7 +200,7 @@ if($mode=="insert") {
 			$totalprice , $screen_price , $screen_dcprice , $screen_dc_type  , $screen_company_dc_value , $screen_site_dc_value, $dcadd, $notdcprice, $dctotal, $secondordmemo, $sendcheck, $deldowntime, $delmemo, $del_status, $del_writememo, json_encode($controllerlist_jsondata), $controller_price, $controller_dcprice, $controller_dc_type, $controller_company_dc_value, $controller_site_dc_value, $returncheck,
 			$returndue, $getdate, $polesu, $nopolesu, $realpolesu, $fabric_dc_type, $fabric_price, $fabric_company_dc_value, $fabric_site_dc_value, $fabric_dcprice,json_encode($fabriclist_jsondata),
 			$cargo_delbranchinvoice , $cargo_delwrapmethod , $cargo_delwrapsu , $cargo_delwrapamount , $cargo_delwrapweight , $cargo_delwrappaymethod, $original_num, $Deliverymanager,
-			$custNote
+			$custNote, $certified_company
 			];
 
 		$stmh->execute($params);

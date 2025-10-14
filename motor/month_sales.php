@@ -143,7 +143,7 @@ foreach ($previousBalances as $balanceRow) {
 $current_saleSql = "
     SELECT secondordnum, sales, num, invoice_issued, memo, book_issued 
     FROM monthly_sales
-    WHERE closure_date BETWEEN :fromdate AND :todate AND is_deleted IS NULL 
+    WHERE closure_date BETWEEN :fromdate AND :todate AND (is_deleted IS NULL or is_deleted = '') 
 ";
 
 $balanceStmt = $pdo->prepare($current_saleSql);
@@ -151,6 +151,13 @@ $balanceStmt->bindParam(':fromdate', $fromdate, PDO::PARAM_STR);
 $balanceStmt->bindParam(':todate', $todate, PDO::PARAM_STR);
 $balanceStmt->execute();
 $currentBalances = $balanceStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// 디버깅: 조회 날짜 범위와 결과 확인
+error_log("조회 날짜 범위: $fromdate ~ $todate");
+error_log("조회된 monthly_sales 데이터 수: " . count($currentBalances));
+if (!empty($currentBalances)) {
+    error_log("첫 번째 데이터: " . json_encode($currentBalances[0]));
+}
 
 // 이번달 잔액을 저장할 배열
 $currentBalanceMap = [];
@@ -203,7 +210,12 @@ foreach ($paymentData as $paymentRow) {
         <small class="mx-3 text-muted"> 당월 판매 내역 / 계산서 발행하면 계산서발행란에 체크를 하고 저장합니다. </small>  
     </div>                               
     <div class="d-flex p-1 m-1 mt-1 mb-1 justify-content-center align-items-center">       
-        <span class="text-center fs-6 text-danger"> * 세금계산서 발행일은 매월 말일 기준으로 입력해 주세요! 현재날짜로 입력하면 화면에 안나올수 있습니다.  </span>    
+        <div class="alert alert-warning alert-dismissible fade show" role="alert" style="max-width: 800px; margin: 0 auto;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>⚠️ 중요 안내:</strong> 세금계산서 발행일은 <span class="badge bg-danger">매월 말일 기준</span>으로 입력해 주세요! 
+            <br><small class="text-muted">현재 날짜로 입력하면 화면에 표시되지 않습니다.</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     </div>      
 
     <div class="card">                               
@@ -257,6 +269,10 @@ foreach ($paymentData as $paymentRow) {
             $start_num = 1;   
 			$processedSecondOrdnums = []; // 처리된 secondordnum을 추적하는 배열
 			$processedCompanyNames = []; // 처리된 회사명을 추적하는 배열 (중복 방지)
+
+            // echo '<pre>';
+            // print_r($salesResults);
+            // echo '</pre>';
 			
             foreach ($salesResults as $secondordnum => $total_sales) {
               if((int)$total_sales!==0 && intval($secondordnum) > 0 )
@@ -320,6 +336,12 @@ foreach ($paymentData as $paymentRow) {
             $vat = round(round($total_sales) * 0.1);
             $total_amount = $total_sales + $vat;
             $balance_due = $total_amount - $payment_collection;
+
+            // echo '<div style="max-width:950px; margin:20px auto; background:#f5f7fa; border:2px solid #aaa; border-radius:10px; padding:18px; font-size:15px; color:#213;">';
+            // echo '<b style="font-size:16px; color:#2067b0;">currentBalanceMap</b>';
+            // echo '<pre style="margin:0; font-size:14px; background:#fafeff; color:#333;">';
+            // print_r($currentBalanceMap);
+            // echo '</pre></div>';
             
             // 현재달 잔액 조회
             $current_sale = 0;
@@ -363,7 +385,7 @@ foreach ($paymentData as $paymentRow) {
 	?>           
 
 	<tr data-num="<?= $current_sale_num ?>" data-secondordnum="<?= $secondordnum ?>" data-vendorname="<?= $vendor_name ?>" data-totalamount="<?= $total_amount ?>">
-		<td class="text-center"><?= $start_num ?></td>
+		<td class="text-center"><?= $start_num ?> <?= $current_sale_num ?></td>
 		<td class="text-start text-primary"  onclick="fetchMonthlyBalanceData('<?= $current_sale_num ?>', '<?= $secondordnum ?>', '<?= $vendor_name ?>', '<?= $total_amount ?>')"><?= $vendor_name ?></td>    
 		<td class="text-end "   onclick="fetchMonthlyBalanceData('<?= $current_sale_num ?>', '<?= $secondordnum ?>', '<?= $vendor_name ?>', '<?= $total_amount ?>')"><?= number_format($total_sales) ?></td>
 		<td class="text-end "   onclick="fetchMonthlyBalanceData('<?= $current_sale_num ?>', '<?= $secondordnum ?>', '<?= $vendor_name ?>', '<?= $total_amount ?>')"><?= number_format($vat) ?></td>
@@ -378,7 +400,7 @@ foreach ($paymentData as $paymentRow) {
 			<?php endif; ?>
 		</td>
         <td class="text-center " onclick="viewBookIssued('<?= $current_sale_num ?>', '<?= $secondordnum ?>', '<?= $fromdate ?>', '<?= $todate ?>')"> <i class="bi bi-eye"></i></td>
-        <td class="text-start" > <?= $book_issued ?></td>
+        <td class="text-start" > <?= $book_issued ?> </td>
 		<td class="text-start"  onclick="fetchMonthlyBalanceData('<?= $current_sale_num ?>', '<?= $secondordnum ?>', '<?= $vendor_name ?>', '<?= $total_amount ?>')"><?= $memo ?></td>
 	</tr>
 
@@ -444,7 +466,7 @@ $(document).ready(function() {
         "paging": true,
         "ordering": true,
         "searching": true,
-        "pageLength": 50,
+        "pageLength": 100,
         "lengthMenu": [50, 100, 200, 500, 1000],
         "language": {
             "lengthMenu": "Show _MENU_ entries",
@@ -547,7 +569,9 @@ function fetchMonthlyBalanceData(current_sale_num, secondordnum, vendor_name, to
             }
 
             var customer_name = vendor_name; // vendor_name을 직접 사용
-            var formattedSales = parseFloat(total_amount).toLocaleString(); // total_amount를 3자리마다 콤마를 추가하여 포맷팅
+            // 음수를 포함한 금액 포맷팅
+            var salesValue = parseFloat(total_amount);
+            var formattedSales = isNaN(salesValue) ? '0' : salesValue.toLocaleString('en-US');
 
             console.log('Selected Row:', selectedRow);
             console.log('Customer Name:', customer_name);
@@ -561,14 +585,17 @@ function fetchMonthlyBalanceData(current_sale_num, secondordnum, vendor_name, to
                     '<td class="text-end"><input type="text" class="form-control text-end sales w-75" onkeyup="inputNumberFormat(this)" value="'+ formattedSales +'"></td>' +
                     '<td class="text-center"><input type="checkbox" class="form-check-input invoice_issued"></td>' +
                     '<td class="text-center"><input type="text" class="form-control memo" value=""></td>' +
-                    '<td class="text-center"><input type="text" class="form-control w80px text-start num"  readonly  value="' + current_sale_num + '"></td>' +
-                    '<td style="display:none;"><input type="hidden" class="text-start secondordnum" value="' + secondordnum + '"></td>' +
+                    '<td class="text-center"><input type="text" class="form-control w80px text-start num"  readonly  value="' + current_sale_num + '"></td>' +                    
+                    '<td class="text-center"><input type="text" class="form-control w80px text-start secondordnum"  readonly  value="' + secondordnum + '"></td>' +
                     '</tr>';
                 tableBody.append(row);
             } else if (Array.isArray(response) && response.length === 1) {
                 // 단일 데이터가 반환된 경우
                 response.forEach(function(item) {
-                    var formattedsales = parseFloat(item.sales).toLocaleString();
+                    // 음수를 포함한 금액 포맷팅
+                    var salesNum = parseFloat(item.sales);
+                    console.log('salesNum:', salesNum);
+                    var formattedsales = isNaN(salesNum) ? '0' : salesNum.toLocaleString('en-US');
                     var row = '<tr>' +
                         '<td class="text-center"><input type="date" class="form-control text-center" value="' + item.closure_date + '"></td>' +
                         '<td class="text-center"><input type="text" class="form-control customer_name  text-start " value="' + (item.customer_name !== null ? item.customer_name : '') + '"></td>'  +
@@ -576,7 +603,7 @@ function fetchMonthlyBalanceData(current_sale_num, secondordnum, vendor_name, to
                         '<td class="text-center"><input type="checkbox" class="form-check-input invoice_issued" ' + (item.invoice_issued === '발행' ? 'checked' : '') + '></td>' +
                         '<td class="text-center"><input type="text" class="form-control memo" value="' + (item.memo !== null ? item.memo : '') + '"></td>' +
                         '<td class="text-center"><input type="text" class="form-control w80px text-start num"  readonly  value="' + current_sale_num + '"></td>' +
-                        '<td style="display:none;"><input type="hidden" class="text-start secondordnum" value="' + secondordnum + '"></td>' +
+                        '<td class="text-center"><input type="text" class="form-control w80px text-start secondordnum"  readonly  value="' + secondordnum + '"></td>' +
                         '</tr>';
                     tableBody.append(row);
                 });
@@ -589,7 +616,7 @@ function fetchMonthlyBalanceData(current_sale_num, secondordnum, vendor_name, to
                     '<td class="text-center"><input type="checkbox" class="form-check-input invoice_issued"></td>' +
                     '<td class="text-center"><input type="text" class="form-control memo" value=""></td>' +
                     '<td class="text-center"><input type="text" class="form-control w80px text-start num" readonly value="' + current_sale_num + '"></td>' +
-                    '<td style="display:none;"><input type="hidden" class="text-start secondordnum" value="' + secondordnum + '"></td>' +
+                    '<td class="text-center"><input type="text" class="form-control w80px text-start secondordnum"  readonly  value="' + secondordnum + '"></td>' +
                     '</tr>';
                 tableBody.append(row);
             }
@@ -614,13 +641,18 @@ function saveMonthlyBalanceData() {
         var num = $(this).find('.num').val();
         var closure_date = $(this).find('input[type="date"]').val();
         var customer_name = $(this).find('.customer_name').val();
-        var sales = $(this).find('.sales').val().replace(/,/g, '');
+        // 콤마 제거, 음수 기호는 유지
+        var sales = $(this).find('.sales').val().replace(/,/g, '').trim();
+        // 빈 값이면 0으로 처리
+        if (sales === '' || sales === '-') {
+            sales = '0';
+        }
         var invoice_issued = $(this).find('input[type="checkbox"]').is(':checked');
         var memo = $(this).find('.memo').val();
         var secondordnum = $(this).find('.secondordnum').val();
         var mode = num ? 'update' : 'insert';
         data.push({
-            mode: mode,
+            mode: mode, 
             num: num,
             closure_date: closure_date,
             customer_name: customer_name,
@@ -639,6 +671,22 @@ function saveMonthlyBalanceData() {
         }
     });
 
+    // 디버그: 전송 예정 데이터 로그
+    try {
+        console.group('MonthlySale Debug: Payload');
+        console.log('data (array):', JSON.parse(JSON.stringify(data)));
+        console.groupCollapsed('formData (entries)');
+        if (formData && formData.entries) {
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ':', pair[1]);
+            }
+        }
+        console.groupEnd();
+        console.groupEnd();
+    } catch (e) {
+        console.warn('Debug logging failed:', e);
+    }
+
     $.ajax({
         type: 'POST',
         url: '/motor/insert_monthly_sale.php',
@@ -646,7 +694,10 @@ function saveMonthlyBalanceData() {
         processData: false,
         contentType: false,
         success: function(response) {
-            console.log(response);
+            console.group('MonthlySale Debug: Response');
+            console.log('raw:', response);
+            try { console.log('parsed:', typeof response === 'string' ? JSON.parse(response) : response); } catch(_) {}
+            console.groupEnd();
             toastAlert('파일저장');
             setTimeout(function(){
                 $('#monthlysaleModal').modal('hide');
@@ -655,6 +706,9 @@ function saveMonthlyBalanceData() {
         },
         error: function(xhr, status, error) {
             console.error("AJAX error: ", status, error);
+            if (xhr && xhr.responseText) {
+                console.error('responseText:', xhr.responseText);
+            }
             // 에러 발생 시 버튼 다시 활성화
             saveButton.prop('disabled', false);
         }

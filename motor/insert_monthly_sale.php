@@ -27,7 +27,8 @@ if (!empty($modes) && is_array($modes)) {
             $num = isset($nums[$i]) ? $nums[$i] : '';
             $closure_date = isset($closure_dates[$i]) ? $closure_dates[$i] : null;
             $customer_name = isset($customer_names[$i]) ? $customer_names[$i] : null;
-            $sale = isset($sales[$i]) ? $sales[$i] : null;
+            // 음수 금액도 허용 - 빈 값이 아니면 숫자로 변환, 빈 값이면 null
+            $sale = isset($sales[$i]) && $sales[$i] !== '' ? floatval($sales[$i]) : null;
             $invoice_issued = isset($invoice_issueds[$i]) && ($invoice_issueds[$i] === 'true' || $invoice_issueds[$i] === '1' || $invoice_issueds[$i] === 'on') ? '발행' : '';
             $secondordnum = isset($secondordnums[$i]) ? $secondordnums[$i] : null;
             $memo = isset($memos[$i]) ? $memos[$i] : null;
@@ -52,7 +53,12 @@ if (!empty($modes) && is_array($modes)) {
                         SET sales = :sales, invoice_issued = :invoice_issued, memo = :memo, customer_name = :customer_name, closure_date = :closure_date 
                         WHERE num = :num
                     ");
-                    $updateStmt->bindValue(':sales', $sale, PDO::PARAM_STR);
+                    // 음수를 포함한 실수 값을 저장
+                    if ($sale !== null) {
+                        $updateStmt->bindValue(':sales', $sale, PDO::PARAM_STR);
+                    } else {
+                        $updateStmt->bindValue(':sales', null, PDO::PARAM_NULL);
+                    }
                     $updateStmt->bindValue(':invoice_issued', $invoice_issued, PDO::PARAM_STR);
                     $updateStmt->bindValue(':memo', $memo, PDO::PARAM_STR);
                     $updateStmt->bindValue(':customer_name', $customer_name, PDO::PARAM_STR);
@@ -69,7 +75,12 @@ if (!empty($modes) && is_array($modes)) {
                     $insertStmt->bindValue(':closure_date', $closure_date, PDO::PARAM_STR);
                     $insertStmt->bindValue(':secondordnum', $secondordnum, PDO::PARAM_STR);
                     $insertStmt->bindValue(':customer_name', $customer_name, PDO::PARAM_STR);
-                    $insertStmt->bindValue(':sales', $sale, PDO::PARAM_STR);
+                    // 음수를 포함한 실수 값을 저장
+                    if ($sale !== null) {
+                        $insertStmt->bindValue(':sales', $sale, PDO::PARAM_STR);
+                    } else {
+                        $insertStmt->bindValue(':sales', null, PDO::PARAM_NULL);
+                    }
                     $insertStmt->bindValue(':invoice_issued', $invoice_issued, PDO::PARAM_STR);
                     $insertStmt->bindValue(':memo', $memo, PDO::PARAM_STR);
                     $insertStmt->execute();
