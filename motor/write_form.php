@@ -5254,6 +5254,7 @@ window.FileProcess = function (item, idx, inputElement) {
 					const today = new Date().toISOString().slice(0, 10);
 					switch (item) {
 						case 'beforeArr':
+							$("#outputdate").val(today).trigger("change");
 							$("#status").val("출고대기").trigger("change");
 							break;
 						case 'midArr':

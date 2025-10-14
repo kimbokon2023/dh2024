@@ -23,24 +23,39 @@ function generateItemCode($orderItem) {
     $checkLotNum = strtolower(isset($orderItem['col16']) ? $orderItem['col16'] : ''); // 모터의 품목코드가 저장된 것입니다. 220-유선-400-방범 형태
 	
 	// 1단계: URL 디코딩
-	$decodedStr = urldecode($checkLotNum);
-	// echo '<br>';
-	// echo $checkLotNum;
+	// $decodedStr = urldecode($checkLotNum);
 	
-	// "방범"이라는 단어가 포함되어 있는지 확인
-	// 품목코드가 없으니, 용도에서 찾는다.
-	$containsBangbum = (strpos($decodedStr, '방범') !== false);    
+	// "방범25"와 "방범"을 구분하여 확인
+	// $containsBangbum25 = (strpos($decodedStr, '방범25') !== false);
+	// $containsBangbum = (strpos($decodedStr, '방범') !== false);
+
+    $containsBangbum25 = '';
+    $containsBangbum = '';
+
+    if($purpose === '방범25') {
+        $containsBangbum25 = $purpose;
+    } else if ($purpose === '방범') {
+        $containsBangbum = $purpose;
+    } 
+	
     $upweight = str_replace(['k', 'K'], '', $upweight);
 
     if ($purpose === '무기둥모터') {
         $ecountcode = implode('-', array_filter([$volt, $wire, $purpose , $upweight]));
-    } else if ($purpose === '방범' && $containsBangbum) {
-        $ecountcode = implode('-', array_filter([$volt, $wire, $upweight, $purpose]));
+    } else if ($containsBangbum25) {
+        // 방범25 모터: checkLotNum(col16)에 '방범25'가 포함된 경우
+        // 220-유선-300-방범25 형태로 생성
+        $ecountcode = implode('-', array_filter([$volt, $wire, $upweight, '방범25']));
+    } else if ($containsBangbum) {
+        // 방범 모터: checkLotNum(col16)에 '방범'이 포함된 경우 (방범25 제외)
+        // 220-유선-300-방범 형태로 생성
+        $ecountcode = implode('-', array_filter([$volt, $wire, $upweight, '방범']));
     } else {
         $ecountcode = implode('-', array_filter([$volt, $wire, $upweight]));
     }    
     return $ecountcode;
 }
+
 
 // 품목코드 수정 브라켓은 후렌지 크기까지 포함한것으로 수정 2024/07/25
 function generateItemCodeForBracket($orderItem) {

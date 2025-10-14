@@ -67,6 +67,7 @@ $salesStmt->execute();
 $salesData = $salesStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $salesResults = [];
+
 foreach ($salesData as $row) {
     $secondordnum = $row['secondordnum'];
     $orderlist = json_decode($row['orderlist'], true);
@@ -104,6 +105,7 @@ foreach ($salesData as $row) {
     }
     $salesResults[$secondordnum] += ($total_sales - $dcadd) ;
 }
+
 
 arsort($salesResults);  // 공급가액 내림차순으로 정렬
 
@@ -253,7 +255,9 @@ foreach ($paymentData as $paymentRow) {
         <?php  
         try {    
             $start_num = 1;   
-			$processedSecondOrdnums = []; // 처리된 secondordnum을 추적하는 배열			
+			$processedSecondOrdnums = []; // 처리된 secondordnum을 추적하는 배열
+			$processedCompanyNames = []; // 처리된 회사명을 추적하는 배열 (중복 방지)
+			
             foreach ($salesResults as $secondordnum => $total_sales) {
               if((int)$total_sales!==0 && intval($secondordnum) > 0 )
               {          
@@ -270,9 +274,26 @@ foreach ($paymentData as $paymentRow) {
                 if (checkNull($search)) {
                     $sql .= " AND (vendor_name LIKE '%$search%' OR representative_name LIKE '%$search%' OR manager_name LIKE '%$search%')";
                 }
+                
                 $stmh = $pdo->query($sql); 
-                while ($row = $stmh->fetch(PDO::FETCH_ASSOC)) {
-                    include $_SERVER['DOCUMENT_ROOT'] . '/phonebook/_row.php';        
+                $row = $stmh->fetch(PDO::FETCH_ASSOC); // 첫 번째 레코드만 가져오기
+                
+                if ($row) {
+                    include $_SERVER['DOCUMENT_ROOT'] . '/phonebook/_row.php';
+                    
+                    // 회사명 중복 체크 및 건너뛰기
+                    if (isset($processedCompanyNames[$vendor_name])) {
+                        $previousSecondordnum = $processedCompanyNames[$vendor_name];
+                        
+                        // 현재 거래처의 매출을 이전 거래처에 합산
+                        if (isset($salesResults[$previousSecondordnum])) {
+                            $salesResults[$previousSecondordnum] += $total_sales;
+                        }
+                        continue; // 중복 회사명이면 건너뛰기
+                    }
+                    
+                    $processedCompanyNames[$vendor_name] = $secondordnum; // 처리된 회사명 기록
+                    
                     if (empty($contact_info))
                         $contact_info = $phone;
                     

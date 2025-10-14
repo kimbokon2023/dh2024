@@ -48,19 +48,33 @@ function generateItemCode($orderItem) {
     $checkLotNum = strtolower(isset($orderItem['col16']) ? $orderItem['col16'] : ''); // 모터의 품목코드가 저장된 것입니다. 220-유선-400-방범 형태
 	
 	// 1단계: URL 디코딩
-	$decodedStr = urldecode($checkLotNum);
-	// echo '<br>';
-	// echo $checkLotNum;
+	// $decodedStr = urldecode($checkLotNum);
 	
-	// "방범"이라는 단어가 포함되어 있는지 확인
-	// 품목코드가 없으니, 용도에서 찾는다.
-	$containsBangbum = (strpos($decodedStr, '방범') !== false);    
+	// "방범25"와 "방범"을 구분하여 확인
+	// $containsBangbum25 = (strpos($decodedStr, '방범25') !== false);
+	// $containsBangbum = (strpos($decodedStr, '방범') !== false);
+
+    $containsBangbum25 = '';
+    $containsBangbum = '';
+
+    if($purpose === '방범25') {
+        $containsBangbum25 = $purpose;
+    } else if ($purpose === '방범') {
+        $containsBangbum = $purpose;
+    } 
+	
     $upweight = str_replace(['k', 'K'], '', $upweight);
 
     if ($purpose === '무기둥모터') {
         $ecountcode = implode('-', array_filter([$volt, $wire, $purpose , $upweight]));
-    } else if ($purpose === '방범' && $containsBangbum) {
-        $ecountcode = implode('-', array_filter([$volt, $wire, $upweight, $purpose]));
+    } else if ($containsBangbum25) {
+        // 방범25 모터: checkLotNum(col16)에 '방범25'가 포함된 경우
+        // 220-유선-300-방범25 형태로 생성
+        $ecountcode = implode('-', array_filter([$volt, $wire, $upweight, '방범25']));
+    } else if ($containsBangbum) {
+        // 방범 모터: checkLotNum(col16)에 '방범'이 포함된 경우 (방범25 제외)
+        // 220-유선-300-방범 형태로 생성
+        $ecountcode = implode('-', array_filter([$volt, $wire, $upweight, '방범']));
     } else {
         $ecountcode = implode('-', array_filter([$volt, $wire, $upweight]));
     }    
@@ -176,6 +190,7 @@ try {
 }
 
 $stock_data = [];
+$empty_lotnum_orders = []; // 로트번호가 비어있는 주문 목록
 
 // material_reg 테이블에서 입출고 데이터 계산
 $stock_sql = "SELECT inout_item_code, lotnum, num,  SUM(CASE WHEN CAST(surang AS SIGNED) > 0 THEN CAST(surang AS SIGNED) ELSE 0 END) AS total_in, 
@@ -192,7 +207,7 @@ try {
     foreach ($stock_rows as $stock_row) {
         $item_code = $stock_row['inout_item_code'];        
         $lotnum = strtoupper(trim($stock_row['lotnum']));
-		$num = $row['num'];
+		$num = $stock_row['num'];
 
         if (!isset($stock_data[$item_code])) {
             $stock_data[$item_code] = [];
@@ -226,23 +241,37 @@ try {
     $rows = $stmh->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($rows as $row) {
-        $orderlist = isset($row['orderlist']) ? safe_json_decode($row['orderlist']) : [];
-        $controllerlist = isset($row['controllerlist']) ? safe_json_decode($row['controllerlist']) : [];
-        $fabriclist = isset($row['fabriclist']) ? safe_json_decode($row['fabriclist']) : [];
-        $accessorieslist = isset($row['accessorieslist']) ? safe_json_decode($row['accessorieslist']) : [];
+        $orderlist = isset($row['orderlist']) ? safe_json_decode($row['orderlist']) : []; // 모터 출고 데이터
+        $controllerlist = isset($row['controllerlist']) ? safe_json_decode($row['controllerlist']) : []; // 연동제어기 출고 데이터
+        $fabriclist = isset($row['fabriclist']) ? safe_json_decode($row['fabriclist']) : []; // 원단 출고 데이터
+        $accessorieslist = isset($row['accessorieslist']) ? safe_json_decode($row['accessorieslist']) : []; // 부속 자재 출고 데이터
 		$num = $row['num'];
 
         foreach ($orderlist as $order) {
             $unit = $order['col5'] ?? '';
             $applyQty = $order['col8'] ?? 0;
-            $item_code = generateItemCode($order);            
+            $item_code = generateItemCode($order);
             $lotnum_motor = strtoupper(trim($order['col13'] ?? ''));
             $lotnum_bracket = strtoupper(trim($order['col14'] ?? ''));
 
             if ($unit === 'SET' || $unit === '모터단품') {
                 // 모터 처리
-				// print_r($item_code);				
-                $item_code_motor = $lotnum_motor; // 모터의 아이템 코드 생성 방식 예시
+                $item_code_motor = $lotnum_motor;
+                
+                // lotnum이 비어있는 경우 경고 목록에 추가
+                if (empty($item_code_motor) || trim($item_code_motor) === '') {
+                    $empty_lotnum_orders[] = [
+                        'num' => $num,
+                        'item_code' => $item_code,
+                        'quantity' => $applyQty,
+                        'unit' => $unit,
+                        'workplacename' => $row['workplacename'] ?? '',
+                        'secondord' => $row['secondord'] ?? '',
+                        'deadline' => $row['deadline'] ?? ''
+                    ];
+                    continue;
+                }
+                
                 if (!isset($stock_data[$item_code][$item_code_motor])) {
                     $stock_data[$item_code][$item_code_motor] = [
                         'item_code' => $item_code,
@@ -405,6 +434,50 @@ usort($items, 'customSortItemCode');
 </div> 
 </div>
 </div>
+
+<?php if (!empty($empty_lotnum_orders)): ?>
+<div class="container-fluid mb-3">
+    <div class="alert alert-danger" role="alert">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> 로트번호 미입력 주문 (재고 처리 불가)</h5>
+        <p>아래 주문들은 로트번호(col13)가 입력되지 않아 재고 처리가 되지 않습니다. 수주 내역에서 로트번호를 입력해주세요.</p>
+        <hr>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead class="table-warning">
+                    <tr>
+                        <th class="text-center">주문번호</th>
+                        <th class="text-center">현장명</th>
+                        <th class="text-center">발주처</th>
+                        <th class="text-center">납기일</th>
+                        <th class="text-center">품목코드</th>
+                        <th class="text-center">단위</th>
+                        <th class="text-center">수량</th>
+                        <th class="text-center">작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($empty_lotnum_orders as $empty_order): ?>
+                    <tr>
+                        <td class="text-center"><?= htmlspecialchars($empty_order['num']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($empty_order['workplacename']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($empty_order['secondord']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($empty_order['deadline']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($empty_order['item_code']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($empty_order['unit']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($empty_order['quantity']) ?></td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="handleRowClick(<?= $empty_order['num'] ?>)">
+                                <i class="bi bi-pencil-fill"></i> 수정
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="container-fluid">   
     <div class="row justify-content-center text-center">
@@ -726,6 +799,13 @@ $(document).ready(function(){
 function SearchEnter(){
     if(event.keyCode == 13){        
         document.getElementById('board_form').submit();
+    }
+}
+
+function handleRowClick(num) {
+    if (num !== '') {
+        var link = 'write_form.php?mode=view&num=' + num;
+        customPopup(link, '수주내역', 1850, 900);
     }
 }
 
