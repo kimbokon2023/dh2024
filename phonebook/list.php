@@ -293,8 +293,10 @@ function enter()
         {
             $("#certified_company", opener.document).val(vendorName); 
             self.close();	
+            return;
         }
         
+        else {
 
 		var managerFieldID = 'secondordman'; // ID of the manager input field in the parent document
 		var repFieldID = 'representative'; // ID of the representative input field in the parent document
@@ -390,6 +392,7 @@ function enter()
 				}
 			});
 		}
+        }
 
 	 }
 	

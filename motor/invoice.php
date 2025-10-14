@@ -79,6 +79,17 @@ try {
 } catch (PDOException $Exception) {
     print "오류: " . $Exception->getMessage();
 }
+
+// 인정업체가 있으면 발주 담당자 위치에 문구가 변경됨, 인정업체가 없으면 발주 담당자 위치에 문구가 변경됨
+if(empty($certified_company)) {    
+    $display_text1 = '발주 담당자';
+    $display_text2 = $secondordman;
+}
+else {
+    $display_text1 = '인정업체';
+    $display_text2 = $certified_company;
+}
+
 ?>
 
 <div class="container mt-2">
@@ -119,12 +130,12 @@ try {
                 
             </tr>
             <tr>
-                <td class="text-center smallfont  ">발주 담당자</td>
-                <td class="text-center smallfont"><?=$secondordman?></td>
-                <td class="text-center smallfont  ">연락처</td>
+                <td class="text-center smallfont"> <?=$display_text1?> </td>
+                <td class="text-center smallfont"> <?=$display_text2?></td>
+                <td class="text-center smallfont"> 연락처</td>
                 <td class="text-center smallfont"  colspan="3"><?=$secondordmantel?></td>
             </tr>
-            <tr>    
+            <tr>
                 <td class="text-center smallfont  "> 운송 방법</td>
                 <td class="text-center smallfont"> <?=$deliverymethod?></td>
                 <td class="text-center smallfont  "> 배송지 주소</td>

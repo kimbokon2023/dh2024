@@ -443,10 +443,8 @@ if ($returndue == '회수예정') {
 				<?php if($level =='1') {   ?>
 				<button type="button" class="btn btn-success btn-sm me-1" onclick="popupCenter('invoice_sales.php?num=<?=$num?>','거래명세',1000,900);" > <i class="bi bi-printer"></i> 거래명세 </button>	
 				<button type="button" class="btn btn-success btn-sm me-1" onclick="popupCenter('estimate.php?num=<?=$num?>','견적',1000,900);" > <i class="bi bi-printer"></i> 견적 </button>	
-			<?php } } ?>
-		
-		&nbsp;&nbsp;
-		
+			<?php } } ?>		
+		&nbsp;&nbsp;		
 		최초 : <?=$first_writer?> 
 		<br>    
 		  <?php
@@ -468,7 +466,7 @@ if ($returndue == '회수예정') {
 		  <td >
 			<div class="d-flex align-items-center justify-content-center"> 
 			 <span class="fw-bold w80px me-1">	발주처 </span> 
-				<input type="text" id="secondord" name="secondord" value="<?=$secondord?>" class="form-control w200px"  autocomplete="off"   onkeydown="if(event.keyCode == 13) { phonebookBtn('secondord'); }"  > &nbsp;
+				<input type="text" id="secondord" name="secondord" value="<?=$secondord?>" class="form-control w180px"  autocomplete="off"   onkeydown="if(event.keyCode == 13) { phonebookBtn('secondord'); }"  > &nbsp;
 				<button type="button" class="btn btn-dark-outline btn-sm restrictbtn" onclick="phonebookBtn('secondord');">  <i class="bi bi-gear"></i></button>
 				<span class="fw-bold w80px me-1">	담당자 </span> 
 			<input type="text" id="secondordman" name="secondordman" class="form-control w150px"  autocomplete="off"   value="<?=$secondordman?>" onkeydown="if(event.keyCode == 13) { phonebookBtn('secondordman'); }">				  		
@@ -476,7 +474,8 @@ if ($returndue == '회수예정') {
 			<input type="text" id="secondordmantel" name="secondordmantel" value="<?=$secondordmantel?>"  autocomplete="off"  class="form-control w120px"  onkeydown="if(event.keyCode == 13) { phonebookBtn('secondordmantel'); }">
 
 			<span class="fw-bold text-primary w80px me-1">	인정업체 </span> 
-			<input type="text" id="certified_company" name="certified_company" value="<?=$certified_company?>" class="form-control w200px"  autocomplete="off"   onkeydown="if(event.keyCode == 13) { phonebookBtn('certified_company'); }"  > &nbsp;
+			<input type="text" id="certified_company" name="certified_company" value="<?=$certified_company?>" class="form-control w180px"  autocomplete="off"   onkeydown="if(event.keyCode == 13) { phonebookBtn('certified_company'); }"  > &nbsp;
+			<button type="button" class="btn btn-dark-outline btn-sm restrictbtn" onclick="phonebookBtn('certified_company');">  <i class="bi bi-gear"></i></button>
 			
 		   </div>				
 		  </td>		  
