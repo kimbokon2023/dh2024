@@ -15,7 +15,8 @@
       "Bash(cat:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(del \"c:\\Project\\dh2024\\m_order\\check_table_structure.php\")",
-      "Bash(del \"C:\\Project\\dh2024\\m_order\\check_vendors.php\")"
+      "Bash(del \"C:\\Project\\dh2024\\m_order\\check_vendors.php\")",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

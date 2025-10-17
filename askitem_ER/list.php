@@ -490,14 +490,15 @@ th {
     <thead class="table-primary">
       <tr>
         <th class="text-center" scope="col" style="width:5%;">번호</th>
-        <th class="text-center" scope="col" style="width:120px;">작성일</th>		
-        <th class="text-center" scope="col" style="width:120px;">지출요청일</th>		
-        <th class="text-center" scope="col" style="width:120px;">결재일</th>		
-        <th class="text-center" scope="col">기안자</th>        
+        <th class="text-center" scope="col" style="width:120px;">작성일</th>
+        <th class="text-center" scope="col" style="width:120px;">지출요청일</th>
+        <th class="text-center" scope="col" style="width:120px;">결재일</th>
+        <th class="text-center" scope="col">기안자</th>
+        <th class="text-center" scope="col">현장명</th>
         <th class="text-center" scope="col">분류</th>
         <th class="text-center" scope="col">적요</th>
         <th class="text-center" scope="col">금액</th>
-        <th class="text-center" scope="col">비고</th>        
+        <th class="text-center" scope="col">비고</th>
         <th class="text-center" scope="col">법인카드</th>
         <th class="text-center" scope="col">결재완료</th>
       </tr>
@@ -515,6 +516,7 @@ th {
         $items = [];
         $notes = [];
         $category = [];
+        $site = [];
         $total_amount = 0;
 
         if (is_array($expense_data)) {
@@ -531,6 +533,9 @@ th {
                 if (!empty($expense['expense_category'])) {
                     $category[] = $expense['expense_category'];
                 }
+                if (!empty($expense['expense_site'])) {
+                    $site[] = $expense['expense_site'];
+                }
             }
         }
 
@@ -544,7 +549,8 @@ th {
             }
         }
 
-        // 분류,적요,비고를 콤마로 구분된 문자열로 변환
+        // 현장명,분류,적요,비고를 콤마로 구분된 문자열로 변환
+        $site_str = implode(', ', $site);
         $category_str = implode(', ', $category);
         $items_str = implode(', ', $items);
         $notes_str = implode(', ', $notes);
@@ -555,7 +561,8 @@ th {
             $filtered_notes = [];
             $filtered_amount = 0;
             $filtered_category = [];
-            
+            $filtered_site = [];
+
             if (is_array($expense_data)) {
                 foreach ($expense_data as $expense) {
                     if (!empty($expense['expense_category']) && $expense['expense_category'] === $category_filter) {
@@ -569,12 +576,16 @@ th {
                             $filtered_amount += intval(str_replace(',', '', $expense['expense_amount']));
                         }
                         $filtered_category[] = $expense['expense_category'];
+                        if (!empty($expense['expense_site'])) {
+                            $filtered_site[] = $expense['expense_site'];
+                        }
                     }
                 }
             }
-            
+
             // 필터링된 데이터가 있는 경우에만 표시
             if (!empty($filtered_items)) {
+                $site_str = implode(', ', $filtered_site);
                 $category_str = implode(', ', $filtered_category);
                 $items_str = implode(', ', $filtered_items);
                 $notes_str = implode(', ', $filtered_notes);
@@ -588,10 +599,11 @@ th {
 		echo '<tr style="cursor:pointer;" data-id="'.  $num . '" onclick="redirectToView(' . $num . ')">';
 		  ?>
 			<td class="text-center"><?= $start_num ?></td>
-			<td class="text-center" data-order="<?= $indate ?>"> <?=$indate?> </td>	  
-			<td class="text-center" data-order="<?= $requestpaymentdate ?>"> <?= $requestpaymentdate ?> </td>	  
-			<td class="text-center" data-order="<?= $paymentdate ?>"> <?= $paymentdate ?> </td>	  
-			<td class="text-center"> <?= $author ?> </td>          			
+			<td class="text-center" data-order="<?= $indate ?>"> <?=$indate?> </td>
+			<td class="text-center" data-order="<?= $requestpaymentdate ?>"> <?= $requestpaymentdate ?> </td>
+			<td class="text-center" data-order="<?= $paymentdate ?>"> <?= $paymentdate ?> </td>
+			<td class="text-center"> <?= $author ?> </td>
+			<td class="text-start"> <?= $site_str ?></td>
 			<td class="text-start"> <?= $category_str ?></td>
 			<td class="text-start"><?= $items_str ?></td>
 			<td class="text-end"><?= number_format($total_amount) ?></td>

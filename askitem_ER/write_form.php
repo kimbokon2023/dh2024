@@ -665,7 +665,8 @@ if($status === 'end' and ($e_confirm !=='' && $e_confirm !== null) )
           <thead>
             <tr>
               <th class="text-center" style="width: 10%">No</th>
-              <th class="text-center" style="width: 20%">분류</th>
+              <th class="text-center" style="width: 15%">현장명</th>
+              <th class="text-center" style="width: 15%">분류</th>
               <th class="text-center" style="width: 25%">적요</th>
               <th class="text-center" style="width: 15%">금액</th>
               <th class="text-center" style="width: 20%">비고</th>
@@ -1651,6 +1652,9 @@ function addRow(data = null, afterRow = null) {
             </div>
         </td>
         <td>
+            <input type="text" class="form-control expense-site" name="expense_site[]" value="${data ? data.site : ''}" placeholder="현장명을 입력하세요">
+        </td>
+        <td>
             <select class="form-select expense-category viewmode" name="expense_category[]" style="font-size : 0.8rem; height:28px; padding:4px;">
                 <option value="">카테고리 선택</option>
                 ${categoryOptions}
@@ -1660,7 +1664,7 @@ function addRow(data = null, afterRow = null) {
             <input type="text" class="form-control expense-item" name="expense_item[]" value="${data ? data.item : ''}" placeholder="적요를 입력하세요">
         </td>
         <td>
-            <input type="text" class="form-control expense-amount text-end" name="expense_amount[]" 
+            <input type="text" class="form-control expense-amount text-end" name="expense_amount[]"
                    value="${data ? data.amount : ''}" oninput="formatInput(this)" style="text-align: right !important;" placeholder="금액을 입력하세요">
         </td>
         <td>
@@ -1703,6 +1707,7 @@ function deleteRow(button) {
 function copyRow(button) {
     const row = button.closest('tr');
     const data = {
+        site: row.querySelector('.expense-site').value,
         category: row.querySelector('.expense-category').value,
         item: row.querySelector('.expense-item').value,
         amount: row.querySelector('.expense-amount').value,
@@ -1807,6 +1812,7 @@ function loadExpenseData() {
         if (expenseData.length > 0) {
             expenseData.forEach(data => {
                 const rowData = {
+                    site: data.expense_site || '',
                     category: data.expense_category || '',
                     item: data.expense_item || '',
                     amount: data.expense_amount ? parseInt(data.expense_amount).toLocaleString('ko-KR') : '',

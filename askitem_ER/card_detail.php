@@ -134,6 +134,7 @@ try{
                             <th class="text-center" style="width:100px;">지출요청일</th>
                             <th class="text-center" style="width:100px;">결재일</th>
                             <th class="text-center">기안자</th>
+                            <th class="text-center">현장명</th>
                             <th class="text-center">분류</th>
                             <th class="text-center">적요</th>
                             <th class="text-end">금액</th>
@@ -153,6 +154,7 @@ try{
                             $items = [];
                             $notes = [];
                             $category = [];
+                            $site = [];
                             $total_amount = 0;
 
                             if (is_array($expense_data)) {
@@ -169,20 +171,25 @@ try{
                                     if (!empty($expense['expense_category'])) {
                                         $category[] = $expense['expense_category'];
                                     }
+                                    if (!empty($expense['expense_site'])) {
+                                        $site[] = $expense['expense_site'];
+                                    }
                                 }
                             }
 
                             // 적요와 비고를 콤마로 구분된 문자열로 변환
                             $items_str = implode(', ', $items);
                             $notes_str = implode(', ', $notes);
-                            $category_str = implode(', ', $category);   
+                            $category_str = implode(', ', $category);
+                            $site_str = implode(', ', $site);   
                             echo '<tr style="cursor:pointer;" data-id="'.  $num . '" onclick="redirectToView(' . $num . ')">';
                         ?>
                             <td class="text-center"><?= $start_num ?></td>
-                            <td class="text-center" data-order="<?= $indate ?>"> <?=$indate?> </td>	  
-                            <td class="text-center" data-order="<?= $requestpaymentdate ?>"> <?= $requestpaymentdate ?> </td>	  
-                            <td class="text-center" data-order="<?= $paymentdate ?>"> <?= $paymentdate ?> </td>	  
-                            <td class="text-center"> <?= $author ?> </td>          			
+                            <td class="text-center" data-order="<?= $indate ?>"> <?=$indate?> </td>
+                            <td class="text-center" data-order="<?= $requestpaymentdate ?>"> <?= $requestpaymentdate ?> </td>
+                            <td class="text-center" data-order="<?= $paymentdate ?>"> <?= $paymentdate ?> </td>
+                            <td class="text-center"> <?= $author ?> </td>
+                            <td class="text-start"> <?= $site_str ?></td>
                             <td class="text-start"> <?= $category_str ?></td>
                             <td class="text-start"><?= $items_str ?></td>
                             <td class="text-end"><?= number_format($total_amount) ?></td>

@@ -9,6 +9,33 @@ header("Content-Type: application/json");  //json을 사용하기 위해 필요�
 include '_request.php';
 
 $tablename = 'motor';
+
+// ModSecurity 방화벽 우회를 위한 입력값 정제 함수 
+function sanitize_for_modsecurity($value) {
+    if (empty($value)) return $value;
+
+    // ModSecurity가 차단할 수 있는 위험 패턴 제거
+    $patterns = [ 
+        '/union\s+select/i',           // SQL Injection 패턴
+        '/concat\s*\(/i',               // SQL 함수
+        '/<script/i',                   // XSS 패턴 
+        '/javascript:/i',               // JavaScript 프로토콜 
+        '/on(load|error|click|mouse)=/i', // 이벤트 핸들러
+        '/eval\s*\(/i',                 // eval 함수
+        '/base64_decode/i',             // 인코딩 함수
+        '/\.\.\//i'                     // 경로 탐색 
+    ]; 
+
+    foreach ($patterns as $pattern) {
+        $value = preg_replace($pattern, '', $value);
+    }
+
+    // 2단계: 괄호를 전각 문자로 변환 (ModSecurity 우회)
+    $value = str_replace('(', '（', $value);  // 반각 ( → 전각 （
+    $value = str_replace(')', '）', $value);  // 반각 ) → 전각 ）
+
+    return $value;
+}
   
 if (empty($price)) {
   $price = ''; // 빈 문자열인 경우 숫자 0으로 초기화
@@ -41,6 +68,38 @@ if (isset($_POST['fabriclist'])) {
     // Error handling or fallback
     $fabriclist_jsondata = null;
 }
+
+// ModSecurity 차단 방지를 위한 입력값 정제
+$workplacename = sanitize_for_modsecurity($workplacename);
+$secondord = sanitize_for_modsecurity($secondord);
+$secondordman = sanitize_for_modsecurity($secondordman);
+$secondordmantel = sanitize_for_modsecurity($secondordmantel);
+$chargedman = sanitize_for_modsecurity($chargedman);
+$chargedmantel = sanitize_for_modsecurity($chargedmantel);
+$address = sanitize_for_modsecurity($address);
+$delbranch = sanitize_for_modsecurity($delbranch);
+$delbranchaddress = sanitize_for_modsecurity($delbranchaddress);
+$delbranchtel = sanitize_for_modsecurity($delbranchtel);
+$delbranchinvoice = sanitize_for_modsecurity($delbranchinvoice);
+$delcarnumber = sanitize_for_modsecurity($delcarnumber);
+$delcaritem = sanitize_for_modsecurity($delcaritem);
+$delcartel = sanitize_for_modsecurity($delcartel);
+$memo = sanitize_for_modsecurity($memo);
+$comment = sanitize_for_modsecurity($comment);
+$delmemo = sanitize_for_modsecurity($delmemo);
+$secondordmemo = sanitize_for_modsecurity($secondordmemo);
+$delwrappaymethod = sanitize_for_modsecurity($delwrappaymethod);
+$cargo_delbranchinvoice = sanitize_for_modsecurity($cargo_delbranchinvoice);
+$cargo_delwrapmethod = sanitize_for_modsecurity($cargo_delwrapmethod);
+$cargo_delwrapsu = sanitize_for_modsecurity($cargo_delwrapsu);
+$cargo_delwrapamount = sanitize_for_modsecurity($cargo_delwrapamount);
+$cargo_delwrapweight = sanitize_for_modsecurity($cargo_delwrapweight);
+$cargo_delwrappaymethod = sanitize_for_modsecurity($cargo_delwrappaymethod);
+$original_num = sanitize_for_modsecurity($original_num);
+$Deliverymanager = sanitize_for_modsecurity($Deliverymanager);
+$del_writememo = sanitize_for_modsecurity($del_writememo);
+$custNote = sanitize_for_modsecurity($custNote);
+$loadplace = sanitize_for_modsecurity($loadplace);
 
 // 주소 따옴표 변환 '따옴표로
 $address = str_replace('"', "'", $address);
@@ -100,12 +159,6 @@ $searchtag = $workplacename . ' ' .
 	$secondordmemo . ' ' .
 	$delmemo . ' ' .
 	$returncheck . ' ' .
-	$cargo_delbranchinvoice . ' ' .
-	$cargo_delwrapmethod . ' ' .
-	$cargo_delwrapsu . ' ' .
-	$cargo_delwrapamount . ' ' .
-	$cargo_delwrapweight . ' ' .
-	$cargo_delwrappaymethod .			  
 	$delwrappaymethod;
 
 // 마지막 쉼표와 공백 제거

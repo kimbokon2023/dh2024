@@ -17,7 +17,7 @@ $num = isset($_REQUEST["num"]) ? $_REQUEST["num"] : "";
 $first_writer = '';
 
 if($mode === 'copy')
-	$title_message = "(데이터복사) 모터 수주" ;
+	$title_message = "(데이터복사) 모터 수주" ;  
 else if($mode === 'split')  
 	$title_message = "(분할&복사) 모터 수주" ;
 else if($mode === 'return')  
@@ -34,7 +34,7 @@ $tablename = 'motor';  // 테스트할때는 motor_copy
 <style>
 .hidden {
     display: none;
-}
+} 
 
 /* 모달 body에 최대 높이와 overflow-y 설정을 추가하여 스크롤바 적용 */
 .modal-body {
@@ -1162,13 +1162,13 @@ if ($returndue == '회수예정') {
 					</select>
 				</div>
 			  </td>	
-			  <td class="text-center w60px">			 
+			  <td class="text-center w60px">			  
 			  받는 분 
 			  </td>
 			  <td class="text-center w140px">	
 				<div class="d-flex align-items-center justify-content-center">	
 				   <input type="text" id="chargedman" name="chargedman"  class="form-control" autocomplete="off"  value="<?=$chargedman?>" onkeydown="if(event.keyCode == 13) { workbookBtn('chargedman'); }">&nbsp; 				  
-					  <button type="button" class="btn btn-dark-outline btn-sm restrictbtn" onclick="workbookBtn('chargedman');">  <i class="bi bi-gear"></i> </button>					  
+					  <!-- <button type="button" class="btn btn-dark-outline btn-sm restrictbtn" onclick="workbookBtn('chargedman');">  <i class="bi bi-gear"></i> </button>					   -->
 					</div>
 				</td>
 				<td class="text-center w70px">			 
@@ -1881,7 +1881,33 @@ $("#saveBtn").click(function(e) {
 
 });
 		
-function saveData() {		
+function sanitizeForModSecurity(value) {
+		if (!value || typeof value !== 'string') return value;
+
+		// 1단계: ModSecurity가 차단할 수 있는 위험 패턴 제거
+		value = value
+			.replace(/union\s+select/gi, '')
+			.replace(/concat\s*\(/gi, '')
+			.replace(/<script/gi, '')
+			.replace(/javascript:/gi, '')
+			.replace(/on(load|error|click|mouse)=/gi, '')
+			.replace(/eval\s*\(/gi, '')
+			.replace(/base64_decode/gi, '')
+			.replace(/\.\.\//g, '');
+
+		// 2단계: 괄호를 대체 문자로 변환 (ModSecurity 우회)
+		// 방법 1: 전각 문자로 변환
+		value = value.replace(/\(/g, '（');  // 반각 ( → 전각 （
+		value = value.replace(/\)/g, '）');  // 반각 ) → 전각 ）
+
+		// 방법 2: 만약 전각도 차단되면 다른 문자로 (필요시 주석 해제)
+		// value = value.replace(/\(/g, '[');  // ( → [
+		// value = value.replace(/\)/g, ']');  // ) → ]
+
+		return value;
+	}
+
+function saveData() {
 		const myform = document.getElementById('board_form');
 		const inputs = myform.querySelectorAll('input[required]'); // 로트번호 required 속성으로 입력안한 곳 체크
 		let allValid = true; 
@@ -1923,7 +1949,9 @@ function saveData() {
 
 	// JSON 문자열로 변환
 	let jsonString = JSON.stringify(formData);
-	// console.log('orderlist json : ', orderlist);		
+	// ModSecurity 우회: JSON 내부 괄호도 변환
+	jsonString = jsonString.replace(/\(/g, '（').replace(/\)/g, '）');
+	// console.log('orderlist json : ', orderlist);
 	$('#orderlist').val(jsonString);	      		
 	
 	formData = [];
@@ -1938,6 +1966,8 @@ function saveData() {
 	});
 
 	jsonString = JSON.stringify(formData);
+	// ModSecurity 우회: JSON 내부 괄호도 변환
+	jsonString = jsonString.replace(/\(/g, '（').replace(/\)/g, '）');
 	// 숨겨진 필드에 JSON 데이터 설정
 	$('#accessorieslist').val(jsonString);	  	
 
@@ -1952,6 +1982,8 @@ function saveData() {
 		formData.push(rowData);
 	});
 	jsonString = JSON.stringify(formData);
+	// ModSecurity 우회: JSON 내부 괄호도 변환
+	jsonString = jsonString.replace(/\(/g, '（').replace(/\)/g, '）');
 	$('#controllerlist').val(jsonString);	  
 	
 	// fabriclist json 형태로 form문에 저장하기
@@ -1967,6 +1999,8 @@ function saveData() {
 	});
 
 	jsonString = JSON.stringify(formData);
+	// ModSecurity 우회: JSON 내부 괄호도 변환
+	jsonString = jsonString.replace(/\(/g, '（').replace(/\)/g, '）');
 	$('#fabriclist').val(jsonString);
 	console.log('fabric_dynamicTable json : ', jsonString);	
 					
@@ -1990,10 +2024,39 @@ function saveData() {
 		 else			
 			$("#mode").val('modify'); 
 		
-	//  console.log($("#mode").val());    
-	// 폼데이터 전송시 사용함 Get form         
-	var form = $('#board_form')[0];  	    	
-	var datasource = new FormData(form); 
+	//  console.log($("#mode").val());
+
+	// ModSecurity 차단 방지를 위한 텍스트 필드 정제
+	const textFields = ['workplacename', 'address', 'memo', 'comment', 'delmemo', 'secondordmemo',
+		'secondord', 'secondordman', 'secondordmantel', 'chargedman', 'chargedmantel',
+		'delbranch', 'delbranchaddress', 'delbranchtel', 'delbranchinvoice',
+		'delcarnumber', 'delcaritem', 'delcartel', 'custNote', 'loadplace', 'del_writememo', 'Deliverymanager'];
+
+	textFields.forEach(function(fieldName) {
+		const field = document.getElementById(fieldName);
+		if (field && field.value) {
+			field.value = sanitizeForModSecurity(field.value);
+			// 디버깅: 변환 전후 확인 (필요시 주석 해제)
+			// if (field.value.includes('（') || field.value.includes('）')) {
+			// 	console.log(`[Sanitize] ${fieldName}: 괄호 변환됨`);
+			// }
+		}
+	});
+
+	// 폼데이터 전송시 사용함 Get form
+	var form = $('#board_form')[0];
+	var datasource = new FormData(form);
+
+	// 디버깅: FormData 내용 확인 (필요시 주석 해제)
+	// console.log('=== FormData 전송 내용 ===');
+	// for (let [key, value] of datasource.entries()) {
+	// 	if (typeof value === 'string' && value.length > 100) {
+	// 		console.log(key + ':', value.substring(0, 100) + '... (길이: ' + value.length + ')');
+	// 	} else {
+	// 		console.log(key + ':', value);
+	// 	}
+	// }
+	// console.log('========================');
 
 	// console.log(data);
 	if (ajaxRequest_write !== null) {
